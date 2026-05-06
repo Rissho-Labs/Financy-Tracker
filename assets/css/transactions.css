@@ -1,0 +1,219 @@
+/* Transações — filtros e formulário (lista reutiliza .tx-list da home) */
+
+.tx-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 20px 12px;
+}
+
+.tx-filter-btn {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.tx-filter-btn.active {
+  background: linear-gradient(135deg, rgba(108, 99, 255, 0.35), rgba(59, 130, 246, 0.25));
+  border-color: rgba(108, 99, 255, 0.45);
+}
+
+.tx-form-card {
+  margin: 0 20px 20px;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tx-form-card h3 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.tx-field {
+  margin-bottom: 12px;
+}
+
+.tx-field label {
+  display: block;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 6px;
+}
+
+.tx-field input,
+.tx-field select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.25);
+  color: #fff;
+  font-size: 15px;
+  font-family: inherit;
+}
+
+.tx-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.tx-add-btn {
+  width: 100%;
+  margin-top: 4px;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  color: #fff;
+  background: linear-gradient(135deg, #6c63ff, #3b82f6);
+}
+
+.tx-item-remove {
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.35);
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 8px;
+  line-height: 0;
+}
+
+.tx-item-remove:hover {
+  color: #fb7185;
+  background: rgba(251, 113, 133, 0.12);
+}
+
+.tx-item-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tx-item-row .tx-info {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Entry Methods Tabs ── */
+.gasto-entry-methods {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  background: rgba(0,0,0,0.2);
+  padding: 4px;
+  border-radius: 14px;
+}
+html[data-theme="light"] .gasto-entry-methods {
+  background: rgba(0,0,0,0.05);
+}
+
+.entry-method-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.entry-method-btn.active {
+  background: rgba(255,255,255,0.1);
+  color: var(--text-primary);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+html[data-theme="light"] .entry-method-btn.active {
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.entry-wrap {
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+.entry-wrap.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Payment Methods Grid ── */
+.payment-methods-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.pay-btn {
+  padding: 10px 4px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05);
+  color: var(--text-secondary);
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+html[data-theme="light"] .pay-btn {
+  background: #fff;
+  border-color: rgba(0,0,0,0.1);
+}
+
+.pay-btn.active {
+  background: rgba(108, 99, 255, 0.2);
+  border-color: #6c63ff;
+  color: var(--text-primary);
+}
+html[data-theme="light"] .pay-btn.active {
+  background: rgba(108, 99, 255, 0.1);
+  color: #6c63ff;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.ft-select {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--text-primary);
+  font-size: 15px;
+  font-family: inherit;
+  appearance: none;
+}
+html[data-theme="light"] .ft-select {
+  background: #fff;
+  border-color: rgba(0,0,0,0.1);
+}

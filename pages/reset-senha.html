@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recuperar senha — Finance Tracker</title>
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+  <script src="../assets/js/ft-theme.js"></script>
+</head>
+<body>
+  <div class="bg-blobs" aria-hidden="true"><div class="blob blob-1"></div><div class="blob blob-2"></div></div>
+  <div class="phone-frame" style="max-width:400px;margin:24px auto;padding:24px;height:auto;min-height:auto;">
+    <h1 style="font-size:22px;margin-bottom:8px;">Recuperar acesso</h1>
+    <p style="color:var(--text-secondary);font-size:14px;margin-bottom:20px;line-height:1.45;">
+      Modo demonstração: nenhum e-mail é enviado. Com API, aqui seria o fluxo de “magic link” para redefinir a senha.
+    </p>
+    <label class="field-label" for="re-email" style="display:block;margin-bottom:6px;">E-mail da conta</label>
+    <input id="re-email" type="email" style="width:100%;padding:14px;border-radius:12px;border:1px solid var(--border);background:rgba(0,0,0,.2);color:inherit;margin-bottom:16px;font-size:15px;" placeholder="seu@email.com" />
+    <button type="button" id="re-send" style="width:100%;padding:14px;border:none;border-radius:14px;font-weight:700;background:linear-gradient(135deg,#6c63ff,#3b82f6);color:#fff;cursor:pointer;font-family:inherit;">
+      Enviar link de recuperação
+    </button>
+    <p id="re-msg" style="margin-top:16px;font-size:14px;color:var(--success);display:none;"></p>
+    <p style="margin-top:24px;"><a href="../index.html" style="color:var(--accent);font-weight:600;">← Voltar ao login</a></p>
+  </div>
+  <script>
+    document.getElementById('re-send').addEventListener('click', function () {
+      var em = document.getElementById('re-email').value.trim();
+      if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
+        alert('Informe um e-mail válido.');
+        return;
+      }
+      localStorage.setItem('ft_reset_mock_sent', JSON.stringify({ email: em, at: new Date().toISOString() }));
+      var m = document.getElementById('re-msg');
+      m.style.display = 'block';
+      m.textContent = 'Se existir uma conta, enviaremos um link para ' + em + ' (simulação — verifique o backend depois).';
+    });
+  </script>
+</body>
+</html>

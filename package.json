@@ -1,0 +1,21 @@
+{
+  "name": "finance-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Finance Tracker — interface web + shell Android (Capacitor)",
+  "scripts": {
+    "www:prepare": "node scripts/prepare-www.mjs",
+    "start": "npm run www:prepare && serve www -l 5050",
+    "serve": "npm start",
+    "cap:sync": "npm run www:prepare && cap sync",
+    "cap:open": "cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.4.4",
+    "@capacitor/core": "^7.4.4"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.4.4",
+    "serve": "^14.2.5"
+  }
+}

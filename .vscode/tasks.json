@@ -1,0 +1,14 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Serve Finance Tracker (porta 5050)",
+      "type": "npm",
+      "script": "start",
+      "path": ".",
+      "problemMatcher": [],
+      "isBackground": true,
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    }
+  ]
+}

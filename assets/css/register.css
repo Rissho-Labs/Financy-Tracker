@@ -1,0 +1,159 @@
+/* ── Register screen extras ─────────────────────────────────── */
+
+.register-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px 6px;
+  flex-shrink: 0;
+}
+.back-btn {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-secondary);
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  text-decoration: none;
+  transition: background var(--duration), transform 180ms var(--ease-spring);
+  -webkit-tap-highlight-color: transparent;
+}
+.back-btn:hover { background: rgba(255,255,255,0.1); transform: scale(1.08); }
+.back-btn:active { transform: scale(0.92); }
+
+.topbar-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.2px;
+}
+
+.register-card { padding-top: 24px; }
+
+/* ── Username prefix ────────────────────────────────────────── */
+.field-prefix {
+  position: absolute;
+  left: 42px;
+  font-size: 15px;
+  color: var(--accent);
+  font-weight: 600;
+  pointer-events: none;
+  z-index: 1;
+  line-height: 1;
+}
+.field-input--prefixed { padding-left: 58px !important; }
+
+/* ── Username availability status ───────────────────────────── */
+.field-status {
+  position: absolute;
+  right: 12px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  transition: opacity 0.2s;
+  opacity: 0;
+}
+.field-status.available {
+  opacity: 1;
+  background: rgba(48,209,88,0.2);
+  color: #30D158;
+}
+.field-status.taken {
+  opacity: 1;
+  background: rgba(255,69,58,0.15);
+  color: var(--danger);
+}
+
+/* ── Password strength ──────────────────────────────────────── */
+.password-strength {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  min-height: 16px;
+}
+.strength-bars {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+.strength-bar {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.08);
+  transition: background 0.3s var(--ease-smooth);
+}
+.strength-bar.weak   { background: var(--danger); }
+.strength-bar.fair   { background: #F59E0B; }
+.strength-bar.good   { background: #3B82F6; }
+.strength-bar.strong { background: #30D158; }
+
+.strength-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1px;
+  min-width: 52px;
+  text-align: right;
+  transition: color 0.3s;
+}
+.strength-label.weak   { color: var(--danger); }
+.strength-label.fair   { color: #F59E0B; }
+.strength-label.good   { color: #3B82F6; }
+.strength-label.strong { color: #30D158; }
+
+/* ── Terms checkbox ─────────────────────────────────────────── */
+.terms-row {
+  margin: 4px 0 16px;
+}
+.custom-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.custom-checkbox input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0; height: 0;
+  pointer-events: none;
+}
+.checkbox-box {
+  width: 20px; height: 20px;
+  min-width: 20px;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  background: rgba(255,255,255,0.04);
+  display: flex; align-items: center; justify-content: center;
+  transition: background var(--duration), border-color var(--duration), transform 180ms var(--ease-spring);
+  margin-top: 1px;
+}
+.checkbox-box svg { opacity: 0; transition: opacity 0.2s; }
+.custom-checkbox input:checked ~ .checkbox-box {
+  background: var(--accent);
+  border-color: var(--accent);
+  transform: scale(1.05);
+}
+.custom-checkbox input:checked ~ .checkbox-box svg { opacity: 1; }
+.custom-checkbox:hover .checkbox-box { border-color: var(--accent); }
+
+.terms-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 400;
+  line-height: 1.5;
+}
+.terms-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+.terms-link:hover { opacity: 0.75; }
+
+/* ── Animation ──────────────────────────────────────────────── */
+.register-card {
+  animation: cardReveal 0.7s var(--ease-spring) 0.1s both;
+}

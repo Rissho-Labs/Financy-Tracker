@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <meta name="description" content="Finance Tracker — Cartões de Crédito." />
+  <title>Finance Tracker — Cartões</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+  <link rel="stylesheet" href="../assets/css/home.css" />
+  <link rel="stylesheet" href="../assets/css/cards.css" />
+  <link rel="stylesheet" href="../assets/css/goals.css" />
+  <script src="../assets/js/ft-theme.js"></script>
+</head>
+<body>
+
+  <div class="bg-blobs" aria-hidden="true">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2" style="background: radial-gradient(circle, rgba(16,185,129,0.15) 0%, transparent 70%);"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <div class="phone-frame" role="main" id="app">
+
+    <div class="status-bar" aria-hidden="true">
+      <span class="status-time" id="status-clock">12:00</span>
+      <div class="status-icons">
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="none"><rect x="0" y="4" width="3" height="7" rx="1" fill="white" opacity="0.4"/><rect x="4.5" y="2.5" width="3" height="8.5" rx="1" fill="white" opacity="0.6"/><rect x="9" y="0.5" width="3" height="10.5" rx="1" fill="white"/></svg>
+        <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="3.5" stroke="white" stroke-opacity="0.35"/><rect x="2" y="2" width="17" height="8" rx="2" fill="white"/></svg>
+      </div>
+    </div>
+    <div class="dynamic-island" aria-hidden="true"></div>
+
+    <header class="home-header">
+      <div class="header-left">
+        <h1 class="user-name" style="font-size: 28px;">Cartões</h1>
+      </div>
+      <div class="header-right" style="display:flex;align-items:center;gap:8px;">
+        <button type="button" class="notification-btn" id="notification-btn" aria-label="Avisos">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+          </svg>
+        </button>
+        <button class="add-card-btn-top" aria-label="Adicionar Cartão">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="home-scroll">
+      
+      <!-- ── CARDS CAROUSEL SECTION ──────────────────────────── -->
+      <section class="cards-display-section" style="margin-top: 10px;">
+        
+        <div class="carousel-container" id="cc-carousel">
+          <div class="cards-track" id="cc-track" role="list">
+            
+            <!-- Nubank Card -->
+            <div class="cc-card active" id="cc-0" data-index="0" role="listitem">
+              <div class="cc-card-inner" style="--card-bg: linear-gradient(135deg, #8B5CF6, #6D28D9);">
+                <div class="cc-card-top">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2" ry="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2" stroke-linecap="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                </div>
+                <div class="cc-card-middle">
+                  <span class="cc-card-name">Ricardo Santos</span>
+                </div>
+                <div class="cc-card-bottom">
+                  <span class="cc-card-number">**** **** **** 4321</span>
+                  <div class="cc-card-brand">
+                    <svg width="36" height="24" viewBox="0 0 54 36"><circle cx="21" cy="18" r="15" fill="rgba(255,255,255,0.4)"/><circle cx="33" cy="18" r="15" fill="rgba(255,255,255,0.2)"/></svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Inter Card -->
+            <div class="cc-card" id="cc-1" data-index="1" role="listitem">
+              <div class="cc-card-inner" style="--card-bg: linear-gradient(135deg, #F97316, #EA580C);">
+                <div class="cc-card-top">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2" ry="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2" stroke-linecap="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                </div>
+                <div class="cc-card-middle">
+                  <span class="cc-card-name">Ricardo Santos</span>
+                </div>
+                <div class="cc-card-bottom">
+                  <span class="cc-card-number">**** **** **** 9087</span>
+                  <div class="cc-card-brand">
+                    <svg width="36" height="24" viewBox="0 0 54 36"><circle cx="21" cy="18" r="15" fill="rgba(255,255,255,0.4)"/><circle cx="33" cy="18" r="15" fill="rgba(255,255,255,0.2)"/></svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Itaú Card -->
+            <div class="cc-card" id="cc-2" data-index="2" role="listitem">
+              <div class="cc-card-inner" style="--card-bg: linear-gradient(135deg, #1F2937, #111827);">
+                <div class="cc-card-top">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2" ry="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2" stroke-linecap="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                </div>
+                <div class="cc-card-middle">
+                  <span class="cc-card-name">Ricardo Santos</span>
+                </div>
+                <div class="cc-card-bottom">
+                  <span class="cc-card-number">**** **** **** 1122</span>
+                  <div class="cc-card-brand">
+                    <svg width="36" height="24" viewBox="0 0 54 36"><circle cx="21" cy="18" r="15" fill="rgba(255,255,255,0.4)"/><circle cx="33" cy="18" r="15" fill="rgba(255,255,255,0.2)"/></svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="card-dots" id="cc-dots" style="margin-top: 16px; margin-bottom: 24px;">
+          <button class="card-dot active" data-dot="0"></button>
+          <button class="card-dot" data-dot="1"></button>
+          <button class="card-dot" data-dot="2"></button>
+        </div>
+
+        <!-- Card details body -->
+        <div class="cc-details-container">
+          <div class="cc-details">
+            <p class="cc-label">Fatura Atual</p>
+            <h2 class="cc-amount" id="cc-invoice-amount">R$ 1.450,20</h2>
+            
+            <!-- Available Limit Bar -->
+            <div class="cc-limit-wrap">
+              <div class="cc-limit-text">
+                <span>Limite disponível</span>
+                <span class="cc-limit-val" id="cc-limit-available">R$ 3.550,00</span>
+              </div>
+              <div class="cc-limit-bar-bg">
+                <div class="cc-limit-bar-fill" id="cc-limit-fill" style="width: 29%;"></div>
+              </div>
+            </div>
+
+            <!-- Dates -->
+            <div class="cc-dates">
+              <div class="cc-date-box">
+                <span class="cc-date-icon">📅</span>
+                <div>
+                  <span class="cc-date-lbl">Fechamento</span>
+                  <span class="cc-date-val">15 Mai</span>
+                </div>
+              </div>
+              <div class="cc-date-box">
+                <span class="cc-date-icon" style="color:var(--danger)">⚠️</span>
+                <div>
+                  <span class="cc-date-lbl">Vencimento</span>
+                  <span class="cc-date-val">22 Mai</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ── CARD TRANSACTIONS ──────────────────────────────── -->
+      <section class="transactions-section">
+        <div class="section-title-row">
+          <h2 class="section-title">Lançamentos da Fatura</h2>
+        </div>
+
+        <ul class="tx-list">
+          <li class="tx-item">
+            <div class="tx-icon-wrap" style="--tx-color:#F59E0B20;--tx-stroke:#F59E0B;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--tx-stroke)" stroke-width="2" stroke-linecap="round"><path d="M3 2h13l4 4v14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/></svg>
+            </div>
+            <div class="tx-info">
+              <span class="tx-name">Restaurante Madero</span>
+              <span class="tx-date">Ontem, 20:45</span>
+            </div>
+            <div class="tx-amount-wrap">
+              <span class="tx-amount negative">R$ 145,90</span>
+              <span class="tx-installments">1/1</span>
+            </div>
+          </li>
+          
+          <li class="tx-item">
+            <div class="tx-icon-wrap" style="--tx-color:#6C63FF20;--tx-stroke:#6C63FF;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--tx-stroke)" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            </div>
+            <div class="tx-info">
+              <span class="tx-name">Amazon Brasil</span>
+              <span class="tx-date">02 Mai, 10:30</span>
+            </div>
+            <div class="tx-amount-wrap">
+              <span class="tx-amount negative">R$ 89,90</span>
+              <span class="tx-installments">2/3</span>
+            </div>
+          </li>
+
+          <li class="tx-item">
+            <div class="tx-icon-wrap" style="--tx-color:#10B98120;--tx-stroke:#10B981;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--tx-stroke)" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <div class="tx-info">
+              <span class="tx-name">Pagamento de Fatura</span>
+              <span class="tx-date">10 Abr, 09:00</span>
+            </div>
+            <div class="tx-amount-wrap">
+              <span class="tx-amount positive">+ R$ 1.200,00</span>
+            </div>
+          </li>
+        </ul>
+      </section>
+
+      <div style="height: 100px;"></div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <nav class="bottom-nav" aria-label="Navegação principal">
+      <button class="nav-item" aria-label="Início" id="nav-home" onclick="window.location.href='home.html'">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9L12 2l9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Início</span>
+      </button>
+      <button class="nav-item active" aria-label="Cartões" aria-current="page" id="nav-wallet" onclick="window.location.href='cards.html'">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
+        <span>Cartões</span>
+        <div class="nav-indicator" aria-hidden="true"></div>
+      </button>
+      <button class="nav-item" aria-label="Metas" id="nav-tx" onclick="window.location.href='goals.html'">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+        <span>Metas</span>
+      </button>
+      <button class="nav-item" aria-label="Perfil" id="nav-profile" onclick="window.location.href='profile.html'">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Perfil</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <div id="add-card-modal" class="goal-edit-backdrop" aria-hidden="true">
+    <div class="goal-edit-modal" role="dialog" aria-labelledby="add-card-title">
+      <h2 id="add-card-title" style="margin:0 0 14px;font-size:18px;">Novo cartão</h2>
+      <label class="field-label">Nome no cartão</label>
+      <input id="cc-add-name" type="text" style="width:100%;margin-bottom:12px;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);color:inherit;" maxlength="48" />
+      <label class="field-label">Final do número (4 dígitos)</label>
+      <input id="cc-add-last4" type="text" inputmode="numeric" maxlength="4" style="width:100%;margin-bottom:12px;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);color:inherit;" />
+      <label class="field-label">Bandeira</label>
+      <select id="cc-add-brand" style="width:100%;margin-bottom:16px;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);color:inherit;">
+        <option value="visa">Visa</option>
+        <option value="master">Mastercard</option>
+        <option value="elo">Elo</option>
+        <option value="amex">American Express</option>
+        <option value="other">Outra</option>
+      </select>
+      <button type="button" class="goal-submit" id="cc-add-save">Adicionar</button>
+      <button type="button" class="ft-sheet__close" id="cc-add-cancel" style="margin-top:10px;">Cancelar</button>
+    </div>
+  </div>
+
+  <script src="../assets/js/ft-session.js"></script>
+  <script src="../assets/js/ft-cards.js"></script>
+  <script src="../assets/js/notification-panel.js"></script>
+  <script src="../assets/js/cards.js"></script>
+</body>
+</html>

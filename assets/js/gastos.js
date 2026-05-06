@@ -1,0 +1,219 @@
+(function () {
+  'use strict';
+
+  if (typeof FTSession !== 'undefined') {
+    if (!FTSession.isLoggedIn()) {
+      window.location.replace('../index.html');
+      return;
+    }
+    if (!FTSession.isOnboardingDone()) {
+      window.location.replace('onboarding.html');
+      return;
+    }
+  }
+
+  const $ = (id) => document.getElementById(id);
+  function haptic(type = 'light') {
+    if (navigator.vibrate) {
+      const p = { light: [8], medium: [18], strong: [30] };
+      navigator.vibrate(p[type] || [8]);
+    }
+  }
+
+  (function clock() {
+    const el = $('status-clock');
+    if (!el) return;
+    const t = () => (el.textContent = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }));
+    t();
+    setInterval(t, 10000);
+  })();
+
+  const fmtBRL = (cents) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cents / 100);
+  const fmtWhen = (iso) => {
+    const d = new Date(iso);
+    return Number.isNaN(d.getTime()) ? '—' : d.toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+  };
+
+  function parseCents(str) {
+    const n = parseFloat(String(str).trim().replace(/\./g, '').replace(',', '.'));
+    return Number.isFinite(n) && n > 0 ? Math.round(n * 100) : NaN;
+  }
+
+  const svgOut = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--tx-stroke)" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M19 9H5a2 2 0 0 0 0 4h14a2 2 0 0 1 0 4H6"/></svg>`;
+
+  function renderList() {
+    const ul = $('gasto-list');
+    const empty = $('gasto-empty');
+    if(!ul) return;
+    const list = typeof FTTransactions !== 'undefined' ? FTTransactions.getAll() : [];
+    ul.innerHTML = '';
+    if (!list.length) {
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+    list.forEach((t) => {
+      const li = document.createElement('li');
+      li.className = 'tx-item tx-item-row';
+      
+      let extraInfo = '';
+      if (t.paymentMethod === 'credito_parcelado') extraInfo = ` • ${t.installments}x no Crédito`;
+      else if (t.paymentMethod === 'credito') extraInfo = ' • Crédito';
+      else if (t.paymentMethod === 'pix') extraInfo = ' • Pix';
+
+      li.innerHTML =
+        '<div class="tx-icon-wrap" style="--tx-color:#6C63FF20;--tx-stroke:#6C63FF;">' +
+        svgOut +
+        '</div><div class="tx-info"><span class="tx-name"></span><span class="tx-date" style="font-size:11px; opacity:0.7"></span></div>' +
+        '<span class="tx-amount negative">- ' +
+        fmtBRL(t.amountCents) +
+        '</span>' +
+        '<button type="button" class="tx-item-remove" data-rm="' +
+        t.id +
+        '" aria-label="Remover"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>';
+      
+      li.querySelector('.tx-name').textContent = t.name;
+      li.querySelector('.tx-date').textContent = fmtWhen(t.at) + extraInfo;
+      ul.appendChild(li);
+    });
+    ul.querySelectorAll('[data-rm]').forEach((b) => {
+      b.addEventListener('click', () => {
+        haptic();
+        FTTransactions.remove(b.getAttribute('data-rm'));
+        renderList();
+      });
+    });
+  }
+
+  // ── Entry Methods Tabs ──
+  const methodBtns = document.querySelectorAll('.entry-method-btn');
+  methodBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      haptic();
+      methodBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const method = btn.getAttribute('data-method');
+      document.querySelectorAll('.entry-wrap').forEach(w => w.classList.remove('active'));
+      $(`gasto-${method}-wrap`).classList.add('active');
+    });
+  });
+
+  // ── Payment Methods ──
+  let selectedPayment = 'pix';
+  const payBtns = document.querySelectorAll('.pay-btn');
+  const cardWrap = $('card-select-wrap');
+  const instWrap = $('installments-wrap');
+  
+  payBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      haptic();
+      payBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedPayment = btn.getAttribute('data-pay');
+      
+      if (selectedPayment === 'credito' || selectedPayment === 'credito_parcelado') {
+        cardWrap.classList.remove('hidden');
+      } else {
+        cardWrap.classList.add('hidden');
+      }
+
+      if (selectedPayment === 'credito_parcelado') {
+        instWrap.classList.remove('hidden');
+      } else {
+        instWrap.classList.add('hidden');
+      }
+    });
+  });
+
+  // ── Populate Cards ──
+  const cardSelect = $('gasto-card');
+  if (cardSelect && typeof FTCards !== 'undefined') {
+    const cards = FTCards.getAll();
+    cardSelect.innerHTML = '';
+    if (cards.length === 0) {
+      cardSelect.innerHTML = '<option value="">Sem cartões cadastrados</option>';
+    } else {
+      cards.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = `${c.name} (final ${c.last4})`;
+        cardSelect.appendChild(opt);
+      });
+    }
+  }
+
+  // ── Manual Form Submit ──
+  $('gasto-add-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = $('gasto-name').value.trim();
+    const cents = parseCents($('gasto-amount').value);
+    const cardId = cardSelect?.value || '';
+    const installments = $('gasto-installments')?.value || 1;
+
+    if (!name || !Number.isFinite(cents)) {
+      haptic('strong');
+      return;
+    }
+    if ((selectedPayment === 'credito' || selectedPayment === 'credito_parcelado') && !cardId) {
+      alert("Por favor, selecione ou cadastre um cartão de crédito.");
+      return;
+    }
+
+    haptic('medium');
+    FTTransactions.add({ 
+      name, 
+      amountCents: cents, 
+      paymentMethod: selectedPayment,
+      cardId: cardId,
+      installments: installments
+    });
+    
+    // Reset
+    $('gasto-name').value = '';
+    $('gasto-amount').value = '';
+    if($('gasto-installments')) $('gasto-installments').value = 2;
+    renderList();
+  });
+
+  // ── Mock Scanners ──
+  function simulateScanFill(name, val) {
+    const btn = document.querySelector('.entry-method-btn[data-method="manual"]');
+    btn.click();
+    $('gasto-name').value = name;
+    $('gasto-amount').value = val;
+    $('gasto-amount').focus();
+    haptic('medium');
+  }
+
+  $('simulate-qr-btn')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    haptic();
+    const btn = e.target;
+    const oldText = btn.textContent;
+    btn.textContent = 'Lendo...';
+    btn.style.opacity = 0.7;
+    setTimeout(() => {
+      btn.textContent = oldText;
+      btn.style.opacity = 1;
+      simulateScanFill('Nota Fiscal (Supermercado)', '254,90');
+    }, 1200);
+  });
+
+  $('gasto-file-input')?.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+      const fileWrap = $('gasto-file-wrap');
+      const p = fileWrap.querySelector('p');
+      const oldText = p.textContent;
+      p.textContent = 'Processando arquivo: ' + e.target.files[0].name;
+      haptic();
+      setTimeout(() => {
+        p.textContent = oldText;
+        e.target.value = ''; // clear
+        simulateScanFill('Importado do Arquivo', '109,50');
+      }, 1500);
+    }
+  });
+
+  renderList();
+})();

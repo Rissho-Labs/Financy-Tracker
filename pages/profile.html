@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <meta name="description" content="Finance Tracker — Seu perfil e amizades." />
+  <title>Finance Tracker — Perfil</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+  <link rel="stylesheet" href="../assets/css/home.css" />
+  <link rel="stylesheet" href="../assets/css/profile.css" />
+  <link rel="stylesheet" href="../assets/css/goals.css" />
+  <script src="../assets/js/ft-theme.js"></script>
+</head>
+<body>
+
+  <!-- Background blobs -->
+  <div class="bg-blobs" aria-hidden="true">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2" style="background: radial-gradient(circle, rgba(234,88,12,0.15) 0%, transparent 70%); left: 80%; top: 20%;"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <div class="phone-frame" role="main" id="app">
+
+    <!-- Status bar -->
+    <div class="status-bar" aria-hidden="true">
+      <span class="status-time" id="status-clock">12:00</span>
+      <div class="status-icons">
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="none"><rect x="0" y="4" width="3" height="7" rx="1" fill="white" opacity="0.4"/><rect x="4.5" y="2.5" width="3" height="8.5" rx="1" fill="white" opacity="0.6"/><rect x="9" y="0.5" width="3" height="10.5" rx="1" fill="white"/></svg>
+        <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="3.5" stroke="white" stroke-opacity="0.35"/><rect x="2" y="2" width="17" height="8" rx="2" fill="white"/></svg>
+      </div>
+    </div>
+    
+    <div class="dynamic-island" aria-hidden="true"></div>
+
+    <!-- Header -->
+    <header class="home-header" style="border-bottom: none; background: transparent; backdrop-filter: none;">
+      <div class="header-left">
+        <h1 class="user-name" style="font-size: 28px;">Perfil</h1>
+      </div>
+      <div class="header-right">
+        <button class="notification-btn" aria-label="Notificações" id="notification-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          <span class="notif-badge" aria-label="1 nova notificação">1</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Scrollable content -->
+    <div class="home-scroll profile-scroll">
+      
+      <!-- User ID Card -->
+      <section class="profile-header">
+        <div class="profile-avatar-wrap">
+          <div class="profile-avatar">
+            <span class="avatar-initials" id="profile-initials">R</span>
+          </div>
+          <button class="edit-avatar-btn" aria-label="Alterar foto">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          </button>
+        </div>
+        
+        <h2 class="profile-name" id="profile-name">Ricardo Santos</h2>
+        
+        <!-- Discord Style Tag -->
+        <div class="profile-tag-wrap" id="copy-tag-btn" role="button" tabindex="0" aria-label="Copiar ID do usuário">
+          <span class="profile-username" id="profile-username">@ricardo</span>
+          <span class="profile-discriminator" id="profile-discriminator">#0000</span>
+          <div class="tag-copy-icon">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </div>
+        </div>
+
+        <div class="profile-actions">
+          <button class="p-action-btn" id="share-link-btn">
+            <div class="p-action-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></div>
+            <span>Compartilhar</span>
+          </button>
+          <button class="p-action-btn qr-btn" id="show-qr-btn">
+            <div class="p-action-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
+            <span>QR Code</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Connection Requests (Mock) -->
+      <section class="menu-section">
+        <h3 class="menu-section-title">Pendências</h3>
+        <ul class="menu-list">
+          <li class="menu-item request-item">
+            <div class="request-avatar">M</div>
+            <div class="request-info">
+              <span class="req-title">Mariana solicitou amizade</span>
+              <span class="req-subtitle">@mari#4321</span>
+            </div>
+            <div class="request-actions">
+              <button class="req-btn accept" aria-label="Aceitar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+              <button class="req-btn decline" aria-label="Recusar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            </div>
+          </li>
+        </ul>
+      </section>
+
+      <section class="menu-section">
+        <h3 class="menu-section-title">Conta (demonstração)</h3>
+        <div class="account-block" style="padding: 0 4px 8px;">
+          <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;line-height:1.4;">
+            Dados mockados no dispositivo. Com backend, haverá validação por e-mail antes do primeiro acesso.
+          </p>
+          <label class="field-label" style="display:block;margin-bottom:4px;font-size:12px;color:var(--text-secondary);">E-mail</label>
+          <p id="profile-email-display" style="margin:0 0 14px;font-weight:600;font-size:15px;">—</p>
+          <label class="field-label" style="display:block;margin-bottom:4px;font-size:12px;color:var(--text-secondary);">Senha</label>
+          <p id="profile-pw-mask" style="margin:0 0 14px;letter-spacing:2px;">••••••••</p>
+          <button type="button" class="logout-btn" id="btn-change-password" style="margin-bottom:10px;background:rgba(108,99,255,.25);border:1px solid rgba(108,99,255,.4);">
+            Alterar senha
+          </button>
+          <div>
+            <a href="reset-senha.html" style="color:var(--accent);font-weight:600;text-decoration:none;font-size:14px;">Esqueci minha senha (e-mail)</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Preferences Menu -->
+      <section class="menu-section">
+        <h3 class="menu-section-title">Preferências</h3>
+        <ul class="menu-list">
+          <li class="menu-item no-hover">
+            <div class="menu-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></div>
+            <div class="menu-text">Modo Escuro</div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked id="dark-mode-toggle">
+              <span class="toggle-slider"></span>
+            </label>
+          </li>
+          <li class="menu-item no-hover">
+            <div class="menu-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+            <div class="menu-text">Bloqueio por Biometria</div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="bio-toggle">
+              <span class="toggle-slider"></span>
+            </label>
+          </li>
+        </ul>
+      </section>
+      
+      <!-- Logout -->
+      <button class="logout-btn" id="logout-btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sair do aplicativo
+      </button>
+
+      <div style="height: 100px;" aria-hidden="true"></div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <nav class="bottom-nav" aria-label="Navegação principal">
+      <button class="nav-item" aria-label="Início" id="nav-home" onclick="window.location.href='home.html'">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9L12 2l9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Início</span>
+      </button>
+      <button class="nav-item" aria-label="Cartões" id="nav-wallet" onclick="window.location.href='cards.html'">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
+        <span>Cartões</span>
+      </button>
+      <button class="nav-item" aria-label="Metas" id="nav-tx" onclick="window.location.href='goals.html'">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+        <span>Metas</span>
+      </button>
+      <button class="nav-item active" aria-label="Perfil" aria-current="page" id="nav-profile" onclick="window.location.href='profile.html'">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Perfil</span>
+        <div class="nav-indicator" aria-hidden="true"></div>
+      </button>
+    </nav>
+
+  </div>
+
+  <div id="pw-modal" class="goal-edit-backdrop" style="z-index:9999;">
+    <div class="goal-edit-modal" role="dialog" aria-labelledby="pw-modal-title">
+      <h2 id="pw-modal-title" style="margin:0 0 12px;font-size:18px;">Alterar senha</h2>
+      <label class="field-label">Senha atual</label>
+      <input id="pw-old" type="password" style="width:100%;margin-bottom:10px;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.2);color:inherit;" />
+      <label class="field-label">Nova senha</label>
+      <input id="pw-new" type="password" style="width:100%;margin-bottom:10px;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.2);color:inherit;" />
+      <label class="field-label">Confirmar</label>
+      <input id="pw-new2" type="password" style="width:100%;margin-bottom:14px;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.2);color:inherit;" />
+      <button type="button" class="goal-submit" id="pw-save">Guardar</button>
+      <button type="button" class="ft-sheet__close" id="pw-cancel" style="margin-top:10px;">Cancelar</button>
+    </div>
+  </div>
+
+  <script src="../assets/js/ft-session.js"></script>
+  <script src="../assets/js/notification-panel.js"></script>
+  <script src="../assets/js/profile.js"></script>
+</body>
+</html>
