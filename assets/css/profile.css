@@ -9,6 +9,7 @@
 .profile-header-bar {
   border-bottom: none;
   background: transparent;
+  -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
 
