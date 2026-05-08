@@ -622,7 +622,7 @@ html[data-theme="light"] .phone-frame {
 .ft-sheet {
   position: absolute;
   inset: 0;
-  z-index: 9998;
+  z-index: 10020;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.25s var(--ease-smooth);
@@ -670,7 +670,7 @@ html[data-theme="light"] .ft-sheet__panel {
 #expense-sheet.ft-sheet {
   position: absolute;
   inset: 0;
-  z-index: 10010;
+  z-index: 10030;
 }
 #expense-sheet .ft-sheet__panel {
   height: min(78vh, 620px);

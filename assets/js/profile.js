@@ -13,6 +13,22 @@
   }
 
   const $ = (id) => document.getElementById(id);
+  const LOG_NS = '[Profile UI]';
+
+  function logUiError(message, detail) {
+    try {
+      console.warn(LOG_NS, message, detail || '');
+    } catch (e) {
+      /* noop */
+    }
+  }
+
+  window.addEventListener('error', (evt) => {
+    logUiError('window.error', evt && evt.message ? evt.message : evt);
+  });
+  window.addEventListener('unhandledrejection', (evt) => {
+    logUiError('unhandledrejection', evt && evt.reason ? evt.reason : evt);
+  });
   function haptic(t = 'light') {
     if (navigator.vibrate) {
       const p = { light: [8], medium: [18], error: [20, 50, 20] };
@@ -109,16 +125,38 @@
     });
   });
 
+  let lastFocusEl = null;
+
+  function openPwModal() {
+    const modal = $('pw-modal');
+    if (!modal) return;
+    lastFocusEl = document.activeElement;
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+    setTimeout(() => {
+      $('pw-old')?.focus();
+    }, 0);
+  }
+
+  function closePwModal() {
+    const modal = $('pw-modal');
+    if (!modal) return;
+    if (lastFocusEl && typeof lastFocusEl.focus === 'function') {
+      lastFocusEl.focus();
+    }
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+
   $('btn-change-password')?.addEventListener('click', () => {
     haptic('light');
-    $('pw-modal')?.classList.add('open');
-    $('pw-old')?.focus();
+    openPwModal();
   });
   $('pw-cancel')?.addEventListener('click', () => {
-    $('pw-modal')?.classList.remove('open');
+    closePwModal();
   });
   $('pw-modal')?.addEventListener('click', (e) => {
-    if (e.target.id === 'pw-modal') $('pw-modal').classList.remove('open');
+    if (e.target.id === 'pw-modal') closePwModal();
   });
   $('pw-save')?.addEventListener('click', () => {
     const user = FTSession.parseUser();
@@ -145,7 +183,7 @@
     $('pw-old').value = '';
     $('pw-new').value = '';
     $('pw-new2').value = '';
-    $('pw-modal').classList.remove('open');
+    closePwModal();
     haptic('medium');
     alert('Senha atualizada (demonstração local).');
   });
