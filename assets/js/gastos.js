@@ -187,8 +187,10 @@
 
       if (selectedPayment === 'credito_parcelado') {
         instWrap.classList.remove('hidden');
+        sidebarRoot?.classList.add('is-parcelado');
       } else {
         instWrap.classList.add('hidden');
+        sidebarRoot?.classList.remove('is-parcelado');
       }
     });
   });

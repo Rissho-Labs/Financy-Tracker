@@ -166,7 +166,7 @@ html[data-theme="light"] .entry-method-btn.active {
 /* ── Payment Methods Grid ── */
 .payment-methods-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
   margin-top: 6px;
 }

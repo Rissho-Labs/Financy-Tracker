@@ -247,10 +247,8 @@ entryMethodBtns.forEach((btn) => {
       if (!wrap) return;
       if (m === method) {
         wrap.classList.add('active');
-        wrap.classList.remove('hidden');
       } else {
         wrap.classList.remove('active');
-        wrap.classList.add('hidden');
       }
     });
   });

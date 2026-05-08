@@ -6,7 +6,7 @@
   "scripts": {
     "www:prepare": "node scripts/prepare-www.mjs",
     "start": "node scripts/start-dev.mjs",
-    "serve": "serve www -l 5050",
+    "serve": "serve www -l 5050 --no-etag",
     "cap:sync": "npm run www:prepare && cap sync",
     "cap:open": "cap open android"
   },

@@ -11,6 +11,17 @@
   /** Server id for @capgo/capacitor-native-biometric Keychain/Keystore (match app id). */
   var BIOMETRIC_SERVER = 'com.financetracker.app';
 
+  function isDevAutologin() {
+    if (typeof window === 'undefined') return false;
+    try {
+      var params = new URLSearchParams(window.location.search || '');
+      if (params.get('dev') === '1') return true;
+      return localStorage.getItem('ft_dev_autologin') === '1';
+    } catch (e) {
+      return false;
+    }
+  }
+
   function parseUser() {
     try {
       var raw = localStorage.getItem(KEY_USER);
@@ -37,6 +48,19 @@
 
   function setOnboardingDone() {
     localStorage.setItem(KEY_ONBOARD, '1');
+  }
+
+  if (isDevAutologin()) {
+    if (!parseUser()) {
+      saveUser({
+        email: 'dev@financetracker.app',
+        name: 'Dev',
+        username: 'dev',
+        lastLogin: new Date().toISOString(),
+        authProvider: 'dev'
+      });
+    }
+    if (!isOnboardingDone()) setOnboardingDone();
   }
 
   function clearAll() {

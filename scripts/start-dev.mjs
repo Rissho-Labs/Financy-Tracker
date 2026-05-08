@@ -25,7 +25,7 @@ function runPrepare() {
 }
 
 function startServer() {
-  serverProc = spawn(isWin ? 'npx serve www -l 5050' : 'npx serve www -l 5050', {
+  serverProc = spawn(isWin ? 'npx serve www -l 5050 --no-etag' : 'npx serve www -l 5050 --no-etag', {
     cwd: root,
     stdio: 'inherit',
     shell: true,

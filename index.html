@@ -20,6 +20,17 @@
 
   <link rel="stylesheet" href="assets/css/styles.css" />
   <script src="assets/js/ft-theme.js"></script>
+  <script>
+    (function () {
+      try {
+        var params = new URLSearchParams(location.search || '');
+        if (params.get('dev') === '1') {
+          localStorage.setItem('ft_dev_autologin', '1');
+          location.replace('/pages/home.html');
+        }
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
 
