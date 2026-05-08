@@ -1,5 +1,21 @@
 /* ── Profile Screen ────────────────────────────────────────── */
 
+.profile-blob-2 {
+  background: radial-gradient(circle, rgba(234,88,12,0.15) 0%, transparent 70%);
+  left: 80%;
+  top: 20%;
+}
+
+.profile-header-bar {
+  border-bottom: none;
+  background: transparent;
+  backdrop-filter: none;
+}
+
+.profile-title {
+  font-size: 28px;
+}
+
 .profile-scroll {
   padding-top: 10px;
 }
@@ -222,6 +238,52 @@
   transition: .4s cubic-bezier(0.34, 1.56, 0.64, 1);
   border-radius: 50%;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* ── Account block helpers ─────────────────────────────────── */
+.account-block--compact {
+  padding: 0 4px 8px;
+}
+
+.account-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.account-label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.account-value {
+  margin: 0 0 14px;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.account-pw-mask {
+  letter-spacing: 2px;
+}
+
+.account-change-btn {
+  margin-bottom: 10px;
+  background: rgba(108,99,255,.25);
+  border: 1px solid rgba(108,99,255,.4);
+}
+
+.account-reset-link {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.profile-scroll-spacer {
+  height: 100px;
 }
 .toggle-switch input:checked + .toggle-slider { background-color: #30D158; }
 .toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); }
