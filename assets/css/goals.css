@@ -66,6 +66,9 @@ html[data-theme="light"] .goal-card {
   border-radius: 16px;
   border: 1px dashed rgba(108, 99, 255, 0.35);
   background: rgba(108, 99, 255, 0.06);
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 .goal-new-card h3 {
   margin: 0 0 12px;
@@ -76,6 +79,8 @@ html[data-theme="light"] .goal-card {
 }
 .goal-new-card input {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   box-sizing: border-box;
   padding: 12px;
   border-radius: 12px;
@@ -84,14 +89,52 @@ html[data-theme="light"] .goal-card {
   color: var(--text-primary);
   font-family: inherit;
 }
+.goal-new-card input.goal-input-value {
+  min-height: 48px;
+  padding: 14px 12px;
+  font-size: 16px;
+}
+.goal-new-card input.goal-input-date {
+  min-height: 44px;
+  padding: 12px 10px;
+  font-size: 16px;
+  color-scheme: dark;
+}
+html[data-theme="light"] .goal-new-card input.goal-input-date {
+  color-scheme: light;
+}
+.goal-new-card input.goal-input-date::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.75;
+}
 html[data-theme="light"] .goal-new-card input {
   background: #fff;
   border-color: rgba(0, 0, 0, 0.1);
 }
-.goal-new-card .goal-row2 {
+.goal-new-card .goal-row2,
+.goal-edit-modal .goal-row2 {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.goal-date-row .tx-field {
+  min-width: 0;
+  max-width: 100%;
+}
+@media (max-width: 360px) {
+  .goal-date-row {
+    grid-template-columns: 1fr;
+  }
+  .goal-edit-modal .goal-row2 {
+    grid-template-columns: 1fr;
+  }
+  .goal-new-card {
+    margin-left: 12px;
+    margin-right: 12px;
+  }
 }
 .goal-submit {
   width: 100%;
@@ -106,27 +149,50 @@ html[data-theme="light"] .goal-new-card input {
   background: linear-gradient(135deg, #6c63ff, #3b82f6);
 }
 
+/* Same sizing model as .ft-sheet__panel: max-height + overflow; centered 90% like mobile dialog */
 .goal-edit-backdrop {
   position: absolute;
   inset: 0;
   z-index: 9990;
   background: rgba(0, 0, 0, 0.5);
-  display: none;
-  align-items: flex-end;
+  display: flex;
+  align-items: center;
   justify-content: center;
+  padding: max(12px, env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px))
+    max(12px, env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px));
+  box-sizing: border-box;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.22s var(--ease-smooth),
+    visibility 0s linear 0.23s;
 }
 .goal-edit-backdrop.open {
-  display: flex;
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  transition-delay: 0s;
 }
 .goal-edit-modal {
-  width: 100%;
-  max-width: 430px;
-  max-height: 85vh;
+  width: 90%;
+  max-width: min(100vw, 100%);
+  margin: auto;
+  max-height: min(78vh, calc(100dvh - 32px));
   overflow: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   background: rgba(18, 18, 28, 0.98);
-  border-radius: 20px 20px 0 0;
+  border-radius: 20px;
   padding: 20px;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0));
   border: 1px solid rgba(255, 255, 255, 0.08);
+  box-sizing: border-box;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 html[data-theme="light"] .goal-edit-modal {
   background: #fff;
@@ -137,6 +203,8 @@ html[data-theme="light"] .goal-edit-modal {
 }
 .goal-edit-modal input {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   box-sizing: border-box;
   padding: 12px;
   border-radius: 12px;
@@ -145,12 +213,21 @@ html[data-theme="light"] .goal-edit-modal {
   color: var(--text-primary);
   font-family: inherit;
 }
+.goal-edit-modal input#ged-val {
+  min-height: 48px;
+  padding: 14px 12px;
+  font-size: 16px;
+}
+.goal-edit-modal input[type="date"] {
+  min-height: 44px;
+  padding: 12px 10px;
+  font-size: 16px;
+  color-scheme: dark;
+}
+html[data-theme="light"] .goal-edit-modal input[type="date"] {
+  color-scheme: light;
+}
 html[data-theme="light"] .goal-edit-modal input {
   background: #fff;
   border-color: rgba(0, 0, 0, 0.1);
-}
-.goal-edit-modal .goal-row2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
 }

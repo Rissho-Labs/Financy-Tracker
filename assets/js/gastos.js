@@ -28,6 +28,73 @@
     setInterval(t, 10000);
   })();
 
+  /** Post-DB: replace implementations to call APIs / OCR pipeline. */
+  window.FTGastoHooks = {
+    beforeOpenScan: async () => {},
+    afterScanParsed: async (_payload) => {},
+    beforeFilePick: async () => {},
+    afterFileParsed: async (_payload) => {},
+  };
+
+  const sidebarRoot = $('gasto-sidebar-root');
+  const sidebarFab = $('gasto-fab');
+  const sidebarPanel = $('gasto-sidebar-panel');
+  const scrollEl = $('gasto-scroll');
+  let scrollLockTop = 0;
+
+  function openSidebar() {
+    if (!sidebarRoot || sidebarRoot.classList.contains('is-open')) return;
+    sidebarRoot.classList.add('is-open');
+    sidebarRoot.setAttribute('aria-hidden', 'false');
+    sidebarFab?.setAttribute('aria-expanded', 'true');
+    sidebarFab?.classList.add('is-hidden');
+    if (scrollEl) {
+      scrollLockTop = scrollEl.scrollTop;
+      scrollEl.style.overflow = 'hidden';
+      scrollEl.style.touchAction = 'none';
+    }
+    if (window.matchMedia('(pointer: fine)').matches) {
+      requestAnimationFrame(() => {
+        $('gasto-name')?.focus({ preventScroll: true });
+      });
+    }
+    haptic('light');
+  }
+
+  function closeSidebar() {
+    if (!sidebarRoot || !sidebarRoot.classList.contains('is-open')) return;
+    sidebarRoot.classList.remove('is-open');
+    sidebarRoot.setAttribute('aria-hidden', 'true');
+    sidebarFab?.setAttribute('aria-expanded', 'false');
+    sidebarFab?.classList.remove('is-hidden');
+    if (scrollEl) {
+      scrollEl.style.overflow = '';
+      scrollEl.style.touchAction = '';
+      scrollEl.scrollTop = scrollLockTop;
+    }
+  }
+
+  sidebarFab?.addEventListener('click', (e) => {
+    e.preventDefault();
+    openSidebar();
+  });
+  $('gasto-sidebar-backdrop')?.addEventListener('click', closeSidebar);
+  $('gasto-sidebar-close')?.addEventListener('click', closeSidebar);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && sidebarRoot?.classList.contains('is-open')) {
+      e.preventDefault();
+      closeSidebar();
+    }
+  });
+
+  try {
+    const sp = new URLSearchParams(window.location.search);
+    if (sp.get('sheet') === '1') {
+      requestAnimationFrame(() => openSidebar());
+    }
+  } catch (_) {}
+
   const fmtBRL = (cents) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cents / 100);
   const fmtWhen = (iso) => {
@@ -45,7 +112,7 @@
   function renderList() {
     const ul = $('gasto-list');
     const empty = $('gasto-empty');
-    if(!ul) return;
+    if (!ul) return;
     const list = typeof FTTransactions !== 'undefined' ? FTTransactions.getAll() : [];
     ul.innerHTML = '';
     if (!list.length) {
@@ -56,7 +123,7 @@
     list.forEach((t) => {
       const li = document.createElement('li');
       li.className = 'tx-item tx-item-row';
-      
+
       let extraInfo = '';
       if (t.paymentMethod === 'credito_parcelado') extraInfo = ` • ${t.installments}x no Crédito`;
       else if (t.paymentMethod === 'credito') extraInfo = ' • Crédito';
@@ -72,7 +139,7 @@
         '<button type="button" class="tx-item-remove" data-rm="' +
         t.id +
         '" aria-label="Remover"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>';
-      
+
       li.querySelector('.tx-name').textContent = t.name;
       li.querySelector('.tx-date').textContent = fmtWhen(t.at) + extraInfo;
       ul.appendChild(li);
@@ -88,14 +155,14 @@
 
   // ── Entry Methods Tabs ──
   const methodBtns = document.querySelectorAll('.entry-method-btn');
-  methodBtns.forEach(btn => {
+  methodBtns.forEach((btn) => {
     btn.addEventListener('click', () => {
       haptic();
-      methodBtns.forEach(b => b.classList.remove('active'));
+      methodBtns.forEach((b) => b.classList.remove('active'));
       btn.classList.add('active');
       const method = btn.getAttribute('data-method');
-      document.querySelectorAll('.entry-wrap').forEach(w => w.classList.remove('active'));
-      $(`gasto-${method}-wrap`).classList.add('active');
+      document.querySelectorAll('.entry-wrap').forEach((w) => w.classList.remove('active'));
+      $(`gasto-${method}-wrap`)?.classList.add('active');
     });
   });
 
@@ -104,14 +171,14 @@
   const payBtns = document.querySelectorAll('.pay-btn');
   const cardWrap = $('card-select-wrap');
   const instWrap = $('installments-wrap');
-  
-  payBtns.forEach(btn => {
+
+  payBtns.forEach((btn) => {
     btn.addEventListener('click', () => {
       haptic();
-      payBtns.forEach(b => b.classList.remove('active'));
+      payBtns.forEach((b) => b.classList.remove('active'));
       btn.classList.add('active');
       selectedPayment = btn.getAttribute('data-pay');
-      
+
       if (selectedPayment === 'credito' || selectedPayment === 'credito_parcelado') {
         cardWrap.classList.remove('hidden');
       } else {
@@ -134,7 +201,7 @@
     if (cards.length === 0) {
       cardSelect.innerHTML = '<option value="">Sem cartões cadastrados</option>';
     } else {
-      cards.forEach(c => {
+      cards.forEach((c) => {
         const opt = document.createElement('option');
         opt.value = c.id;
         opt.textContent = `${c.name} (final ${c.last4})`;
@@ -156,40 +223,48 @@
       return;
     }
     if ((selectedPayment === 'credito' || selectedPayment === 'credito_parcelado') && !cardId) {
-      alert("Por favor, selecione ou cadastre um cartão de crédito.");
+      alert('Por favor, selecione ou cadastre um cartão de crédito.');
       return;
     }
 
     haptic('medium');
-    FTTransactions.add({ 
-      name, 
-      amountCents: cents, 
+    FTTransactions.add({
+      name,
+      amountCents: cents,
       paymentMethod: selectedPayment,
       cardId: cardId,
-      installments: installments
+      installments: installments,
     });
-    
-    // Reset
+
     $('gasto-name').value = '';
     $('gasto-amount').value = '';
-    if($('gasto-installments')) $('gasto-installments').value = 2;
+    if ($('gasto-installments')) $('gasto-installments').value = 2;
     renderList();
+    closeSidebar();
   });
 
-  // ── Mock Scanners ──
-  function simulateScanFill(name, val) {
-    const btn = document.querySelector('.entry-method-btn[data-method="manual"]');
-    btn.click();
-    $('gasto-name').value = name;
-    $('gasto-amount').value = val;
-    $('gasto-amount').focus();
-    haptic('medium');
+  // ── Mock Scanners / file (hooks fire for future DB pipeline) ──
+  async function simulateScanFill(name, val) {
+    openSidebar();
+    setTimeout(async () => {
+      document.querySelector('.entry-method-btn[data-method="manual"]')?.click();
+      $('gasto-name').value = name;
+      $('gasto-amount').value = val;
+      $('gasto-amount').focus({ preventScroll: true });
+      haptic('medium');
+      try {
+        await window.FTGastoHooks.afterScanParsed({ name, amountDisplay: val });
+      } catch (_) {}
+    }, 0);
   }
 
-  $('simulate-qr-btn')?.addEventListener('click', (e) => {
+  $('simulate-qr-btn')?.addEventListener('click', async (e) => {
     e.preventDefault();
     haptic();
-    const btn = e.target;
+    try {
+      await window.FTGastoHooks.beforeOpenScan();
+    } catch (_) {}
+    const btn = e.currentTarget;
     const oldText = btn.textContent;
     btn.textContent = 'Lendo...';
     btn.style.opacity = 0.7;
@@ -200,19 +275,30 @@
     }, 1200);
   });
 
-  $('gasto-file-input')?.addEventListener('change', (e) => {
-    if (e.target.files.length > 0) {
-      const fileWrap = $('gasto-file-wrap');
-      const p = fileWrap.querySelector('p');
-      const oldText = p.textContent;
-      p.textContent = 'Processando arquivo: ' + e.target.files[0].name;
-      haptic();
-      setTimeout(() => {
-        p.textContent = oldText;
-        e.target.value = ''; // clear
-        simulateScanFill('Importado do Arquivo', '109,50');
-      }, 1500);
-    }
+  $('gasto-file-picker-btn')?.addEventListener('click', async () => {
+    try {
+      await window.FTGastoHooks.beforeFilePick();
+    } catch (_) {}
+    $('gasto-file-input')?.click();
+  });
+
+  $('gasto-file-input')?.addEventListener('change', async (e) => {
+    const input = e.target;
+    if (!input.files || input.files.length === 0) return;
+    const file = input.files[0];
+    const fileWrap = $('gasto-file-wrap');
+    const p = fileWrap?.querySelector('p');
+    const oldText = p?.textContent;
+    if (p) p.textContent = 'Processando arquivo: ' + file.name;
+    haptic();
+    try {
+      await window.FTGastoHooks.afterFileParsed({ fileName: file.name, file });
+    } catch (_) {}
+    setTimeout(() => {
+      if (p && oldText !== undefined) p.textContent = oldText;
+      input.value = '';
+      simulateScanFill('Importado do Arquivo', '109,50');
+    }, 1500);
   });
 
   renderList();

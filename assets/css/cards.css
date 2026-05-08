@@ -214,3 +214,11 @@
   border-radius: 4px;
   margin-top: 2px;
 }
+
+/* Novo cartão modal — goal-edit shell: flex + minmax(0) for small screens */
+#add-card-modal .goal-edit-modal input,
+#add-card-modal .goal-edit-modal select {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}

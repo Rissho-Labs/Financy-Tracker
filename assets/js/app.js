@@ -164,35 +164,99 @@ $('login-form').addEventListener('submit', async (e) => {
   btn.disabled = false;
   btn.querySelector('.btn-text').textContent = 'Bem-vindo! ✓';
   haptic('medium');
+
+  try {
+    const bio = globalThis.__FT_NATIVE_BIOMETRIC__;
+    const cap = globalThis.Capacitor;
+    if (bio && cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform()) {
+      await bio.saveNativeBiometricCredentials(FTSession.BIOMETRIC_SERVER, email, password);
+    }
+  } catch (_) {
+    /* optional: device declined or plugin unavailable */
+  }
+
   window.location.href = dest.href;
 });
 
 // ── Google button ──────────────────────────────────────────
 $('btn-google').addEventListener('click', () => {
   haptic('light');
-  const email = $('email').value.trim();
-  if (!isEmail(email)) {
-    showError('email', 'email-error', 'Informe um e-mail válido para continuar.');
-    haptic('error');
+  const clientId = FTSession.getGoogleClientId();
+  const gsiReady = typeof google !== 'undefined' && google.accounts && google.accounts.oauth2;
+
+  const finishWithEmail = (email) => {
+    const dest = FTSession.completeLogin(email, { google: true });
+    window.location.href = dest.href;
+  };
+
+  const fallbackEmailField = () => {
+    const email = $('email').value.trim();
+    if (!isEmail(email)) {
+      showError('email', 'email-error', 'Informe um e-mail válido para continuar com Google.');
+      haptic('error');
+      return;
+    }
+    clearError('email', 'email-error');
+    markSuccess('email');
+    finishWithEmail(email);
+  };
+
+  if (clientId && gsiReady) {
+    FTSession.requestGoogleAccessTokenThenEmail(finishWithEmail, () => {
+      fallbackEmailField();
+    });
     return;
   }
-  clearError('email', 'email-error');
-  markSuccess('email');
-  const dest = FTSession.completeLogin(email, { google: true });
-  window.location.href = dest.href;
+
+  fallbackEmailField();
 });
 
 // ── Biometric hint ─────────────────────────────────────────
-document.querySelector('.biometric-hint')?.addEventListener('click', () => {
+document.querySelector('.biometric-hint')?.addEventListener('click', async () => {
   haptic('medium');
-  // TODO: trigger WebAuthn / platform biometric
+  const api = globalThis.__FT_NATIVE_BIOMETRIC__;
+  if (!api || typeof api.tryNativeBiometricLogin !== 'function') {
+    return;
+  }
+  const server = FTSession.BIOMETRIC_SERVER || 'com.financetracker.app';
+  const r = await api.tryNativeBiometricLogin(server);
+  if (!r || !r.ok) {
+    haptic('error');
+    return;
+  }
+  const email = String(r.email || '').trim();
+  const password = r.password || '';
+  if (!isEmail(email) || !password) {
+    haptic('error');
+    return;
+  }
+  const prev = typeof FTSession !== 'undefined' ? FTSession.parseUser() : null;
+  if (prev && prev.email === email && prev.passwordDemo && password !== prev.passwordDemo) {
+    showError('password', 'password-error', 'Senha incorreta.');
+    haptic('error');
+    return;
+  }
+  haptic('medium');
+  const dest = FTSession.completeLogin(email, { passwordDemo: password });
+  window.location.href = dest.href;
 });
 
 // ── Links ──────────────────────────────────────────────────
 $('forgot-link').addEventListener('click', (e) => {
   e.preventDefault();
   haptic('light');
-  alert('Redefinição de senha — em breve!');
+  const email = $('email').value.trim();
+  if (!isEmail(email)) {
+    showError('email', 'email-error', 'Informe o e-mail da conta para abrir recuperação.');
+    $('email').focus();
+    return;
+  }
+  clearError('email', 'email-error');
+  const recoveryUrl =
+    'https://accounts.google.com/v3/signin/recoveryidentifier?Email=' +
+    encodeURIComponent(email) +
+    '&flowName=GlifWebSignIn&flowEntry=AccountRecovery';
+  window.open(recoveryUrl, '_blank', 'noopener,noreferrer');
 });
 
 // ── Dynamic Island pulse on focus ──────────────────────────

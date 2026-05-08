@@ -242,15 +242,17 @@
 
   </div>
 
-  <div id="add-card-modal" class="goal-edit-backdrop" aria-hidden="true">
-    <div class="goal-edit-modal" role="dialog" aria-labelledby="add-card-title">
-      <h2 id="add-card-title" style="margin:0 0 14px;font-size:18px;">Novo cartão</h2>
+  <div id="add-card-modal" class="ft-sheet" aria-hidden="true">
+    <div class="ft-sheet__backdrop"></div>
+    <div class="ft-sheet__panel ft-form-sheet" role="dialog" aria-labelledby="add-card-title">
+      <div class="ft-sheet__handle" aria-hidden="true"></div>
+      <h2 id="add-card-title" class="ft-sheet__title">Novo cartão</h2>
       <label class="field-label">Nome no cartão</label>
-      <input id="cc-add-name" type="text" style="width:100%;margin-bottom:12px;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);color:inherit;" maxlength="48" />
+      <input id="cc-add-name" type="text" class="ft-form-input" maxlength="48" />
       <label class="field-label">Final do número (4 dígitos)</label>
-      <input id="cc-add-last4" type="text" inputmode="numeric" maxlength="4" style="width:100%;margin-bottom:12px;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);color:inherit;" />
+      <input id="cc-add-last4" type="text" class="ft-form-input" inputmode="numeric" maxlength="4" />
       <label class="field-label">Bandeira</label>
-      <select id="cc-add-brand" style="width:100%;margin-bottom:16px;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);color:inherit;">
+      <select id="cc-add-brand" class="ft-form-input ft-form-select">
         <option value="visa">Visa</option>
         <option value="master">Mastercard</option>
         <option value="elo">Elo</option>
@@ -258,7 +260,7 @@
         <option value="other">Outra</option>
       </select>
       <button type="button" class="goal-submit" id="cc-add-save">Adicionar</button>
-      <button type="button" class="ft-sheet__close" id="cc-add-cancel" style="margin-top:10px;">Cancelar</button>
+      <button type="button" class="ft-sheet__close ft-form-cancel" id="cc-add-cancel">Cancelar</button>
     </div>
   </div>
 

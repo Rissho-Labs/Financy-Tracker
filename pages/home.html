@@ -82,49 +82,8 @@
         <!-- Wallet container -->
         <div class="wallet-outer" id="wallet-outer" aria-label="Resumo de gastos do mês">
 
-          <!-- Cards stack (peek out from top) -->
-          <div class="cards-stack" id="cards-stack" role="list">
-
-            <div class="card-peek" id="peek-0" data-index="0" role="listitem" tabindex="0" aria-label="Visão Geral">
-              <div class="card-peek-inner" style="--card-color-a:#6C63FF;--card-color-b:#3B82F6;">
-                <span class="peek-chip" aria-hidden="true"></span>
-                <div class="peek-meta">
-                  <span class="peek-name">Visão Geral</span>
-                  <span class="peek-balance">Todas as despesas</span>
-                </div>
-                <div class="peek-brand" aria-hidden="true">
-                  <svg width="36" height="24" viewBox="0 0 54 36"><circle cx="21" cy="18" r="15" fill="rgba(255,255,255,0.25)"/><circle cx="33" cy="18" r="15" fill="rgba(255,255,255,0.15)"/></svg>
-                </div>
-              </div>
-            </div>
-
-            <div class="card-peek" id="peek-1" data-index="1" role="listitem" tabindex="0" aria-label="Cartão Negócios">
-              <div class="card-peek-inner" style="--card-color-a:#059669;--card-color-b:#10B981;">
-                <span class="peek-chip" aria-hidden="true"></span>
-                <div class="peek-meta">
-                  <span class="peek-name">Negócios</span>
-                  <span class="peek-balance">R$ 8.580,23</span>
-                </div>
-                <div class="peek-brand" aria-hidden="true">
-                  <svg width="36" height="24" viewBox="0 0 54 36"><circle cx="21" cy="18" r="15" fill="rgba(255,255,255,0.25)"/><circle cx="33" cy="18" r="15" fill="rgba(255,255,255,0.15)"/></svg>
-                </div>
-              </div>
-            </div>
-
-            <div class="card-peek" id="peek-2" data-index="2" role="listitem" tabindex="0" aria-label="Cartão Reserva">
-              <div class="card-peek-inner" style="--card-color-a:#EA580C;--card-color-b:#F59E0B;">
-                <span class="peek-chip" aria-hidden="true"></span>
-                <div class="peek-meta">
-                  <span class="peek-name">Reserva</span>
-                  <span class="peek-balance">R$ 9.841,52</span>
-                </div>
-                <div class="peek-brand" aria-hidden="true">
-                  <svg width="36" height="24" viewBox="0 0 54 36"><circle cx="21" cy="18" r="15" fill="rgba(255,255,255,0.25)"/><circle cx="33" cy="18" r="15" fill="rgba(255,255,255,0.15)"/></svg>
-                </div>
-              </div>
-            </div>
-
-          </div><!-- /cards-stack -->
+          <!-- Cards stack (rendered by home.js to avoid duplication) -->
+          <div class="cards-stack" id="cards-stack" role="list"></div><!-- /cards-stack -->
 
           <!-- Wallet body -->
           <div class="wallet-body" id="wallet-body">
@@ -137,9 +96,7 @@
 
             <!-- Wallet controls row -->
             <div class="wallet-controls">
-              <button class="wallet-ctrl-btn" id="wallet-fan-btn" aria-label="Expandir cartões">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
-              </button>
+              <p class="wallet-panel-title" id="wallet-panel-title" aria-live="polite">Visão Geral - Todas as Despesas</p>
               <button class="wallet-ctrl-btn" id="wallet-hide-btn" aria-label="Ocultar saldo">
                 <svg id="eye-wallet" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
               </button>
@@ -168,13 +125,6 @@
           </div><!-- /wallet-body -->
         </div><!-- /wallet-outer -->
 
-        <!-- Card dots indicator -->
-        <div class="card-dots" id="card-dots" role="tablist" aria-label="Indicador de cartões">
-          <button class="card-dot active" role="tab" aria-selected="true" aria-label="Cartão 1" data-dot="0"></button>
-          <button class="card-dot" role="tab" aria-selected="false" aria-label="Cartão 2" data-dot="1"></button>
-          <button class="card-dot" role="tab" aria-selected="false" aria-label="Cartão 3" data-dot="2"></button>
-        </div>
-
       </section>
 
       <!-- ── QUICK STATS ─────────────────────────────────────── -->
@@ -198,7 +148,7 @@
       <section class="transactions-section" aria-label="Gastos recentes">
         <div class="section-title-row">
           <h2 class="section-title">Gastos recentes</h2>
-          <button class="see-all-btn" id="see-all-btn" aria-label="Ver todos os gastos">Ver tudo</button>
+          <button class="see-all-btn" id="see-all-btn" aria-label="Ver histórico completo de gastos">Ver tudo</button>
         </div>
 
         <ul class="tx-list" role="list">
@@ -277,24 +227,81 @@
       <div class="ft-sheet__panel ft-expense-panel" role="dialog" aria-labelledby="exp-sheet-title">
         <div class="ft-sheet__handle"></div>
         <h2 class="ft-sheet__title" id="exp-sheet-title">Novo gasto</h2>
-        <form id="home-expense-form">
-          <div class="tx-field">
-            <label for="home-exp-name">Descrição</label>
-            <input id="home-exp-name" type="text" required maxlength="80" autocomplete="off" />
+        <div class="gasto-entry-methods" id="home-entry-methods-grid">
+          <button type="button" class="entry-method-btn active" data-method="manual">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            <span>Manual</span>
+          </button>
+          <button type="button" class="entry-method-btn" data-method="qr">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M8 3v18"/><path d="M16 3v18"/><path d="M3 8h18"/><path d="M3 16h18"/></svg>
+            <span>Escanear</span>
+          </button>
+          <button type="button" class="entry-method-btn" data-method="file">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+            <span>Arquivo</span>
+          </button>
+        </div>
+
+        <div id="home-manual-wrap" class="entry-wrap active">
+          <form id="home-expense-form">
+            <div class="tx-field">
+              <label for="home-exp-name">Descrição</label>
+              <input id="home-exp-name" type="text" required maxlength="80" autocomplete="off" />
+            </div>
+            <div class="tx-field">
+              <label for="home-exp-amt">Valor (R$)</label>
+              <input id="home-exp-amt" type="text" inputmode="decimal" required placeholder="0,00" />
+            </div>
+            <div class="tx-field">
+              <label>Forma de pagamento</label>
+              <div class="payment-methods-grid" id="home-payment-methods-grid">
+                <button type="button" class="pay-btn active" data-pay="pix">Pix</button>
+                <button type="button" class="pay-btn" data-pay="dinheiro">Dinheiro</button>
+                <button type="button" class="pay-btn" data-pay="debito">Débito</button>
+                <button type="button" class="pay-btn" data-pay="credito">Crédito</button>
+                <button type="button" class="pay-btn" data-pay="credito_parcelado">Parcelado</button>
+              </div>
+            </div>
+            <div class="tx-field hidden" id="home-card-select-wrap">
+              <label for="home-exp-card">Qual cartão?</label>
+              <select id="home-exp-card" class="ft-select">
+                <option value="">Selecione um cartão...</option>
+              </select>
+            </div>
+            <div class="tx-field hidden" id="home-installments-wrap">
+              <label for="home-exp-installments">Número de parcelas</label>
+              <input id="home-exp-installments" type="number" min="2" max="24" value="2" />
+            </div>
+            <button type="submit" class="tx-add-btn">Guardar</button>
+            <button type="button" class="ft-sheet__close" id="home-exp-cancel" style="margin-top:10px">Cancelar</button>
+          </form>
+        </div>
+
+        <div id="home-qr-wrap" class="entry-wrap hidden" style="text-align:center; padding: 24px 10px 8px;">
+          <div class="camera-mock">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M8 3v18"/><path d="M16 3v18"/><path d="M3 8h18"/><path d="M3 16h18"/></svg>
+            <p style="margin: 16px 0; color: var(--text-secondary); font-size: 14px;">Aponte para o código de barras ou QR Code da nota fiscal.</p>
           </div>
-          <div class="tx-field">
-            <label for="home-exp-amt">Valor (R$)</label>
-            <input id="home-exp-amt" type="text" inputmode="decimal" required placeholder="0,00" />
+          <button type="button" class="tx-add-btn" id="home-simulate-qr-btn">Simular Leitura</button>
+          <button type="button" class="ft-sheet__close" id="home-exp-cancel-qr" style="margin-top:10px">Cancelar</button>
+        </div>
+
+        <div id="home-file-wrap" class="entry-wrap hidden" style="text-align:center; padding: 24px 10px 8px;">
+          <div class="file-drop-mock">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+            <p id="home-file-help" style="margin: 16px 0; color: var(--text-secondary); font-size: 14px;">Importe uma NFE em PDF ou Imagem para leitura automática.</p>
           </div>
-          <button type="submit" class="tx-add-btn">Guardar</button>
-          <button type="button" class="ft-sheet__close" id="home-exp-cancel" style="margin-top:10px">Cancelar</button>
-        </form>
+          <input type="file" id="home-file-input" style="display:none;" accept=".pdf,image/*" />
+          <button type="button" class="tx-add-btn" id="home-file-picker-btn">Escolher Arquivo</button>
+          <button type="button" class="ft-sheet__close" id="home-exp-cancel-file" style="margin-top:10px">Cancelar</button>
+        </div>
       </div>
     </div>
 
   </div><!-- /phone-frame -->
 
   <script src="../assets/js/ft-session.js"></script>
+  <script src="../assets/js/ft-cards.js"></script>
   <script src="../assets/js/ft-transactions.js"></script>
   <script src="../assets/js/notification-panel.js"></script>
   <script src="../assets/js/home.js"></script>

@@ -49,10 +49,10 @@
         <h3>Nova meta</h3>
         <form id="goal-add-form">
           <div class="tx-field"><label for="g-name">Nome</label><input id="g-name" required maxlength="80" placeholder="Ex.: Reserva de emergência" /></div>
-          <div class="tx-field"><label for="g-val">Valor alvo (R$)</label><input id="g-val" inputmode="decimal" required placeholder="0,00" /></div>
-          <div class="goal-row2">
-            <div class="tx-field"><label for="g-start">Início</label><input id="g-start" type="date" required /></div>
-            <div class="tx-field"><label for="g-end">Conclusão</label><input id="g-end" type="date" required /></div>
+          <div class="tx-field"><label for="g-val">Valor alvo (R$)</label><input id="g-val" inputmode="decimal" required placeholder="0,00" class="goal-input-value" /></div>
+          <div class="goal-row2 goal-date-row">
+            <div class="tx-field"><label for="g-start">Início</label><input id="g-start" type="date" required class="goal-input-date" /></div>
+            <div class="tx-field"><label for="g-end">Conclusão</label><input id="g-end" type="date" required class="goal-input-date" /></div>
           </div>
           <button type="submit" class="goal-submit">Incluir meta</button>
         </form>

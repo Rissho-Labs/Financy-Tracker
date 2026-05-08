@@ -97,13 +97,84 @@
   margin-top: -8px;
 }
 
+.ob-eyebrow {
+  margin: 0 0 -2px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-placeholder);
+}
+.ob-subtitle--personalize {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: -4px;
+}
+.ob-subtitle__lead {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.2px;
+  line-height: 1.35;
+}
+.ob-subtitle__body {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
 /* ── Budget step ────────────────────────────────────────────── */
 .budget-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 20px 0 6px;
+}
+.budget-display__value-block {
   display: flex;
   align-items: baseline;
   justify-content: center;
   gap: 6px;
-  padding: 20px 0 8px;
+}
+.budget-edit-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    background var(--duration),
+    border-color var(--duration),
+    color var(--duration),
+    transform 180ms var(--ease-spring);
+  -webkit-tap-highlight-color: transparent;
+}
+.budget-edit-btn:hover {
+  color: var(--accent);
+  border-color: rgba(108, 99, 255, 0.45);
+  background: rgba(108, 99, 255, 0.1);
+}
+.budget-edit-btn:active {
+  transform: scale(0.96);
+}
+.budget-display-hint {
+  margin: 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.35;
+  padding: 0 8px;
 }
 .budget-currency {
   font-size: 22px;
@@ -315,21 +386,80 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.goal-value-wrap {
+  min-width: 0;
+}
+.goal-field-prefix {
+  position: absolute;
+  left: 42px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+.goal-form .field-input--goal-value {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  min-height: 48px;
+  padding-top: 13px;
+  padding-bottom: 13px;
+  padding-right: 14px;
+  padding-left: 4.5rem;
+  font-size: 16px;
 }
 
 .goal-dates {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.goal-date-field {
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (max-width: 360px) {
+  .goal-dates {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Date inputs: stay within viewport on small phones */
+.field-input.field-input--date {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  font-size: 16px;
 }
 
 /* Date input dark styling */
 .field-input[type="date"] {
   color-scheme: dark;
 }
+html[data-theme="light"] .field-input[type="date"] {
+  color-scheme: light;
+}
 .field-input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(0.7);
   cursor: pointer;
+  margin-inline-start: 2px;
+}
+html[data-theme="light"] .field-input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: none;
+  opacity: 0.65;
 }
 
 /* Goal calculation preview */
@@ -401,7 +531,20 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 14px 20px;
+  padding: 14px 12px;
 }
 .ob-nav-next svg { transition: transform 200ms var(--ease-spring); }
 .ob-nav-next:hover svg { transform: translateX(3px); }
+
+/* Narrow viewports (e.g. iPhone SE): room for goal form + dates */
+@media (max-width: 360px) {
+  .ob-step-inner {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .ob-nav {
+    padding-left: 14px;
+    padding-right: 14px;
+    gap: 8px;
+  }
+}

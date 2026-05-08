@@ -35,11 +35,16 @@
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   --duration: 240ms;
+
+  /* Login fields — consistent padding */
+  --field-pad-y: 14px;
+  --field-pad-x-start: 44px;
+  --field-pad-x-end: 44px;
 }
 
 /* ── Reset ──────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scrollbar-gutter: stable; }
 body {
   font-family: var(--font);
   background: var(--bg);
@@ -204,6 +209,28 @@ body {
   margin: 0 auto 16px;
   box-shadow: 0 4px 20px rgba(108,99,255,0.2);
   transition: transform var(--duration) var(--ease-spring), box-shadow var(--duration);
+  position: relative;
+  overflow: hidden;
+}
+.app-logo-img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  display: block;
+  border-radius: 14px;
+}
+.app-logo-img--hidden {
+  display: none !important;
+}
+.app-logo-fallback {
+  display: none;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+}
+.app-logo-fallback.is-visible {
+  display: flex;
 }
 .app-icon:hover {
   transform: scale(1.07) rotate(-3deg);
@@ -331,7 +358,7 @@ body {
 
 .field-input {
   width: 100%;
-  padding: 13px 44px 13px 42px;
+  padding: var(--field-pad-y) var(--field-pad-x-end) var(--field-pad-y) var(--field-pad-x-start);
   background: rgba(255,255,255,0.05);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -601,6 +628,7 @@ html[data-theme="light"] .phone-frame {
   transition: opacity 0.25s var(--ease-smooth);
 }
 .ft-sheet.ft-sheet--open,
+.ft-sheet.open,
 #expense-sheet.ft-sheet--open {
   pointer-events: auto;
   opacity: 1;
@@ -613,25 +641,36 @@ html[data-theme="light"] .phone-frame {
 }
 .ft-sheet__panel {
   position: absolute;
-  left: 0;
-  right: 0;
+  left: 50%;
+  width: 90%;
+  max-width: 100vw;
   bottom: 0;
   max-height: 78vh;
   overflow: auto;
+  overflow-x: hidden;
   background: rgba(18, 18, 28, 0.98);
   border-radius: 20px 20px 0 0;
   padding: 12px 20px 24px;
   padding-bottom: calc(24px + env(safe-area-inset-bottom, 0));
-  transform: translateY(100%);
+  transform: translate(-50%, 100%);
   transition: transform 0.32s var(--ease-spring);
   border: 1px solid rgba(255, 255, 255, 0.08);
+  box-sizing: border-box;
 }
 html[data-theme="light"] .ft-sheet__panel {
   background: #fff;
   border-color: rgba(0, 0, 0, 0.08);
 }
 .ft-sheet.ft-sheet--open .ft-sheet__panel {
-  transform: translateY(0);
+  transform: translate(-50%, 0);
+}
+.ft-sheet.open .ft-sheet__panel {
+  transform: translate(-50%, 0);
+}
+#expense-sheet.ft-sheet {
+  position: absolute;
+  inset: 0;
+  z-index: 10010;
 }
 .ft-sheet__handle {
   width: 36px;
@@ -699,6 +738,40 @@ html[data-theme="light"] .ft-sheet__close {
   border-color: rgba(0, 0, 0, 0.08);
 }
 
+.ft-form-sheet .field-label {
+  display: block;
+  margin-bottom: 6px;
+}
+.ft-form-input {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.2);
+  color: inherit;
+  font-family: inherit;
+  font-size: 15px;
+  min-width: 0;
+}
+.ft-form-input:last-of-type {
+  margin-bottom: 14px;
+}
+.ft-form-select {
+  appearance: none;
+}
+.ft-form-cancel {
+  margin-top: 10px;
+}
+#add-card-modal .ft-sheet__backdrop,
+#pw-modal .ft-sheet__backdrop {
+  pointer-events: none;
+}
+html[data-theme="light"] .ft-form-input {
+  background: #fff;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
 /* Sheet novo gasto (home) */
 .ft-expense-panel .tx-field label {
   color: var(--text-secondary);
@@ -764,4 +837,189 @@ html[data-theme="light"] .ft-expense-panel .tx-field input {
   color: #fff;
   cursor: pointer;
   font-family: inherit;
+}
+
+/* ═══ Gastos — FAB + bottom floating sidebar (inside .phone-frame; avoids CLS) ═══ */
+#gasto-scroll.home-scroll.gastos-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  scrollbar-gutter: stable;
+  padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+}
+
+.gasto-list-intro {
+  padding: 0 20px 12px;
+}
+.gasto-list-intro__text {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+.gasto-list-intro__text strong {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.gasto-fab {
+  position: absolute;
+  right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+  width: 56px;
+  height: 56px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: var(--shadow-btn), 0 0 0 1px rgba(255, 255, 255, 0.12);
+  transition:
+    transform var(--duration) var(--ease-spring),
+    opacity 0.25s ease,
+    box-shadow var(--duration);
+  -webkit-tap-highlight-color: transparent;
+}
+.gasto-fab:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 32px rgba(108, 99, 255, 0.55);
+}
+.gasto-fab:active {
+  transform: scale(0.96);
+}
+.gasto-fab.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.85);
+}
+
+.gasto-sidebar-root {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  visibility: hidden;
+  transition: visibility 0s linear 0.35s;
+}
+.gasto-sidebar-root.is-open {
+  pointer-events: auto;
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+.gasto-sidebar-backdrop {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: rgba(0, 0, 0, 0.48);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  transition: opacity 0.3s var(--ease-smooth);
+  cursor: pointer;
+}
+.gasto-sidebar-root.is-open .gasto-sidebar-backdrop {
+  opacity: 1;
+}
+
+/* Bottom “vaza”: panel sits above frame edge so background shows through */
+.gasto-sidebar-panel {
+  position: absolute;
+  left: max(12px, env(safe-area-inset-left, 0px));
+  right: max(12px, env(safe-area-inset-right, 0px));
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  max-height: min(82vh, calc(100% - 96px));
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  margin: 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 22px;
+  background: rgba(18, 18, 28, 0.96);
+  box-shadow:
+    0 -8px 40px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transform: translateY(calc(100% + 24px));
+  transition: transform 0.38s var(--ease-spring);
+  overflow: hidden;
+  outline: none;
+}
+html[data-theme="light"] .gasto-sidebar-panel {
+  background: rgba(255, 255, 255, 0.97);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+.gasto-sidebar-root.is-open .gasto-sidebar-panel {
+  transform: translateY(0);
+}
+
+.gasto-sidebar-leak {
+  flex-shrink: 0;
+  height: 5px;
+  margin: 8px auto 0;
+  width: 40px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.14);
+}
+html[data-theme="light"] .gasto-sidebar-leak {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.gasto-sidebar-inner {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 16px 18px;
+}
+
+.gasto-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px 10px;
+  margin: 0 -16px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: inherit;
+}
+html[data-theme="light"] .gasto-sidebar-header {
+  border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+.gasto-sidebar-header h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.gasto-sidebar-close {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--duration), color var(--duration);
+}
+.gasto-sidebar-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+html[data-theme="light"] .gasto-sidebar-close {
+  background: rgba(0, 0, 0, 0.05);
 }

@@ -5,17 +5,19 @@
   "description": "Finance Tracker — interface web + shell Android (Capacitor)",
   "scripts": {
     "www:prepare": "node scripts/prepare-www.mjs",
-    "start": "npm run www:prepare && serve www -l 5050",
-    "serve": "npm start",
+    "start": "node scripts/start-dev.mjs",
+    "serve": "serve www -l 5050",
     "cap:sync": "npm run www:prepare && cap sync",
     "cap:open": "cap open android"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.4",
-    "@capacitor/core": "^7.4.4"
+    "@capacitor/core": "^7.4.4",
+    "@capgo/capacitor-native-biometric": "^7.6.0"
   },
   "devDependencies": {
     "@capacitor/cli": "^7.4.4",
+    "esbuild": "^0.25.0",
     "serve": "^14.2.5"
   }
 }

@@ -8,6 +8,9 @@
   var KEY_USER = 'ft_user';
   var KEY_ONBOARD = 'ft_onboarding_done';
 
+  /** Server id for @capgo/capacitor-native-biometric Keychain/Keystore (match app id). */
+  var BIOMETRIC_SERVER = 'com.financetracker.app';
+
   function parseUser() {
     try {
       var raw = localStorage.getItem(KEY_USER);
@@ -87,9 +90,68 @@
     return { href: href };
   }
 
+  function getGoogleClientId() {
+    if (typeof document === 'undefined') return '';
+    var m = document.querySelector('meta[name="google-signin-client_id"]');
+    return ((m && m.getAttribute('content')) || '').trim();
+  }
+
+  /**
+   * OAuth 2 token + userinfo (GIS). Requires script accounts.google.com/gsi/client + meta client_id.
+   * @param {(email: string) => void} onEmail
+   * @param {(err: Error) => void} onErr
+   */
+  function requestGoogleAccessTokenThenEmail(onEmail, onErr) {
+    var clientId = getGoogleClientId();
+    if (!clientId) {
+      onErr(new Error('missing_client_id'));
+      return;
+    }
+    var g = global.google;
+    if (!g || !g.accounts || !g.accounts.oauth2) {
+      onErr(new Error('gsi_not_loaded'));
+      return;
+    }
+    var client = g.accounts.oauth2.initTokenClient({
+      client_id: clientId,
+      scope:
+        'openid email profile https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
+      callback: function (tr) {
+        if (tr && tr.error) {
+          onErr(new Error(String(tr.error)));
+          return;
+        }
+        var token = tr && tr.access_token;
+        if (!token) {
+          onErr(new Error('no_token'));
+          return;
+        }
+        fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: 'Bearer ' + token },
+        })
+          .then(function (r) {
+            if (!r.ok) throw new Error('userinfo_' + r.status);
+            return r.json();
+          })
+          .then(function (info) {
+            if (!info || !info.email) {
+              onErr(new Error('no_email'));
+              return;
+            }
+            onEmail(String(info.email).trim());
+          })
+          .catch(function (e) {
+            onErr(e instanceof Error ? e : new Error(String(e)));
+          });
+      },
+    });
+    client.requestAccessToken({ prompt: 'select_account consent' });
+  }
+
   global.FTSession = {
     KEY_USER: KEY_USER,
     KEY_ONBOARD: KEY_ONBOARD,
+    BIOMETRIC_SERVER: BIOMETRIC_SERVER,
     parseUser: parseUser,
     saveUser: saveUser,
     isLoggedIn: isLoggedIn,
@@ -98,6 +160,8 @@
     clearAll: clearAll,
     completeLogin: completeLogin,
     defaultDisplayName: defaultDisplayName,
-    defaultUsername: defaultUsername
+    defaultUsername: defaultUsername,
+    getGoogleClientId: getGoogleClientId,
+    requestGoogleAccessTokenThenEmail: requestGoogleAccessTokenThenEmail
   };
 })(typeof window !== 'undefined' ? window : globalThis);

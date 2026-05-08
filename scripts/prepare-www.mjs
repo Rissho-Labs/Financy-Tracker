@@ -5,6 +5,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import * as esbuild from 'esbuild';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '..');
@@ -40,6 +41,23 @@ fs.mkdirSync(www, { recursive: true });
 
 for (const name of entries) {
   copyRecursive(path.join(root, name), path.join(www, name));
+}
+
+const biometricEntry = path.join(root, 'scripts', 'biometric-entry.mjs');
+const biometricOut = path.join(www, 'assets', 'js', 'ft-biometric.bundle.js');
+if (fs.existsSync(biometricEntry)) {
+  fs.mkdirSync(path.dirname(biometricOut), { recursive: true });
+  await esbuild.build({
+    entryPoints: [biometricEntry],
+    bundle: true,
+    format: 'esm',
+    outfile: biometricOut,
+    platform: 'browser',
+    target: ['es2020'],
+    logLevel: 'warning',
+  });
+} else {
+  console.warn('prepare-www: biometric-entry.mjs em falta — skip ft-biometric.bundle.js');
 }
 
 console.log('prepare-www: www/ atualizado.');
