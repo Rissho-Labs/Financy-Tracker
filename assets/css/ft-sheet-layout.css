@@ -1,0 +1,27 @@
+/* Shared sheet layout for form modals */
+
+.ft-form-sheet .field-label {
+  font-size: 12px;
+  margin-bottom: 4px;
+  color: var(--text-secondary);
+}
+
+.ft-form-sheet .ft-form-input,
+.ft-form-sheet select {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-height: 40px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.ft-form-sheet .goal-submit,
+.ft-form-sheet .ft-sheet__close {
+  padding: 11px 12px;
+  font-size: 16px;
+}
+
+.ft-form-sheet .goal-submit {
+  margin-top: 8px;
+}

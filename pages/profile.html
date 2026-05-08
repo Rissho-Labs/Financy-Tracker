@@ -12,6 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../assets/css/styles.css" />
+  <link rel="stylesheet" href="../assets/css/ft-sheet-layout.css" />
   <link rel="stylesheet" href="../assets/css/home.css" />
   <link rel="stylesheet" href="../assets/css/profile.css" />
   <link rel="stylesheet" href="../assets/css/goals.css" />
@@ -182,22 +183,22 @@
       </button>
     </nav>
 
-  </div>
-
-  <div id="pw-modal" class="ft-sheet" aria-hidden="true">
-    <div class="ft-sheet__backdrop"></div>
-    <div class="ft-sheet__panel ft-form-sheet" role="dialog" aria-labelledby="pw-modal-title">
-      <div class="ft-sheet__handle" aria-hidden="true"></div>
-      <h2 id="pw-modal-title" class="ft-sheet__title">Alterar senha</h2>
-      <label class="field-label">Senha atual</label>
-      <input id="pw-old" type="password" class="ft-form-input" />
-      <label class="field-label">Nova senha</label>
-      <input id="pw-new" type="password" class="ft-form-input" />
-      <label class="field-label">Confirmar</label>
-      <input id="pw-new2" type="password" class="ft-form-input" />
-      <button type="button" class="goal-submit" id="pw-save">Guardar</button>
-      <button type="button" class="ft-sheet__close ft-form-cancel" id="pw-cancel">Cancelar</button>
+    <div id="pw-modal" class="ft-sheet" aria-hidden="true">
+      <div class="ft-sheet__backdrop"></div>
+      <div class="ft-sheet__panel ft-form-sheet" role="dialog" aria-labelledby="pw-modal-title">
+        <div class="ft-sheet__handle" aria-hidden="true"></div>
+        <h2 id="pw-modal-title" class="ft-sheet__title">Alterar senha</h2>
+        <label class="field-label">Senha atual</label>
+        <input id="pw-old" type="password" class="ft-form-input" />
+        <label class="field-label">Nova senha</label>
+        <input id="pw-new" type="password" class="ft-form-input" />
+        <label class="field-label">Confirmar</label>
+        <input id="pw-new2" type="password" class="ft-form-input" />
+        <button type="button" class="goal-submit" id="pw-save">Guardar</button>
+        <button type="button" class="ft-sheet__close ft-form-cancel" id="pw-cancel">Cancelar</button>
+      </div>
     </div>
+
   </div>
 
   <script src="../assets/js/ft-session.js"></script>

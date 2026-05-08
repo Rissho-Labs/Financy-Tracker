@@ -12,6 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../assets/css/styles.css" />
+  <link rel="stylesheet" href="../assets/css/ft-sheet-layout.css" />
   <link rel="stylesheet" href="../assets/css/home.css" />
   <link rel="stylesheet" href="../assets/css/cards.css" />
   <link rel="stylesheet" href="../assets/css/goals.css" />
@@ -240,28 +241,28 @@
       </button>
     </nav>
 
-  </div>
-
-  <div id="add-card-modal" class="ft-sheet" aria-hidden="true">
-    <div class="ft-sheet__backdrop"></div>
-    <div class="ft-sheet__panel ft-form-sheet" role="dialog" aria-labelledby="add-card-title">
-      <div class="ft-sheet__handle" aria-hidden="true"></div>
-      <h2 id="add-card-title" class="ft-sheet__title">Novo cartão</h2>
-      <label class="field-label">Nome no cartão</label>
-      <input id="cc-add-name" type="text" class="ft-form-input" maxlength="48" />
-      <label class="field-label">Final do número (4 dígitos)</label>
-      <input id="cc-add-last4" type="text" class="ft-form-input" inputmode="numeric" maxlength="4" />
-      <label class="field-label">Bandeira</label>
-      <select id="cc-add-brand" class="ft-form-input ft-form-select">
-        <option value="visa">Visa</option>
-        <option value="master">Mastercard</option>
-        <option value="elo">Elo</option>
-        <option value="amex">American Express</option>
-        <option value="other">Outra</option>
-      </select>
-      <button type="button" class="goal-submit" id="cc-add-save">Adicionar</button>
-      <button type="button" class="ft-sheet__close ft-form-cancel" id="cc-add-cancel">Cancelar</button>
+    <div id="add-card-modal" class="ft-sheet" aria-hidden="true">
+      <div class="ft-sheet__backdrop"></div>
+      <div class="ft-sheet__panel ft-form-sheet" role="dialog" aria-labelledby="add-card-title">
+        <div class="ft-sheet__handle" aria-hidden="true"></div>
+        <h2 id="add-card-title" class="ft-sheet__title">Novo cartão</h2>
+        <label class="field-label">Nome no cartão</label>
+        <input id="cc-add-name" type="text" class="ft-form-input" maxlength="48" />
+        <label class="field-label">Final do número (4 dígitos)</label>
+        <input id="cc-add-last4" type="text" class="ft-form-input" inputmode="numeric" maxlength="4" />
+        <label class="field-label">Bandeira</label>
+        <select id="cc-add-brand" class="ft-form-input ft-form-select">
+          <option value="visa">Visa</option>
+          <option value="master">Mastercard</option>
+          <option value="elo">Elo</option>
+          <option value="amex">American Express</option>
+          <option value="other">Outra</option>
+        </select>
+        <button type="button" class="goal-submit" id="cc-add-save">Adicionar</button>
+        <button type="button" class="ft-sheet__close ft-form-cancel" id="cc-add-cancel">Cancelar</button>
+      </div>
     </div>
+
   </div>
 
   <script src="../assets/js/ft-session.js"></script>

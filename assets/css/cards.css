@@ -215,30 +215,3 @@
   margin-top: 2px;
 }
 
-/* Novo cartão modal — goal-edit shell: flex + minmax(0) for small screens */
-#add-card-modal .goal-edit-modal input,
-#add-card-modal .goal-edit-modal select {
-  min-width: 0;
-  max-width: 100%;
-  box-sizing: border-box;
-}
-
-/* Alinha tamanhos com sheet de avisos e inputs do novo gasto */
-#add-card-modal .field-label {
-  font-size: 12px;
-  margin-bottom: 4px;
-  color: var(--text-secondary);
-}
-#add-card-modal .ft-form-input {
-  min-height: 40px;
-  padding: 10px 12px;
-  font-size: 14px;
-}
-#add-card-modal .goal-submit,
-#add-card-modal .ft-sheet__close {
-  padding: 11px 12px;
-  font-size: 16px;
-}
-#add-card-modal .goal-submit {
-  margin-top: 8px;
-}
