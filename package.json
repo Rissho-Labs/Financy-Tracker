@@ -11,12 +11,12 @@
     "cap:open": "cap open android"
   },
   "dependencies": {
-    "@capacitor/android": "^7.4.4",
-    "@capacitor/core": "^7.4.4",
-    "@capgo/capacitor-native-biometric": "^7.6.0"
+    "@capacitor/android": "^8.3.2",
+    "@capacitor/core": "^8.3.2",
+    "@capgo/capacitor-native-biometric": "^8.4.2"
   },
   "devDependencies": {
-    "@capacitor/cli": "^7.4.4",
+    "@capacitor/cli": "^8.3.2",
     "esbuild": "^0.25.0",
     "serve": "^14.2.5"
   }

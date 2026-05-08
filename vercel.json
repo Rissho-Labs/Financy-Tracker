@@ -1,0 +1,6 @@
+{
+  "buildCommand": "npm run www:prepare",
+  "outputDirectory": "www",
+  "cleanUrls": true,
+  "trailingSlash": false
+}
