@@ -471,6 +471,7 @@ html[data-theme="light"] .wallet-panel-title {
 .wallet-balance.hidden {
   filter: blur(8px);
   opacity: 0.4;
+  -webkit-user-select: none;
   user-select: none;
 }
 
@@ -717,6 +718,42 @@ html[data-theme="light"] .stat-trend.neutral {
 .tx-amount.positive { color: #30D158; }
 .tx-amount.negative { color: var(--text-primary); }
 
+.tx-icon-wrap.tx-icon--accent {
+  --tx-color: #6C63FF20;
+  --tx-stroke: #6C63FF;
+}
+.tx-icon-wrap.tx-icon--success {
+  --tx-color: #10B98120;
+  --tx-stroke: #10B981;
+}
+.tx-icon-wrap.tx-icon--warn {
+  --tx-color: #F59E0B20;
+  --tx-stroke: #F59E0B;
+}
+.tx-icon-wrap.tx-icon--info {
+  --tx-color: #3B82F620;
+  --tx-stroke: #3B82F6;
+}
+
+.home-scroll-spacer {
+  height: 90px;
+}
+
+.entry-wrap--centered {
+  text-align: center;
+  padding: 24px 10px 8px;
+}
+
+.entry-help-text {
+  margin: 16px 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.file-input-hidden {
+  display: none;
+}
+
 /* ── Bottom nav ─────────────────────────────────────────────── */
 .bottom-nav {
   position: absolute;
@@ -725,8 +762,8 @@ html[data-theme="light"] .stat-trend.neutral {
   bottom: 16px;
   height: 64px;
   background: rgba(12,12,20,0.92);
-  backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
   border-top: 1px solid rgba(255,255,255,0.07);
   border-radius: 24px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.5);

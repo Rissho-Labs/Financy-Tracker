@@ -1,5 +1,23 @@
 /* ── Cards Screen specific styles ────────────────────────────── */
 
+.cards-blob-2 {
+  background: radial-gradient(circle, rgba(16,185,129,0.15) 0%, transparent 70%);
+}
+
+.cards-header-title {
+  font-size: 28px;
+}
+
+.cards-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cards-display-section {
+  margin-top: 10px;
+}
+
 .add-card-btn-top {
   width: 36px; height: 36px;
   border-radius: 50%;
@@ -56,6 +74,16 @@
   box-shadow: 0 10px 24px rgba(0,0,0,0.3);
   position: relative;
   overflow: hidden;
+}
+
+.cc-card--visa .cc-card-inner {
+  --card-bg: linear-gradient(135deg, #8B5CF6, #6D28D9);
+}
+.cc-card--master .cc-card-inner {
+  --card-bg: linear-gradient(135deg, #F97316, #EA580C);
+}
+.cc-card--elo .cc-card-inner {
+  --card-bg: linear-gradient(135deg, #1F2937, #111827);
 }
 
 /* Subtle gloss effect */
@@ -160,6 +188,7 @@
   overflow: hidden;
 }
 .cc-limit-bar-fill {
+  width: 0;
   height: 100%;
   background: var(--accent);
   border-radius: 3px;
@@ -182,6 +211,7 @@
   padding: 10px 12px;
 }
 .cc-date-icon { font-size: 18px; }
+.cc-date-icon--warning { color: var(--danger); }
 .cc-date-box div {
   display: flex;
   flex-direction: column;
@@ -213,5 +243,27 @@
   padding: 2px 6px;
   border-radius: 4px;
   margin-top: 2px;
+}
+
+.tx-icon-wrap.tx-icon--warn {
+  --tx-color: #F59E0B20;
+  --tx-stroke: #F59E0B;
+}
+.tx-icon-wrap.tx-icon--accent {
+  --tx-color: #6C63FF20;
+  --tx-stroke: #6C63FF;
+}
+.tx-icon-wrap.tx-icon--success {
+  --tx-color: #10B98120;
+  --tx-stroke: #10B981;
+}
+
+.cards-dots {
+  margin-top: 16px;
+  margin-bottom: 24px;
+}
+
+.cards-scroll-spacer {
+  height: 100px;
 }
 

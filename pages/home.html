@@ -153,7 +153,7 @@
 
         <ul class="tx-list" role="list">
           <li class="tx-item" role="listitem">
-            <div class="tx-icon-wrap" style="--tx-color:#6C63FF20;--tx-stroke:#6C63FF;">
+            <div class="tx-icon-wrap tx-icon--accent">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--tx-stroke)" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8L2 7h20l-6-4z"/></svg>
             </div>
             <div class="tx-info">
@@ -163,7 +163,7 @@
             <span class="tx-amount negative">- R$ 299,00</span>
           </li>
           <li class="tx-item" role="listitem">
-            <div class="tx-icon-wrap" style="--tx-color:#10B98120;--tx-stroke:#10B981;">
+            <div class="tx-icon-wrap tx-icon--success">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--tx-stroke)" stroke-width="2" stroke-linecap="round"><polyline points="7 17 17 7"/><polyline points="7 7 17 7 17 17"/></svg>
             </div>
             <div class="tx-info">
@@ -173,7 +173,7 @@
             <span class="tx-amount positive">+ R$ 6.200,00</span>
           </li>
           <li class="tx-item" role="listitem">
-            <div class="tx-icon-wrap" style="--tx-color:#F59E0B20;--tx-stroke:#F59E0B;">
+            <div class="tx-icon-wrap tx-icon--warn">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--tx-stroke)" stroke-width="2" stroke-linecap="round"><path d="M3 2h13l4 4v14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><polyline points="8 2 8 8 16 8"/></svg>
             </div>
             <div class="tx-info">
@@ -183,7 +183,7 @@
             <span class="tx-amount negative">- R$ 78,50</span>
           </li>
           <li class="tx-item" role="listitem">
-            <div class="tx-icon-wrap" style="--tx-color:#3B82F620;--tx-stroke:#3B82F6;">
+            <div class="tx-icon-wrap tx-icon--info">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--tx-stroke)" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
             </div>
             <div class="tx-info">
@@ -196,7 +196,7 @@
       </section>
 
       <!-- Bottom spacer for nav bar -->
-      <div style="height: 90px;" aria-hidden="true"></div>
+      <div class="home-scroll-spacer" aria-hidden="true"></div>
 
     </div><!-- /home-scroll -->
 
@@ -279,21 +279,21 @@
               </form>
             </div>
 
-            <div id="home-qr-wrap" class="entry-wrap" style="text-align:center; padding: 24px 10px 8px;">
+            <div id="home-qr-wrap" class="entry-wrap entry-wrap--centered">
               <div class="camera-mock">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M8 3v18"/><path d="M16 3v18"/><path d="M3 8h18"/><path d="M3 16h18"/></svg>
-                <p style="margin: 16px 0; color: var(--text-secondary); font-size: 14px;">Aponte para o código de barras ou QR Code da nota fiscal.</p>
+                <p class="entry-help-text">Aponte para o código de barras ou QR Code da nota fiscal.</p>
               </div>
               <button type="button" class="tx-add-btn" id="home-simulate-qr-btn">Simular Leitura</button>
               <button type="button" class="ft-sheet__close" id="home-exp-cancel-qr">Cancelar</button>
             </div>
 
-            <div id="home-file-wrap" class="entry-wrap" style="text-align:center; padding: 24px 10px 8px;">
+            <div id="home-file-wrap" class="entry-wrap entry-wrap--centered">
               <div class="file-drop-mock">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-                <p id="home-file-help" style="margin: 16px 0; color: var(--text-secondary); font-size: 14px;">Importe uma NFE em PDF ou Imagem para leitura automática.</p>
+                <p id="home-file-help" class="entry-help-text">Importe uma NFE em PDF ou Imagem para leitura automática.</p>
               </div>
-              <input type="file" id="home-file-input" style="display:none;" accept=".pdf,image/*" />
+              <input type="file" id="home-file-input" class="file-input-hidden" accept=".pdf,image/*" />
               <button type="button" class="tx-add-btn" id="home-file-picker-btn">Escolher Arquivo</button>
               <button type="button" class="ft-sheet__close" id="home-exp-cancel-file">Cancelar</button>
             </div>
