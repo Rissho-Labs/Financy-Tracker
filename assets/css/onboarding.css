@@ -126,6 +126,21 @@
 }
 
 /* ── Budget step ────────────────────────────────────────────── */
+.budget-value-form {
+  display: contents;
+}
+.budget-dismiss-trap {
+  position: absolute;
+  width: 0;
+  height: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
 .budget-display {
   display: flex;
   align-items: center;
@@ -139,6 +154,7 @@
   align-items: baseline;
   justify-content: center;
   gap: 6px;
+  width: 100%;
 }
 .budget-edit-btn {
   flex-shrink: 0;
@@ -188,6 +204,32 @@
   color: var(--text-primary);
   line-height: 1;
   transition: color 0.2s;
+}
+.budget-value-input {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  flex: 0 1 auto;
+  width: auto;
+  min-width: 4ch;
+  max-width: 9ch;
+  text-align: center;
+  font: inherit;
+  font-size: 52px;
+  font-weight: 800;
+  letter-spacing: -2px;
+  color: var(--text-primary);
+  line-height: 1;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  field-sizing: content;
+  caret-color: var(--accent);
+  -webkit-tap-highlight-color: transparent;
+}
+.budget-value-input:focus {
+  color: var(--accent);
 }
 
 .slider-wrap {

@@ -53,21 +53,27 @@
           <h1 class="ob-title" id="step1-title">Qual o seu orçamento<br>mensal?</h1>
           <p class="ob-subtitle">Defina quanto pretende gastar por mês. Você pode ajustar isso depois.</p>
 
-          <div class="budget-display" aria-live="polite">
-            <div class="budget-display__value-block">
-              <span class="budget-currency">R$</span>
-              <span class="budget-value" id="budget-display">0</span>
+          <form class="budget-value-form" id="budget-value-form" novalidate>
+            <div class="budget-display" aria-live="polite">
+              <div class="budget-display__value-block">
+                <span class="budget-currency">R$</span>
+                <input
+                  type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                id="budget-display"
+                class="budget-value budget-value-input"
+                value="3.000"
+                maxlength="5"
+                aria-label="Orçamento mensal em reais"
+                autocomplete="off"
+                enterkeyhint="done"
+              />
+              </div>
             </div>
-            <button type="button" class="budget-edit-btn" id="budget-edit-toggle" aria-label="Editar valor numérico">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </button>
-          </div>
-          <p class="budget-display-hint">Toque no lápis para digitar um valor exato.</p>
-          <div class="budget-manual-wrap" id="budget-manual-wrap">
-            <label class="field-label" for="budget-manual-input">Digite o valor (R$)</label>
-            <input type="number" id="budget-manual-input" min="500" max="30000" step="1" placeholder="Ex.: 2750" />
-            <button type="button" id="budget-manual-apply">Aplicar</button>
-          </div>
+          </form>
+          <button type="button" id="budget-dismiss-trap" class="budget-dismiss-trap" tabindex="-1" aria-hidden="true"></button>
+          <p class="budget-display-hint">Toque no valor para digitar.</p>
 
           <div class="slider-wrap">
             <input

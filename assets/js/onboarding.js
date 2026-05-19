@@ -96,24 +96,106 @@ function updateNavButtons() {
 
 // ── STEP 1: Budget slider ─────────────────────────────────────
 const slider = $('budget-slider');
-const budgetDisplay = $('budget-display');
+const budgetInput = $('budget-display');
 const budgetDaily = $('budget-daily');
 
+function clampBudget(v) {
+  return Math.min(30000, Math.max(500, v));
+}
+
 function updateBudgetDisplay(val) {
-  state.budget = val;
-  budgetDisplay.textContent = fmt(val);
-  budgetDaily.textContent = fmtCurrency(Math.round(val / 30));
-  slider.setAttribute('aria-valuenow', val);
-  // Color gradient based on value
-  const pct = ((val - 500) / (30000 - 500)) * 100;
+  const n = Number(val);
+  if (!Number.isFinite(n)) return;
+  state.budget = n;
+  const sliderVal = clampBudget(n);
+  if (budgetInput) {
+    budgetInput.value = document.activeElement === budgetInput
+      ? String(n)
+      : fmt(sliderVal);
+  }
+  budgetDaily.textContent = fmtCurrency(Math.round(sliderVal / 30));
+  slider.value = String(sliderVal);
+  slider.setAttribute('aria-valuenow', sliderVal);
+  const pct = ((sliderVal - 500) / (30000 - 500)) * 100;
   slider.style.background = `linear-gradient(90deg, var(--accent) ${pct}%, rgba(255,255,255,0.08) ${pct}%)`;
-  // Highlight matching preset
   document.querySelectorAll('.preset-btn').forEach(btn => {
-    btn.classList.toggle('active', Number(btn.dataset.value) === val);
+    btn.classList.toggle('active', Number(btn.dataset.value) === sliderVal);
   });
 }
 
-slider.addEventListener('input', () => { updateBudgetDisplay(Number(slider.value)); haptic('light'); });
+function syncBudgetFromInput(finish) {
+  const raw = budgetInput.value.replace(/\D/g, '').slice(0, 5);
+  if (budgetInput.value !== raw) budgetInput.value = raw;
+
+  if (raw === '') {
+    if (finish) {
+      updateBudgetDisplay(state.budget || 3000);
+      budgetInput.value = fmt(state.budget || 3000);
+    }
+    return;
+  }
+
+  let v = parseInt(raw, 10);
+  if (Number.isNaN(v)) return;
+
+  if (finish) {
+    v = clampBudget(v);
+    updateBudgetDisplay(v);
+    budgetInput.value = fmt(v);
+  } else {
+    v = Math.min(30000, v);
+    updateBudgetDisplay(v);
+  }
+}
+
+function dismissBudgetKeyboard() {
+  syncBudgetFromInput(true);
+  budgetInput.setAttribute('readonly', 'readonly');
+  const trap = $('budget-dismiss-trap');
+  if (trap) trap.focus({ preventScroll: true });
+  budgetInput.blur();
+  requestAnimationFrame(() => budgetInput.removeAttribute('readonly'));
+}
+
+if (budgetInput) {
+  budgetInput.addEventListener('focus', () => {
+    if (/[^\d]/.test(budgetInput.value)) {
+      budgetInput.value = String(state.budget);
+    }
+  });
+  budgetInput.addEventListener('mouseup', (e) => e.preventDefault());
+  budgetInput.addEventListener('select', () => {
+    const { selectionStart: s, selectionEnd: e, value } = budgetInput;
+    if (e - s === value.length && value.length > 1) {
+      budgetInput.setSelectionRange(e, e);
+    }
+  });
+  budgetInput.addEventListener('input', () => syncBudgetFromInput(false));
+  budgetInput.addEventListener('blur', () => {
+    const trap = $('budget-dismiss-trap');
+    if (trap && document.activeElement === trap) return;
+    syncBudgetFromInput(true);
+  });
+
+  $('budget-value-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dismissBudgetKeyboard();
+    return false;
+  });
+
+  budgetInput.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== 'NumpadEnter' && e.keyCode !== 13) return;
+    e.preventDefault();
+    e.stopPropagation();
+    dismissBudgetKeyboard();
+  });
+}
+
+slider.addEventListener('input', () => {
+  updateBudgetDisplay(Number(slider.value));
+  haptic('light');
+});
 document.querySelectorAll('.preset-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const v = Number(btn.dataset.value);
@@ -197,38 +279,19 @@ function recalcGoal() {
   recalcGoal();
 })();
 
-// Orçamento: valor manual (fora do intervalo da barra)
-(function budgetManual() {
-  const wrap = $('budget-manual-wrap');
-  const toggle = $('budget-edit-toggle');
-  const inp = $('budget-manual-input');
-  const apply = $('budget-manual-apply');
-  if (!toggle || !wrap || !inp || !apply) return;
-  toggle.addEventListener('click', function () {
-    const open = !wrap.classList.contains('is-visible');
-    wrap.classList.toggle('is-visible', open);
-    if (open) {
-      inp.value = String(state.budget || 3000);
-      inp.focus();
-    }
-  });
-  apply.addEventListener('click', function () {
-    let v = parseInt(inp.value, 10);
-    if (Number.isNaN(v)) return;
-    v = Math.min(30000, Math.max(500, v));
-    $('budget-slider').value = String(v);
-    updateBudgetDisplay(v);
-    wrap.classList.remove('is-visible');
-  });
-})();
-
 // ── Back button ───────────────────────────────────────────────
 $('ob-back-btn').addEventListener('click', () => {
   if (state.currentStep > 1) goToStep(state.currentStep - 1);
 });
 
 // ── Next button ───────────────────────────────────────────────
-$('ob-next-btn').addEventListener('click', async () => {
+$('ob-next-btn').addEventListener('click', async (e) => {
+  if (budgetInput && (document.activeElement === budgetInput || budgetInput.hasAttribute('readonly'))) {
+    e.preventDefault();
+    e.stopPropagation();
+    dismissBudgetKeyboard();
+    return;
+  }
   if (state.currentStep === 1) {
     goToStep(2);
   }

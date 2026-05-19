@@ -125,13 +125,9 @@ body {
   to { transform: translateY(0); opacity: 1; }
 }
 
-/* ── Status bar ─────────────────────────────────────────────── */
+/* ── Status bar (decorative; hidden — real device shows system bar) ── */
 .status-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 28px 0;
-  min-height: 44px;
+  display: none;
 }
 .status-time {
   font-size: 15px;
@@ -583,7 +579,6 @@ body {
     opacity: 1;
     transform: none;
   }
-  .status-bar { padding: 14px 20px 0; }
   .dynamic-island { display: none; }
   .card-scroll { padding: 0 16px 20px; }
   .card { padding: 28px 20px 20px; margin-top: 12px; }
