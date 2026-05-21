@@ -7,8 +7,130 @@
   }
 
 const $ = (id) => document.getElementById(id);
+let isGoogleRegister = false;
+
+(function initGoogleRegisterMode() {
+  const params = new URLSearchParams(window.location.search || '');
+  if (params.get('from') !== 'google') return;
+  let pending = null;
+  try {
+    pending = JSON.parse(sessionStorage.getItem('ft_google_pending') || 'null');
+  } catch (e) {}
+  if (!pending || !pending.email) {
+    window.location.replace('../index.html');
+    return;
+  }
+  isGoogleRegister = true;
+  const title = document.querySelector('.card-title');
+  const sub = document.querySelector('.card-subtitle');
+  if (title) title.textContent = 'Complete seu cadastro';
+  if (sub) {
+    sub.innerHTML =
+      '<span class="dot">●</span> Conta Google — complete os dados. Opcional: crie uma senha para entrar com e-mail também.';
+  }
+  const em = $('reg-email');
+  if (em) {
+    em.value = pending.email;
+    em.readOnly = true;
+  }
+  if (pending.name && $('full-name')) $('full-name').value = pending.name;
+  const pw = $('register-password-section');
+  if (pw) {
+    pw.style.display = '';
+    pw.classList.add('google-password-optional');
+  }
+  const regPw = $('reg-password');
+  const confirmPw = $('confirm-password');
+  if (regPw) {
+    regPw.removeAttribute('required');
+    regPw.placeholder = 'Opcional — para entrar com e-mail depois';
+  }
+  if (confirmPw) {
+    confirmPw.removeAttribute('required');
+    confirmPw.placeholder = 'Repita a senha (se criou acima)';
+  }
+  const gp = $('btn-google-register');
+  if (gp) gp.style.display = 'none';
+  const divider = document.querySelector('.divider');
+  if (divider) divider.style.display = 'none';
+  const btn = $('btn-register');
+  if (btn && btn.querySelector('.btn-text')) btn.querySelector('.btn-text').textContent = 'Continuar';
+})();
 const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+const RESERVED_USERNAMES = new Set(['admin','root','finance','tracker','test','suporte','support','financy']);
+let usernameAvailable = null;
+let emailAvailable = null;
+let usernameCheckGen = 0;
+let emailCheckGen = 0;
+
+function usesFirebaseRegister() {
+  return typeof FTSession !== 'undefined' && FTSession.usesFirebase && FTSession.usesFirebase();
+}
+
+function getRegisterExceptUid() {
+  if (!isGoogleRegister || !globalThis.FTFirebase) return null;
+  const u = FTFirebase.getCurrentUser();
+  return u && u.uid ? u.uid : null;
+}
+
 function haptic(t='light') { if(navigator.vibrate){const p={light:[8],medium:[18],error:[20,50,20]};navigator.vibrate(p[t]||[8]);} }
+
+function setUsernameStatus(taken, checking) {
+  const status = $('username-status');
+  const val = $('username').value.trim();
+  if (!status) return;
+  status.className = 'field-status';
+  if (checking) {
+    status.innerHTML = '';
+    status.className = 'field-status checking';
+    return;
+  }
+  if (val.length < 3) return;
+  status.innerHTML = taken
+    ? `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`
+    : `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+  status.className = 'field-status ' + (taken ? 'taken' : 'available');
+}
+
+async function checkUsernameInDb(username) {
+  const val = String(username || '').trim();
+  const key = val.toLowerCase().replace(/[^a-z0-9_]/g, '');
+  if (val.length < 3 || key.length < 3) {
+    usernameAvailable = null;
+    return null;
+  }
+  if (RESERVED_USERNAMES.has(key)) {
+    usernameAvailable = false;
+    return false;
+  }
+  if (!usesFirebaseRegister() || !globalThis.FTFirebase.isUsernameTaken) {
+    usernameAvailable = true;
+    return true;
+  }
+  const exceptUid = getRegisterExceptUid();
+  const taken = await FTFirebase.isUsernameTaken(val, exceptUid);
+  usernameAvailable = !taken;
+  return usernameAvailable;
+}
+
+async function checkEmailInDb(email) {
+  const val = String(email || '').trim();
+  if (!isEmail(val)) {
+    emailAvailable = null;
+    return null;
+  }
+  if (isGoogleRegister) {
+    emailAvailable = true;
+    return true;
+  }
+  if (!usesFirebaseRegister() || !globalThis.FTFirebase.isEmailRegistered) {
+    emailAvailable = true;
+    return true;
+  }
+  const taken = await FTFirebase.isEmailRegistered(val, null);
+  emailAvailable = !taken;
+  return emailAvailable;
+}
 
 // Clock
 (function(){const el=$('status-clock');if(!el)return;const n=new Date();el.textContent=n.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});})();
@@ -54,31 +176,48 @@ $('reg-password').addEventListener('input', () => {
   lbl.className = 'strength-label' + (pw ? ' '+strengthClasses[score] : '');
 });
 
-// Username availability (simulated)
+// Username availability (Firestore)
 let usernameTimer;
 $('username').addEventListener('input', () => {
   clearTimeout(usernameTimer);
-  const status = $('username-status');
   const val = $('username').value.trim();
-  status.className = 'field-status';
-  if(val.length < 3) return;
-  usernameTimer = setTimeout(() => {
-    const taken = ['admin','root','finance','tracker','test'].includes(val.toLowerCase());
-    status.innerHTML = taken
-      ? `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`
-      : `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>`;
-    status.className = 'field-status ' + (taken ? 'taken' : 'available');
-    if(taken) {
-      $('username-error').textContent = 'Nome já em uso.';
-      $('username-error').classList.add('visible');
-      $('username').classList.add('error');
-    } else {
-      $('username-error').textContent = '';
-      $('username-error').classList.remove('visible');
-      $('username').classList.remove('error');
-      $('username').classList.add('success');
+  usernameAvailable = null;
+  setUsernameStatus(false, false);
+  if (val.length < 3) {
+    clearErr('username', 'username-error');
+    return;
+  }
+  const gen = ++usernameCheckGen;
+  usernameTimer = setTimeout(async () => {
+    setUsernameStatus(false, true);
+    try {
+      const ok = await checkUsernameInDb(val);
+      if (gen !== usernameCheckGen) return;
+      setUsernameStatus(!ok, false);
+      if (!ok) {
+        showErr('username', 'username-error', 'Este nome de usuário já está em uso.');
+      } else {
+        clearErr('username', 'username-error');
+        markOk('username');
+      }
+    } catch (e) {
+      if (gen !== usernameCheckGen) return;
+      setUsernameStatus(false, false);
+      console.warn('[register] username check', e);
     }
-  }, 600);
+  }, 500);
+});
+
+$('username').addEventListener('blur', async () => {
+  const val = $('username').value.trim();
+  if (val.length < 3) {
+    showErr('username', 'username-error', 'Mínimo 3 caracteres (letras, números ou _).');
+    return;
+  }
+  const ok = await checkUsernameInDb(val);
+  setUsernameStatus(!ok, false);
+  if (!ok) showErr('username', 'username-error', 'Este nome de usuário já está em uso.');
+  else { clearErr('username', 'username-error'); markOk('username'); }
 });
 
 // Inline validation helpers
@@ -104,11 +243,44 @@ $('full-name').addEventListener('blur',()=>{
   else if(v.split(' ').length<2) showErr('full-name','name-error','Informe nome e sobrenome.');
   else { clearErr('full-name','name-error'); markOk('full-name'); }
 });
-$('reg-email').addEventListener('blur',()=>{
-  const v=$('reg-email').value;
-  if(!v) showErr('reg-email','reg-email-error','E-mail é obrigatório.');
-  else if(!isEmail(v)) showErr('reg-email','reg-email-error','E-mail inválido.');
-  else { clearErr('reg-email','reg-email-error'); markOk('reg-email'); }
+let emailTimer;
+$('reg-email').addEventListener('input', () => {
+  if (isGoogleRegister) return;
+  clearTimeout(emailTimer);
+  emailAvailable = null;
+  const v = $('reg-email').value.trim();
+  if (!v || !isEmail(v)) return;
+  const gen = ++emailCheckGen;
+  emailTimer = setTimeout(async () => {
+    try {
+      const ok = await checkEmailInDb(v);
+      if (gen !== emailCheckGen) return;
+      if (!ok) showErr('reg-email', 'reg-email-error', 'Este e-mail já está cadastrado.');
+      else { clearErr('reg-email', 'reg-email-error'); markOk('reg-email'); }
+    } catch (e) {
+      console.warn('[register] email check', e);
+    }
+  }, 500);
+});
+
+$('reg-email').addEventListener('blur', async () => {
+  const v = $('reg-email').value.trim();
+  if (!v) {
+    showErr('reg-email', 'reg-email-error', 'E-mail é obrigatório.');
+    return;
+  }
+  if (!isEmail(v)) {
+    showErr('reg-email', 'reg-email-error', 'E-mail inválido.');
+    return;
+  }
+  if (isGoogleRegister) {
+    clearErr('reg-email', 'reg-email-error');
+    markOk('reg-email');
+    return;
+  }
+  const ok = await checkEmailInDb(v);
+  if (!ok) showErr('reg-email', 'reg-email-error', 'Este e-mail já está cadastrado.');
+  else { clearErr('reg-email', 'reg-email-error'); markOk('reg-email'); }
 });
 $('reg-password').addEventListener('blur',()=>{
   const v=$('reg-password').value;
@@ -138,8 +310,13 @@ $('register-form').addEventListener('submit', async (e) => {
   if(!name || name.split(' ').length<2)          { showErr('full-name','name-error','Nome completo obrigatório.'); valid=false; }
   if(!user || user.length<3)                      { showErr('username','username-error','Usuário inválido.'); valid=false; }
   if(!isEmail(email))                             { showErr('reg-email','reg-email-error','E-mail inválido.'); valid=false; }
-  if(pw.length<8)                                 { showErr('reg-password','reg-password-error','Mínimo 8 caracteres.'); valid=false; }
-  if(pw!==cpw)                                    { showErr('confirm-password','confirm-error','Senhas não coincidem.'); valid=false; }
+  if (!isGoogleRegister) {
+    if(pw.length<8)                                 { showErr('reg-password','reg-password-error','Mínimo 8 caracteres.'); valid=false; }
+    if(pw!==cpw)                                    { showErr('confirm-password','confirm-error','Senhas não coincidem.'); valid=false; }
+  } else if (pw || cpw) {
+    if (pw.length < 8)                              { showErr('reg-password','reg-password-error','Senha: mínimo 8 caracteres.'); valid=false; }
+    else if (pw !== cpw)                            { showErr('confirm-password','confirm-error','Senhas não coincidem.'); valid=false; }
+  }
   if(!terms)                                      { $('terms-error').textContent='Aceite os termos.'; $('terms-error').classList.add('visible'); valid=false; }
   else                                            { $('terms-error').classList.remove('visible'); }
 
@@ -149,42 +326,185 @@ $('register-form').addEventListener('submit', async (e) => {
   btn.classList.add('loading'); btn.disabled=true;
   haptic('medium');
 
-  await new Promise(r=>setTimeout(r,1500));
+  try {
+    if (usesFirebaseRegister()) {
+      const exceptUid = getRegisterExceptUid();
+      const userTaken = await FTFirebase.isUsernameTaken(user, exceptUid);
+      if (userTaken) {
+        showErr('username', 'username-error', 'Este nome de usuário já está em uso.');
+        usernameAvailable = false;
+        haptic('error');
+        return;
+      }
+      if (!isGoogleRegister) {
+        const emailTaken = await FTFirebase.isEmailRegistered(email, null);
+        if (emailTaken) {
+          showErr('reg-email', 'reg-email-error', 'Este e-mail já está cadastrado.');
+          emailAvailable = false;
+          haptic('error');
+          return;
+        }
+      }
+    }
 
-  // Save minimal profile to localStorage
-  localStorage.setItem(
-    'ft_user',
-    JSON.stringify({ name, username: user, email, firstLogin: true, passwordDemo: pw, authProvider: 'password' })
-  );
-
-  // Redirect to onboarding
-  window.location.href = 'onboarding.html';
+    if (typeof FTSession !== 'undefined' && FTSession.usesFirebase && FTSession.usesFirebase()) {
+      if (isGoogleRegister) {
+        const fbUser = FTFirebase.getCurrentUser();
+        if (!fbUser || !fbUser.uid) {
+          showErr('reg-email', 'reg-email-error', 'Sessão Google expirada. Volte e entre com Google de novo.');
+          return;
+        }
+        var authProvider = 'google';
+        var authProviders = ['google'];
+        var hasPassword = pw.length >= 8 && pw === cpw;
+        await FTFirebase.saveUserProfile(fbUser.uid, {
+          name,
+          username: user,
+          email,
+          authProvider: hasPassword ? 'google+password' : authProvider,
+          authProviders: hasPassword ? ['google', 'password'] : authProviders,
+          registrationComplete: true,
+          firstLogin: true,
+          onboardingComplete: false,
+        });
+        if (hasPassword) {
+          await FTFirebase.linkPasswordToCurrentUser(pw);
+          authProvider = 'google+password';
+          authProviders.push('password');
+          try {
+            await FTFirebase.saveUserProfile(fbUser.uid, {
+              authProvider: authProvider,
+              authProviders: authProviders,
+            });
+          } catch (syncErr) {
+            console.warn('[register] profile sync after link', syncErr);
+          }
+        }
+        sessionStorage.removeItem('ft_google_pending');
+        await FTSession.completeLoginFromFirebase(fbUser, {
+          name,
+          username: user,
+          registrationComplete: true,
+          authProvider: authProvider,
+          skipProfileLoad: true,
+        });
+        if (typeof FTAuth !== 'undefined' && FTAuth.stageBiometricSetup) {
+          var bioSecret = pw.length >= 8 ? pw : FTAuth.BIOMETRIC_UNLOCK;
+          var bioProvider = pw.length >= 8 ? 'password' : 'google';
+          FTAuth.stageBiometricSetup(email, bioSecret, bioProvider);
+        }
+      } else {
+        const cred = await globalThis.FTFirebase.registerEmailPassword(email, pw, name);
+        await globalThis.FTFirebase.saveUserProfile(cred.user.uid, {
+          name,
+          username: user,
+          email,
+          authProvider: 'password',
+          authProviders: ['password'],
+          registrationComplete: true,
+          firstLogin: true,
+          onboardingComplete: false,
+        });
+        await FTSession.completeLoginFromFirebase(cred.user, {
+          name,
+          username: user,
+          registrationComplete: true,
+          authProvider: 'password',
+          skipProfileLoad: true,
+        });
+        if (typeof FTAuth !== 'undefined' && FTAuth.stageBiometricSetup) {
+          FTAuth.stageBiometricSetup(email, pw, 'password');
+        }
+      }
+    } else {
+      await new Promise((r) => setTimeout(r, 1500));
+      localStorage.setItem(
+        'ft_user',
+        JSON.stringify({ name, username: user, email, firstLogin: true, passwordDemo: pw, authProvider: 'password' })
+      );
+    }
+    var next =
+      typeof FTAuth !== 'undefined' && FTAuth.getPostRegisterDestination
+        ? FTAuth.getPostRegisterDestination()
+        : '/pages/onboarding.html';
+    window.location.href = next;
+  } catch (err) {
+    const code = err && err.code ? String(err.code) : '';
+    const fbUser =
+      globalThis.FTFirebase && typeof FTFirebase.getCurrentUser === 'function'
+        ? FTFirebase.getCurrentUser()
+        : null;
+    if (
+      code === 'permission-denied' &&
+      fbUser &&
+      fbUser.email &&
+      typeof FTSession !== 'undefined' &&
+      FTSession.completeLoginFromFirebase
+    ) {
+      try {
+        await FTSession.completeLoginFromFirebase(fbUser, {
+          name,
+          username: user,
+          email: fbUser.email,
+          registrationComplete: true,
+          authProvider: isGoogleRegister ? 'google' : 'password',
+          skipProfileLoad: true,
+        });
+        sessionStorage.removeItem('ft_google_pending');
+        if (typeof FTAuth !== 'undefined' && FTAuth.stageBiometricSetup) {
+          const bioSecret = pw.length >= 8 ? pw : FTAuth.BIOMETRIC_UNLOCK;
+          const bioProvider = pw.length >= 8 ? 'password' : isGoogleRegister ? 'google' : 'password';
+          FTAuth.stageBiometricSetup(fbUser.email, bioSecret, bioProvider);
+        }
+        var nextFallback =
+          typeof FTAuth !== 'undefined' && FTAuth.getPostRegisterDestination
+            ? FTAuth.getPostRegisterDestination()
+            : '/pages/onboarding.html';
+        window.location.href = nextFallback;
+        return;
+      } catch (fallbackErr) {
+        console.warn('[register] fallback after permission-denied', fallbackErr);
+      }
+    }
+    const msg =
+      globalThis.FTFirebase && typeof FTFirebase.mapAuthError === 'function'
+        ? FTFirebase.mapAuthError(err)
+        : 'Não foi possível criar a conta.';
+    showErr('reg-email', 'reg-email-error', msg);
+    haptic('error');
+  } finally {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
 });
 
-// Google
-$('btn-google-register')?.addEventListener('click', () => {
+// Google (mesmo fluxo da tela de login)
+$('btn-google-register')?.addEventListener('click', async () => {
   haptic('light');
-  const email = $('reg-email').value.trim();
-  if (!isEmail(email)) {
-    showErr('reg-email', 'reg-email-error', 'Informe um e-mail válido para continuar.');
-    haptic('error');
+  const btn = $('btn-google-register');
+  if (!(typeof FTSession !== 'undefined' && FTSession.usesFirebase && FTSession.usesFirebase())) {
+    showErr('reg-email', 'reg-email-error', 'Google indisponível.');
     return;
   }
-  clearErr('reg-email', 'reg-email-error');
-  markOk('reg-email');
-  const name =
-    typeof FTSession !== 'undefined' && FTSession.defaultDisplayName
-      ? FTSession.defaultDisplayName(email)
-      : 'Utilizador';
-  const username =
-    typeof FTSession !== 'undefined' && FTSession.defaultUsername
-      ? FTSession.defaultUsername(email)
-      : 'user';
-  localStorage.setItem(
-    'ft_user',
-    JSON.stringify({ name, username, email, firstLogin: true, authProvider: 'google' })
-  );
-  window.location.href = 'onboarding.html';
+  btn.disabled = true;
+  btn.style.opacity = '0.7';
+  try {
+    sessionStorage.setItem('ft_google_redirect_pending', '1');
+    const result = await FTAuth.startGoogleSignIn();
+    if (result && result.user) {
+      sessionStorage.removeItem('ft_google_redirect_pending');
+      const dest = await FTAuth.routeAfterGoogleSignIn(result);
+      window.location.href = dest.href;
+      return;
+    }
+  } catch (err) {
+    sessionStorage.removeItem('ft_google_redirect_pending');
+    showErr('reg-email', 'reg-email-error', FTAuth.mapError(err));
+    haptic('error');
+  } finally {
+    btn.disabled = false;
+    btn.style.opacity = '';
+  }
 });
 
 })();

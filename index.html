@@ -116,6 +116,7 @@
           </svg>
           <span>Entrar com Google</span>
         </button>
+        <p id="google-error" class="field-error google-error" role="alert"></p>
 
         <!-- Divider -->
         <div class="divider" role="separator">
@@ -213,9 +214,13 @@
 
   </div><!-- /phone-frame -->
 
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="assets/js/firebase-config.js"></script>
+  <script src="assets/js/ft-firebase.bundle.js"></script>
   <script src="assets/js/ft-session.js"></script>
+  <script src="assets/js/ft-google-auth.js"></script>
+  <script src="assets/js/ft-auth.js"></script>
   <script type="module" src="assets/js/ft-capacitor-init.mjs"></script>
+  <!-- ft-capacitor-init carrega Google nativo antes do login -->
   <script defer src="assets/js/app.js"></script>
 </body>
 </html>

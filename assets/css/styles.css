@@ -300,6 +300,11 @@ body {
 .btn-google:hover::after { opacity: 1; }
 .btn-google:active { transform: scale(0.97); }
 
+.google-error {
+  margin: 0.5rem 0 0;
+  text-align: center;
+}
+
 .google-icon { flex-shrink: 0; }
 
 /* ── Divider ──────────────────────────────────────────────── */

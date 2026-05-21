@@ -59,23 +59,36 @@ npm start
 
 ---
 
-## 📱 Executando o Projeto no Android (Capacitor)
+## 📱 Executando no Android Studio
 
-Se você tem o **Android Studio** instalado e quer rodar o projeto como um aplicativo nativo, siga os passos abaixo:
+Guia completo (emulador, celular, Google, Firebase, SHA-1 para o time):
 
-### 1. Sincronizar os Arquivos Web
-Antes de abrir o projeto no Android, os arquivos atualizados precisam ser sincronizados para dentro da pasta `android/`. Rode o comando:
+**[docs/SETUP-ANDROID.md](docs/SETUP-ANDROID.md)**
+
+### Resumo rápido
+
 ```bash
+npm install
 npm run cap:sync
-```
-*(Isso vai preparar o diretório `www` e realizar o comando `cap sync` do Capacitor para copiar seus assets web para o diretório nativo Android).*
-
-### 2. Abrir no Android Studio
-Para abrir a interface do Android Studio já no contexto deste projeto, execute:
-```bash
 npm run cap:open
 ```
-Assim que o Android Studio carregar e terminar a sincronização do Gradle, você poderá conectar seu dispositivo físico (via cabo USB com depuração ativada) ou usar um emulador do Android Studio para dar play e rodar o aplicativo de fato.
+
+No Android Studio: aguarde o Gradle, escolha emulador ou celular, clique em **Run** (▶).
+
+**Login Google no Android:** cada máquina precisa do SHA-1 no Firebase:
+
+```bash
+npm run android:sha1
+```
+
+Copie o SHA-1 (debug) → [Firebase → app Android](https://console.firebase.google.com/project/financy-4d5f7/settings/general) → Adicionar impressão digital → baixar `google-services.json` → colar em `android/app/` → `npm run cap:sync`.
+
+### Mesmo estado / dados para todo o time
+
+- O repositório já traz `firebase-config.js` e `google-services.json` (projeto **financy-4d5f7**).
+- Firestore: publique `firestore.rules` no Console (uma vez).
+- Contas e perfis são **compartilhados** na nuvem — não é preciso outro Firebase por pessoa.
+- Biometria e cache local ficam só no aparelho de quem ativou.
 
 ---
 

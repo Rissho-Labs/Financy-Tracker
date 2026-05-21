@@ -3,17 +3,54 @@
  */
 import { NativeBiometric } from '@capgo/capacitor-native-biometric';
 
+export async function isNativeBiometricAvailable() {
+  try {
+    const res = await NativeBiometric.isAvailable({ useFallback: true });
+    return !!(res.isAvailable || res.deviceIsSecure);
+  } catch (_) {
+    return false;
+  }
+}
+
+export async function hasStoredCredentials(server) {
+  try {
+    const creds = await NativeBiometric.getCredentials({ server });
+    return !!(creds && creds.username);
+  } catch (_) {
+    return false;
+  }
+}
+
+/** E-mail guardado no Keychain/Keystore (sem pedir biometria). */
+export async function getStoredBiometricEmail(server) {
+  try {
+    const creds = await NativeBiometric.getCredentials({ server });
+    if (!creds || !creds.username) return null;
+    return String(creds.username).trim();
+  } catch (_) {
+    return null;
+  }
+}
+
+export async function verifyBiometricIdentity(opts) {
+  const o = opts || {};
+  await NativeBiometric.verifyIdentity({
+    reason: o.reason || 'Confirmar identidade',
+    title: o.title || 'Finance Tracker',
+    subtitle: o.subtitle || '',
+    description: o.description || '',
+  });
+}
+
 export async function tryNativeBiometricLogin(server) {
   try {
     const res = await NativeBiometric.isAvailable({ useFallback: true });
     if (!res.isAvailable && !res.deviceIsSecure) {
       return { ok: false, reason: 'unavailable' };
     }
-    await NativeBiometric.verifyIdentity({
-      reason: 'Confirmar acesso ao Finance Tracker',
+    await verifyBiometricIdentity({
+      reason: 'Use sua biometria para entrar no Finance Tracker',
       title: 'Entrar',
-      subtitle: '',
-      description: '',
     });
     const creds = await NativeBiometric.getCredentials({ server });
     if (!creds || !creds.username) {
@@ -30,9 +67,28 @@ export async function tryNativeBiometricLogin(server) {
 }
 
 export async function saveNativeBiometricCredentials(server, email, password) {
+  const available = await isNativeBiometricAvailable();
+  if (!available) {
+    const err = new Error('biometrics_unavailable');
+    err.code = 'bio/unavailable';
+    throw err;
+  }
+  await verifyBiometricIdentity({
+    reason: 'Confirme para ativar o login com biometria',
+    title: 'Ativar biometria',
+    subtitle: 'Finance Tracker',
+  });
   await NativeBiometric.setCredentials({
     server,
-    username: email,
+    username: String(email).trim(),
     password: password || '',
   });
+}
+
+export async function deleteNativeBiometricCredentials(server) {
+  try {
+    await NativeBiometric.deleteCredentials({ server });
+  } catch (_) {
+    /* já vazio */
+  }
 }

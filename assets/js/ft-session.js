@@ -1,6 +1,6 @@
 /**
- * Sessão local (MVP) — ft_user + ft_onboarding_done
- * Sem backend; dados em localStorage.
+ * Sessão — ft_user + ft_onboarding_done (cache local)
+ * Com Firebase configurado: Auth + perfil em Firestore.
  */
 (function (global) {
   'use strict';
@@ -63,6 +63,21 @@
     if (!isOnboardingDone()) setOnboardingDone();
   }
 
+  function usesFirebase() {
+    var fb = global.FTFirebase;
+    return !!(fb && typeof fb.isReady === 'function' && fb.isReady());
+  }
+
+  function usesFirebaseConfigured() {
+    var fb = global.FTFirebase;
+    return !!(fb && typeof fb.isConfigured === 'function' && fb.isConfigured());
+  }
+
+  /** Só remove utilizador em cache (mantém onboarding e dados locais). */
+  function clearLoginCache() {
+    localStorage.removeItem(KEY_USER);
+  }
+
   function clearAll() {
     localStorage.removeItem(KEY_USER);
     localStorage.removeItem(KEY_ONBOARD);
@@ -70,6 +85,22 @@
     localStorage.removeItem('ft_goals');
     localStorage.removeItem('ft_onboarding_goal_dismissed');
     localStorage.removeItem('ft_cards');
+  }
+
+  function logout() {
+    var keepFirebase =
+      global.FTAuth &&
+      typeof FTAuth.shouldKeepFirebaseSessionOnLogout === 'function'
+        ? FTAuth.shouldKeepFirebaseSessionOnLogout()
+        : Promise.resolve(false);
+
+    return Promise.resolve(keepFirebase).then(function (keep) {
+      if (usesFirebase() && !keep) {
+        return global.FTFirebase.signOut().catch(function () {}).then(clearAll);
+      }
+      clearAll();
+      return Promise.resolve();
+    });
   }
 
   function defaultUsername(email) {
@@ -109,9 +140,102 @@
     else u.authProvider = 'password';
     if (opts.passwordDemo) u.passwordDemo = opts.passwordDemo;
     saveUser(u);
+    if (global.FTAuth && FTAuth.recordLastLogin) {
+      FTAuth.recordLastLogin(trimmed);
+    }
     // Raiz do servidor (serve www/) — válido a partir de / ou /pages/*
     var href = isOnboardingDone() ? '/pages/home.html' : '/pages/onboarding.html';
     return { href: href };
+  }
+
+  /**
+   * Após Firebase Auth — sincroniza perfil local + destino.
+   * @param {import('firebase/auth').User} fbUser
+   * @param {{ name?: string, username?: string }} [extra]
+   */
+  function completeLoginFromFirebase(fbUser, extra) {
+    extra = extra || {};
+    var email = String((fbUser && fbUser.email) || '').trim();
+    if (!email) throw new Error('no_email');
+
+    var profilePromise = extra.skipProfileLoad
+      ? Promise.resolve(null)
+      : global.FTFirebase.loadUserProfile(fbUser.uid).catch(function () {
+          return null;
+        });
+
+    return profilePromise.then(function (profile) {
+        var registrationDone =
+          extra.registrationComplete === true ||
+          (profile && profile.registrationComplete === true);
+        var u = Object.assign({}, profile || {}, {
+          uid: fbUser.uid,
+          email: email,
+          name:
+            extra.name ||
+            (profile && profile.name) ||
+            (fbUser.displayName && String(fbUser.displayName).trim()) ||
+            defaultDisplayName(email),
+          username:
+            extra.username ||
+            (profile && profile.username) ||
+            defaultUsername(email),
+          lastLogin: new Date().toISOString(),
+          registrationComplete: registrationDone,
+          authProvider:
+            extra.authProvider ||
+            (fbUser.providerData &&
+            fbUser.providerData.some(function (p) {
+              return p && p.providerId === 'google.com';
+            })
+              ? 'google'
+              : 'firebase'),
+        });
+        if (profile && profile.onboardingComplete) setOnboardingDone();
+        saveUser(u);
+
+        if (!registrationDone) {
+          try {
+            sessionStorage.setItem(
+              'ft_google_pending',
+              JSON.stringify({
+                uid: fbUser.uid,
+                email: email,
+                name: u.name,
+              })
+            );
+          } catch (e) {}
+          return { href: '/pages/register.html?from=google', user: u };
+        }
+
+        var href = isOnboardingDone() ? '/pages/home.html' : '/pages/onboarding.html';
+        var out = { href: href, user: u };
+        if (global.FTAuth && FTAuth.recordLastLogin) {
+          FTAuth.recordLastLogin(email);
+        }
+        return out;
+      });
+  }
+
+  function isBiometricEnabled() {
+    try {
+      return localStorage.getItem('ft_biometric_enabled') === '1';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function setBiometricEnabled(on) {
+    try {
+      if (on) localStorage.setItem('ft_biometric_enabled', '1');
+      else localStorage.removeItem('ft_biometric_enabled');
+    } catch (e) {}
+  }
+
+  function persistProfileToCloud(data) {
+    var u = parseUser();
+    if (!usesFirebase() || !u || !u.uid) return Promise.resolve();
+    return global.FTFirebase.saveUserProfile(u.uid, data || {});
   }
 
   function getGoogleClientId() {
@@ -182,7 +306,15 @@
     isOnboardingDone: isOnboardingDone,
     setOnboardingDone: setOnboardingDone,
     clearAll: clearAll,
+    clearLoginCache: clearLoginCache,
+    logout: logout,
+    usesFirebase: usesFirebase,
+    usesFirebaseConfigured: usesFirebaseConfigured,
     completeLogin: completeLogin,
+    completeLoginFromFirebase: completeLoginFromFirebase,
+    persistProfileToCloud: persistProfileToCloud,
+    isBiometricEnabled: isBiometricEnabled,
+    setBiometricEnabled: setBiometricEnabled,
     defaultDisplayName: defaultDisplayName,
     defaultUsername: defaultUsername,
     getGoogleClientId: getGoogleClientId,

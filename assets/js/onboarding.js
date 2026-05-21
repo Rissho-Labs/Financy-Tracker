@@ -352,8 +352,21 @@ async function finishOnboarding() {
     completedAt: new Date().toISOString()
   };
   const existing = JSON.parse(localStorage.getItem('ft_user') || '{}');
-  localStorage.setItem('ft_user', JSON.stringify({ ...existing, ...profile }));
+  const merged = { ...existing, ...profile };
+  localStorage.setItem('ft_user', JSON.stringify(merged));
   localStorage.setItem('ft_onboarding_done', '1');
+
+  if (typeof FTSession !== 'undefined' && FTSession.persistProfileToCloud) {
+    try {
+      await FTSession.persistProfileToCloud({
+        ...merged,
+        onboardingComplete: true,
+        completedAt: profile.completedAt,
+      });
+    } catch (e) {
+      console.warn('[onboarding] cloud profile', e);
+    }
+  }
 
   await new Promise(r => setTimeout(r, 1200));
   window.location.href = 'home.html';

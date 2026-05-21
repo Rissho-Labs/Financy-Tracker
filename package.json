@@ -8,12 +8,15 @@
     "start": "node scripts/start-dev.mjs",
     "serve": "serve www -l 5050 --no-etag",
     "cap:sync": "npm run www:prepare && cap sync",
-    "cap:open": "cap open android"
+    "cap:open": "cap open android",
+    "android:sha1": "powershell -ExecutionPolicy Bypass -File scripts/print-android-sha1.ps1"
   },
   "dependencies": {
+    "@capacitor-firebase/authentication": "^8.2.0",
     "@capacitor/android": "^8.3.2",
     "@capacitor/core": "^8.3.2",
-    "@capgo/capacitor-native-biometric": "^8.4.2"
+    "@capgo/capacitor-native-biometric": "^8.4.2",
+    "firebase": "^12.13.0"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.3.2",

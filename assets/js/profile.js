@@ -193,9 +193,18 @@
   $('logout-btn')?.addEventListener('click', () => {
     haptic('medium');
     $('logout-btn').style.opacity = '0.5';
-    setTimeout(() => {
-      if (typeof FTSession !== 'undefined') FTSession.clearAll();
+    const goLogin = () => {
       window.location.href = '../index.html';
+    };
+    setTimeout(() => {
+      if (typeof FTSession !== 'undefined' && FTSession.logout) {
+        FTSession.logout().then(goLogin).catch(goLogin);
+      } else if (typeof FTSession !== 'undefined') {
+        FTSession.clearAll();
+        goLogin();
+      } else {
+        goLogin();
+      }
     }, 400);
   });
 

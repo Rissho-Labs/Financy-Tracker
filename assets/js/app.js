@@ -6,14 +6,44 @@
 'use strict';
 
 (function indexBoot() {
-  if (typeof FTSession === 'undefined') return;
-  if (!FTSession.isLoggedIn()) return;
-  if (FTSession.isOnboardingDone()) window.location.replace('/pages/home.html');
-  else window.location.replace('/pages/onboarding.html');
+  async function boot() {
+    if (typeof FTAuth !== 'undefined') {
+      if (FTAuth.tryBiometricOnLaunch) {
+        const handled = await FTAuth.tryBiometricOnLaunch();
+        if (handled) return;
+      }
+      if (FTAuth.lockLoginScreenWithoutBiometric) {
+        await FTAuth.lockLoginScreenWithoutBiometric();
+      }
+    }
+    /* Sem biometria: fica na tela de login (não redireciona por ft_user ou sessão Firebase). */
+  }
+  boot();
 })();
 
 // ── Helpers ──────────────────────────────────────────────────
 const $ = (id) => document.getElementById(id);
+
+(function applyEmailHint() {
+  try {
+    const hint = sessionStorage.getItem('ft_login_email_hint');
+    if (hint && $('email')) {
+      $('email').value = hint;
+      sessionStorage.removeItem('ft_login_email_hint');
+    }
+    if (
+      typeof FTAuth !== 'undefined' &&
+      FTAuth.hasPendingGoogleLink &&
+      FTAuth.hasPendingGoogleLink()
+    ) {
+      showGoogleError(
+        'Este e-mail já tem senha. Digite a senha abaixo e toque em Entrar para vincular o Google.'
+      );
+      const btnText = $('btn-signin')?.querySelector('.btn-text');
+      if (btnText) btnText.textContent = 'Vincular e entrar';
+    }
+  } catch (e) {}
+})();
 const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 
 function haptic(type = 'light') {
@@ -21,6 +51,22 @@ function haptic(type = 'light') {
     const patterns = { light: [10], medium: [20], error: [20, 50, 20] };
     navigator.vibrate(patterns[type] || [10]);
   }
+}
+
+function showGoogleError(msg) {
+  const el = $('google-error');
+  if (!el) return;
+  if (msg) {
+    el.textContent = msg;
+    el.classList.add('visible');
+  } else {
+    el.textContent = '';
+    el.classList.remove('visible');
+  }
+}
+
+function clearGoogleError() {
+  showGoogleError('');
 }
 
 function showError(fieldId, errorId, msg) {
@@ -45,6 +91,13 @@ function markSuccess(fieldId) {
   const field = $(fieldId);
   field.classList.remove('error');
   field.classList.add('success');
+}
+
+async function goAfterLogin(dest, email) {
+  if (typeof FTAuth !== 'undefined' && FTAuth.recordLastLogin && email) {
+    await FTAuth.recordLastLogin(email);
+  }
+  window.location.href = dest.href;
 }
 
 // ── Password visibility toggle ─────────────────────────────
@@ -108,7 +161,7 @@ $('password').addEventListener('input', () => {
 // ── Ripple effect ──────────────────────────────────────────
 function addRipple(btn, e) {
   btn.classList.remove('ripple');
-  void btn.offsetWidth; // reflow
+  void btn.offsetWidth;
   const rect = btn.getBoundingClientRect();
   const style = btn.style;
   style.setProperty('--rx', `${e.clientX - rect.left}px`);
@@ -122,7 +175,7 @@ $('btn-signin').addEventListener('click', (e) => addRipple($('btn-signin'), e));
 $('login-form').addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  const email    = $('email').value.trim();
+  const email = $('email').value.trim();
   const password = $('password').value;
   let valid = true;
 
@@ -142,104 +195,143 @@ $('login-form').addEventListener('submit', async (e) => {
     valid = false;
   }
 
-  if (!valid) { haptic('error'); return; }
-
-  const prev = typeof FTSession !== 'undefined' ? FTSession.parseUser() : null;
-  if (prev && prev.email === email && prev.passwordDemo && password !== prev.passwordDemo) {
-    showError('password', 'password-error', 'Senha incorreta.');
+  if (!valid) {
     haptic('error');
     return;
   }
 
-  // Loading state
   const btn = $('btn-signin');
   btn.classList.add('loading');
   btn.disabled = true;
   haptic('medium');
 
-  await new Promise((res) => setTimeout(res, 900));
-
-  const dest = FTSession.completeLogin(email, { passwordDemo: password });
-  btn.classList.remove('loading');
-  btn.disabled = false;
-  btn.querySelector('.btn-text').textContent = 'Bem-vindo! ✓';
-  haptic('medium');
-
   try {
-    const bio = globalThis.__FT_NATIVE_BIOMETRIC__;
-    const cap = globalThis.Capacitor;
-    if (bio && cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform()) {
-      await bio.saveNativeBiometricCredentials(FTSession.BIOMETRIC_SERVER, email, password);
+    let dest;
+    if (typeof FTSession !== 'undefined' && FTSession.usesFirebase && FTSession.usesFirebase()) {
+      if (FTAuth.hasPendingGoogleLink && FTAuth.hasPendingGoogleLink()) {
+        dest = await FTAuth.linkPasswordWithPendingGoogle(email, password);
+        FTAuth.clearPendingGoogleLink && FTAuth.clearPendingGoogleLink();
+      } else {
+        const cred = await globalThis.FTFirebase.signInEmailPassword(email, password);
+        dest = await FTSession.completeLoginFromFirebase(cred.user);
+      }
+    } else {
+      const prev = typeof FTSession !== 'undefined' ? FTSession.parseUser() : null;
+      if (prev && prev.email === email && prev.passwordDemo && password !== prev.passwordDemo) {
+        showError('password', 'password-error', 'Senha incorreta.');
+        haptic('error');
+        return;
+      }
+      await new Promise((res) => setTimeout(res, 900));
+      dest = FTSession.completeLogin(email, { passwordDemo: password });
     }
-  } catch (_) {
-    /* optional: device declined or plugin unavailable */
-  }
 
-  window.location.href = dest.href;
+    btn.querySelector('.btn-text').textContent = 'Bem-vindo! ✓';
+    haptic('medium');
+    await goAfterLogin(dest, email);
+  } catch (err) {
+    const msg =
+      typeof FTAuth !== 'undefined' ? FTAuth.mapError(err) : 'Não foi possível entrar.';
+    showError('password', 'password-error', msg);
+    haptic('error');
+  } finally {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
 });
 
-// ── Google button ──────────────────────────────────────────
-$('btn-google').addEventListener('click', () => {
+// ── Google button ───────────────────────────────────────────
+$('btn-google').addEventListener('click', async () => {
   haptic('light');
-  const clientId = FTSession.getGoogleClientId();
-  const gsiReady = typeof google !== 'undefined' && google.accounts && google.accounts.oauth2;
+  const btn = $('btn-google');
+  clearGoogleError();
 
-  const finishWithEmail = (email) => {
-    const dest = FTSession.completeLogin(email, { google: true });
-    window.location.href = dest.href;
-  };
+  if (!(typeof FTSession !== 'undefined' && FTSession.usesFirebase && FTSession.usesFirebase())) {
+    showGoogleError('Login com Google indisponível. Ative o provedor Google no Firebase.');
+    haptic('error');
+    return;
+  }
 
-  const fallbackEmailField = () => {
-    const email = $('email').value.trim();
-    if (!isEmail(email)) {
-      showError('email', 'email-error', 'Informe um e-mail válido para continuar com Google.');
+  btn.disabled = true;
+  btn.style.opacity = '0.7';
+  try {
+    sessionStorage.setItem('ft_google_redirect_pending', '1');
+    const result = await FTAuth.startGoogleSignIn();
+    if (result && result.user) {
+      sessionStorage.removeItem('ft_google_redirect_pending');
+      const dest = await FTAuth.routeAfterGoogleSignIn(result);
+      haptic('medium');
+      window.location.href = dest.href;
+      return;
+    }
+  } catch (err) {
+    sessionStorage.removeItem('ft_google_redirect_pending');
+    console.error('[Google login]', err && err.code, err && err.message, err);
+    const code = err && err.code ? String(err.code) : '';
+    if (code === 'auth/account-exists-with-different-credential' && FTAuth.handleGoogleAccountExists) {
+      const info = FTAuth.handleGoogleAccountExists(err);
+      if ($('email') && info.email) $('email').value = info.email;
+      showGoogleError(info.message || 'Digite sua senha e toque em Entrar para vincular o Google.');
+      const btnText = $('btn-signin')?.querySelector('.btn-text');
+      if (btnText) btnText.textContent = 'Vincular e entrar';
+    } else {
+      showGoogleError(FTAuth.mapError(err));
+    }
+    haptic('error');
+  } finally {
+    btn.disabled = false;
+    btn.style.opacity = '';
+  }
+});
+
+// ── Biometric hint (manual) ─────────────────────────────────
+(function initBiometricHint() {
+  const hint = document.querySelector('.biometric-hint');
+  if (!hint) return;
+
+  async function refreshHint() {
+    if (typeof FTAuth === 'undefined' || !FTAuth.shouldOfferAutoBiometricOnLaunch) {
+      hint.hidden = true;
+      return;
+    }
+    hint.hidden = !(await FTAuth.shouldOfferAutoBiometricOnLaunch());
+  }
+
+  refreshHint();
+
+  hint.addEventListener('click', async () => {
+    haptic('medium');
+    if (!(await FTAuth.shouldOfferAutoBiometricOnLaunch())) {
+      showGoogleError('Biometria disponível só para a última conta que a ativou neste aparelho.');
       haptic('error');
       return;
     }
-    clearError('email', 'email-error');
-    markSuccess('email');
-    finishWithEmail(email);
-  };
+    const api = globalThis.__FT_NATIVE_BIOMETRIC__;
+    if (!api || typeof api.tryNativeBiometricLogin !== 'function') return;
 
-  if (clientId && gsiReady) {
-    FTSession.requestGoogleAccessTokenThenEmail(finishWithEmail, () => {
-      fallbackEmailField();
-    });
-    return;
-  }
+    const server = FTSession.BIOMETRIC_SERVER || 'com.financetracker.app';
+    const r = await api.tryNativeBiometricLogin(server);
+    if (!r || !r.ok) {
+      haptic('error');
+      return;
+    }
 
-  fallbackEmailField();
-});
+    const email = String(r.email || '').trim();
+    if (!isEmail(email)) {
+      haptic('error');
+      return;
+    }
 
-// ── Biometric hint ─────────────────────────────────────────
-document.querySelector('.biometric-hint')?.addEventListener('click', async () => {
-  haptic('medium');
-  const api = globalThis.__FT_NATIVE_BIOMETRIC__;
-  if (!api || typeof api.tryNativeBiometricLogin !== 'function') {
-    return;
-  }
-  const server = FTSession.BIOMETRIC_SERVER || 'com.financetracker.app';
-  const r = await api.tryNativeBiometricLogin(server);
-  if (!r || !r.ok) {
-    haptic('error');
-    return;
-  }
-  const email = String(r.email || '').trim();
-  const password = r.password || '';
-  if (!isEmail(email) || !password) {
-    haptic('error');
-    return;
-  }
-  const prev = typeof FTSession !== 'undefined' ? FTSession.parseUser() : null;
-  if (prev && prev.email === email && prev.passwordDemo && password !== prev.passwordDemo) {
-    showError('password', 'password-error', 'Senha incorreta.');
-    haptic('error');
-    return;
-  }
-  haptic('medium');
-  const dest = FTSession.completeLogin(email, { passwordDemo: password });
-  window.location.href = dest.href;
-});
+    try {
+      const dest = await FTAuth.completeBiometricLogin(email, r.password);
+      haptic('medium');
+      await goAfterLogin(dest, email);
+    } catch (err) {
+      showGoogleError(FTAuth.mapError(err));
+      haptic('error');
+    }
+  });
+})();
 
 // ── Links ──────────────────────────────────────────────────
 $('forgot-link').addEventListener('click', (e) => {

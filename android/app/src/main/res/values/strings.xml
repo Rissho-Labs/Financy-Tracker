@@ -4,4 +4,6 @@
     <string name="title_activity_main">Finance Tracker</string>
     <string name="package_name">com.financetracker.app</string>
     <string name="custom_url_scheme">com.financetracker.app</string>
+    <!-- Mesmo ID do firebase-config.js → googleWebClientId (Firebase → Google → Web client ID) -->
+    <string name="default_web_client_id">934366617514-lh5b8u1hk22ug9i82q5ssc6j3ivbr96j.apps.googleusercontent.com</string>
 </resources>
