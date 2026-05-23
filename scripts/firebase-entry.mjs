@@ -21,6 +21,9 @@ import {
   getRedirectResult,
   getAdditionalUserInfo,
   fetchSignInMethodsForEmail,
+  sendPasswordResetEmail,
+  confirmPasswordReset,
+  verifyPasswordResetCode,
 } from 'firebase/auth';
 import {
   getFirestore,
@@ -29,6 +32,7 @@ import {
   getDoc,
   serverTimestamp,
 } from 'firebase/firestore';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
 function getCfg() {
   if (typeof window === 'undefined') return null;
@@ -44,6 +48,7 @@ function isConfigured(cfg) {
 let app = null;
 let auth = null;
 let db = null;
+let fns = null;
 let ready = false;
 
 function init() {
@@ -62,6 +67,7 @@ function init() {
       auth = getAuth(app);
     }
     db = getFirestore(app);
+    fns = getFunctions(app, 'southamerica-east1');
     ready = true;
     return true;
   } catch (e) {
@@ -587,6 +593,69 @@ async function loadUserProfile(uid) {
   return snap.exists() ? snap.data() : null;
 }
 
+// ── Redefinição de senha por código OTP ─────────────────────
+
+function otpEmailKey(email) {
+  return String(email || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9@._]/g, '_');
+}
+
+/** Gera código de 6 dígitos, armazena no Firestore e retorna o código. */
+async function generateOtpCode(email) {
+  if (!ready || !db) throw new Error('firebase_not_ready');
+  const mail = String(email || '').trim().toLowerCase();
+  if (!mail) throw new Error('missing_email');
+
+  const code      = String(Math.floor(100000 + Math.random() * 900000));
+  const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutos
+  const key       = otpEmailKey(mail);
+
+  await setDoc(doc(db, 'passwordResetCodes', key), {
+    email: mail,
+    code,
+    expiresAt,
+    used: false,
+    createdAt: serverTimestamp(),
+  });
+
+  return code;
+}
+
+/** Chama a Cloud Function para verificar o código e alterar a senha. */
+async function callApplyPasswordReset(email, code, newPassword) {
+  if (!ready || !fns) throw new Error('firebase_not_ready');
+  const fn = httpsCallable(fns, 'applyPasswordReset');
+  await fn({
+    email:       String(email).trim().toLowerCase(),
+    code:        String(code).trim(),
+    newPassword: String(newPassword),
+  });
+}
+
+// ── Redefinição por link (legacy / fallback) ──────────────────
+async function sendResetEmail(email) {
+  if (!ready || !auth) throw new Error('firebase_not_ready');
+  const mail = String(email || '').trim();
+  if (!mail) throw new Error('missing_email');
+  const actionCodeSettings = {
+    url: `https://financy-4d5f7.web.app/pages/reset-password.html`,
+    handleCodeInApp: false,
+  };
+  await sendPasswordResetEmail(auth, mail, actionCodeSettings);
+}
+
+async function verifyResetCode(oobCode) {
+  if (!ready || !auth) throw new Error('firebase_not_ready');
+  return verifyPasswordResetCode(auth, oobCode);
+}
+
+async function applyNewPassword(oobCode, newPassword) {
+  if (!ready || !auth) throw new Error('firebase_not_ready');
+  await confirmPasswordReset(auth, oobCode, newPassword);
+}
+
 function watchAuth(cb) {
   if (!ready || !auth) return function () {};
   return onAuthStateChanged(auth, cb);
@@ -620,6 +689,11 @@ const api = {
   signInPasswordAndLinkGoogle,
   googleCredentialFromError,
   watchAuth,
+  sendResetEmail,
+  verifyResetCode,
+  applyNewPassword,
+  generateOtpCode,
+  callApplyPasswordReset,
 };
 
 if (typeof window !== 'undefined') {

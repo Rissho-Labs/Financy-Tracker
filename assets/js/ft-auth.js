@@ -550,6 +550,7 @@
 
   async function tryBiometricOnLaunch() {
     if (!usesFirebase() || !global.FTSession) return false;
+    if (global._ftForgotPasswordOpen) return false; // não interrompe fluxo de reset
 
     if (!(await shouldOfferAutoBiometricOnLaunch())) {
       return false;
@@ -571,7 +572,7 @@
 
     try {
       var dest = await completeBiometricLogin(email, r.password);
-      if (dest && dest.href) {
+      if (dest && dest.href && !global._ftForgotPasswordOpen) {
         global.location.replace(dest.href);
         return true;
       }

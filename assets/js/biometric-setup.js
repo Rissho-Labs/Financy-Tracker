@@ -28,6 +28,29 @@
     window.location.replace('/pages/onboarding.html');
   }
 
+  function goAfterSetup() {
+    const from = new URLSearchParams(window.location.search).get('from');
+    if (from === 'logout') {
+      // Veio do logout: faz logout e vai para login
+      if (typeof FTSession !== 'undefined' && FTSession.logout) {
+        FTSession.logout().then(() => window.location.replace('/index.html'))
+                         .catch(()  => window.location.replace('/index.html'));
+      } else {
+        window.location.replace('/index.html');
+      }
+      return;
+    }
+    if (from === 'login') {
+      // Veio do login normal: vai para home ou onboarding dependendo do estado
+      const href = (typeof FTSession !== 'undefined' && FTSession.isOnboardingDone?.())
+        ? '/pages/home.html'
+        : '/pages/onboarding.html';
+      window.location.replace(href);
+      return;
+    }
+    goOnboarding();
+  }
+
   (function clock() {
     const el = $('status-clock');
     if (!el) return;
@@ -38,11 +61,16 @@
   })();
 
   async function boot() {
+    const from = new URLSearchParams(window.location.search).get('from');
+    const fromLogin  = from === 'login';
+    const fromLogout = from === 'logout';
+
     if (typeof FTSession === 'undefined' || !FTSession.isLoggedIn()) {
       window.location.replace('/index.html');
       return;
     }
-    if (FTSession.isOnboardingDone()) {
+    // Fluxos de login/logout: onboarding já feito, não redireciona para home antes de perguntar
+    if (!fromLogin && !fromLogout && FTSession.isOnboardingDone?.()) {
       window.location.replace('/pages/home.html');
       return;
     }
@@ -53,7 +81,7 @@
         : null;
 
     if (!pending || !pending.email) {
-      goOnboarding();
+      goAfterSetup();
       return;
     }
 
@@ -67,12 +95,13 @@
 
     if (!isNative) {
       if (FTAuth.clearBiometricPending) FTAuth.clearBiometricPending();
-      goOnboarding();
+      goAfterSetup();
       return;
     }
 
-    if (FTAuth.isBiometricEnabled && FTAuth.isBiometricEnabled()) {
-      goOnboarding();
+    // No fluxo de login, sempre mostra a pergunta — biometria pode ter sido re-ativada pelo recordLastLogin
+    if (!fromLogin && !fromLogout && FTAuth.isBiometricEnabled && FTAuth.isBiometricEnabled()) {
+      goAfterSetup();
       return;
     }
 
@@ -81,7 +110,7 @@
       (await FTAuth.isBiometricAvailableOnDevice());
     if (!available) {
       if (FTAuth.clearBiometricPending) FTAuth.clearBiometricPending();
-      goOnboarding();
+      goAfterSetup();
       return;
     }
   }
@@ -92,13 +121,13 @@
       else if (FTAuth.clearBiometricPending) FTAuth.clearBiometricPending();
     }
     haptic('light');
-    goOnboarding();
+    goAfterSetup();
   }
 
   async function enableBiometric() {
     const pending = FTAuth.getBiometricPending();
     if (!pending) {
-      goOnboarding();
+      goAfterSetup();
       return;
     }
 
@@ -121,7 +150,7 @@
         return;
       }
       haptic('medium');
-      goOnboarding();
+      goAfterSetup();
     } catch (err) {
       const msg =
         err && err.code === 'bio/unavailable'

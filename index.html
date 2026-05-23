@@ -183,8 +183,8 @@
             </div>
           </div>
 
-          <!-- Biometric hint (iOS/Android) -->
-          <div class="biometric-hint" aria-hidden="true">
+          <!-- Biometric hint (iOS/Android) — shown only when biometric was set up -->
+          <div class="biometric-hint" hidden aria-hidden="true">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z" opacity="0.4"/>
               <path d="M8 12c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4"/>
@@ -213,6 +213,125 @@
     </div>
 
   </div><!-- /phone-frame -->
+
+  <!-- ── Forgot-password bottom sheet ─────────────────────────── -->
+  <div id="forgot-overlay" class="fp-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="fp-title">
+    <div id="forgot-sheet" class="fp-sheet">
+      <div class="fp-handle" aria-hidden="true"></div>
+
+      <!-- Passo 1: e-mail -->
+      <div id="fp-step-email" class="fp-step">
+        <div class="fp-icon-wrap" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="4" width="20" height="16" rx="3"/><path d="M2 7l10 7 10-7"/>
+          </svg>
+        </div>
+        <h2 class="fp-title" id="fp-title">Recuperar senha</h2>
+        <p class="fp-desc">Digite seu e-mail e enviaremos um código de 6 dígitos.</p>
+
+        <div class="fp-field-group">
+          <label class="field-label" for="fp-email">E-mail</label>
+          <div class="field-wrapper">
+            <svg class="field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="2" y="4" width="20" height="16" rx="3"/><path d="M2 7l10 7 10-7"/>
+            </svg>
+            <input id="fp-email" type="email" class="field-input" placeholder="seu@email.com" autocomplete="email" inputmode="email" />
+          </div>
+          <span class="field-error" id="fp-email-error" role="alert" aria-live="polite"></span>
+        </div>
+
+        <button id="fp-btn-send" class="btn btn-primary fp-btn" type="button">
+          <span class="btn-text">Enviar código</span>
+          <div class="btn-spinner" aria-hidden="true"></div>
+        </button>
+        <button id="fp-btn-cancel" class="fp-btn-cancel" type="button">Cancelar</button>
+      </div>
+
+      <!-- Passo 2: código OTP -->
+      <div id="fp-step-code" class="fp-step fp-step--hidden">
+        <div class="fp-icon-wrap" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </div>
+        <h2 class="fp-title">Código enviado</h2>
+        <p class="fp-desc">Digite o código de 6 dígitos enviado para <strong id="fp-code-dest"></strong></p>
+
+        <div class="fp-otp-row" role="group" aria-label="Código de verificação">
+          <input type="text" inputmode="numeric" maxlength="1" class="fp-otp-digit" autocomplete="one-time-code" />
+          <input type="text" inputmode="numeric" maxlength="1" class="fp-otp-digit" />
+          <input type="text" inputmode="numeric" maxlength="1" class="fp-otp-digit" />
+          <input type="text" inputmode="numeric" maxlength="1" class="fp-otp-digit" />
+          <input type="text" inputmode="numeric" maxlength="1" class="fp-otp-digit" />
+          <input type="text" inputmode="numeric" maxlength="1" class="fp-otp-digit" />
+        </div>
+        <span class="field-error" id="fp-code-error" role="alert" aria-live="polite"></span>
+
+        <button id="fp-btn-verify" class="btn btn-primary fp-btn" type="button">
+          <span class="btn-text">Verificar código</span>
+          <div class="btn-spinner" aria-hidden="true"></div>
+        </button>
+        <button id="fp-btn-resend" class="fp-btn-link" type="button">Não recebi — reenviar</button>
+        <button id="fp-btn-back1" class="fp-btn-cancel" type="button">Voltar</button>
+      </div>
+
+      <!-- Passo 3: nova senha -->
+      <div id="fp-step-newpw" class="fp-step fp-step--hidden">
+        <div class="fp-icon-wrap fp-icon-wrap--green" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <h2 class="fp-title">Nova senha</h2>
+        <p class="fp-desc">Código confirmado! Crie sua nova senha.</p>
+
+        <div class="fp-field-group">
+          <label class="field-label" for="fp-newpw">Nova senha</label>
+          <div class="field-wrapper">
+            <svg class="field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <input id="fp-newpw" type="password" class="field-input" placeholder="Mínimo 6 caracteres" autocomplete="new-password" />
+            <button class="field-eye" type="button" data-target="fp-newpw" aria-label="Mostrar senha" tabindex="-1">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="fp-field-group">
+          <label class="field-label" for="fp-confirmpw">Confirmar senha</label>
+          <div class="field-wrapper">
+            <svg class="field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <input id="fp-confirmpw" type="password" class="field-input" placeholder="Repita a senha" autocomplete="new-password" />
+            <button class="field-eye" type="button" data-target="fp-confirmpw" aria-label="Mostrar senha" tabindex="-1">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <span class="field-error" id="fp-pw-error" role="alert" aria-live="polite"></span>
+        </div>
+
+        <button id="fp-btn-save" class="btn btn-primary fp-btn" type="button">
+          <span class="btn-text">Salvar nova senha</span>
+          <div class="btn-spinner" aria-hidden="true"></div>
+        </button>
+        <button id="fp-btn-back2" class="fp-btn-cancel" type="button">Voltar</button>
+      </div>
+
+      <!-- Passo 4: sucesso -->
+      <div id="fp-step-done" class="fp-step fp-step--hidden">
+        <div class="fp-success-icon" aria-hidden="true">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+        </div>
+        <h2 class="fp-title">Senha atualizada!</h2>
+        <p class="fp-desc">Sua senha foi alterada com sucesso. Faça login com a nova senha.</p>
+        <button id="fp-btn-ok" class="btn btn-primary fp-btn" type="button">Ok, entrar agora</button>
+      </div>
+    </div>
+  </div>
 
   <script src="assets/js/firebase-config.js"></script>
   <script src="assets/js/ft-firebase.bundle.js"></script>

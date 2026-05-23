@@ -157,3 +157,57 @@
 .register-card {
   animation: cardReveal 0.7s var(--ease-spring) 0.1s both;
 }
+
+/* ── Reset-password page states ─────────────────────────────── */
+.rp-state { display: flex; flex-direction: column; gap: 12px; padding: 24px 0 8px; }
+.rp-state--hidden { display: none !important; }
+
+.rp-spinner-wrap {
+  display: flex; justify-content: center; padding: 32px 0 16px;
+}
+.rp-spinner-lg {
+  width: 36px; height: 36px;
+  border-width: 3px;
+  opacity: 1;
+  display: block;
+  position: relative;
+  border-color: rgba(108,99,255,0.25);
+  border-top-color: var(--accent);
+  border-style: solid;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.rp-loading-text {
+  text-align: center;
+  font-size: 15px;
+  color: var(--text-secondary);
+}
+.rp-error-icon {
+  width: 56px; height: 56px;
+  background: rgba(255, 69, 58, 0.12);
+  border: 1px solid rgba(255, 69, 58, 0.25);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--danger);
+  margin: 0 auto;
+}
+.rp-success-icon {
+  width: 60px; height: 60px;
+  background: rgba(48, 209, 88, 0.12);
+  border: 1px solid rgba(48, 209, 88, 0.28);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--success);
+  margin: 16px auto 8px;
+}
+.rp-lock-icon {
+  width: 52px; height: 52px;
+  background: rgba(108,99,255,0.13);
+  border: 1px solid rgba(108,99,255,0.22);
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent);
+  margin: 0 auto 12px;
+}
+.rp-btn-full { width: 100%; }

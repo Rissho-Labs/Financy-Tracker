@@ -7,8 +7,14 @@
 
 (function indexBoot() {
   async function boot() {
+    // Não auto-dispara biometria se o usuário acabou de fazer logout manualmente
+    const justLoggedOut = sessionStorage.getItem('ft_just_logged_out') === '1';
+    if (justLoggedOut) {
+      sessionStorage.removeItem('ft_just_logged_out');
+    }
+
     if (typeof FTAuth !== 'undefined') {
-      if (FTAuth.tryBiometricOnLaunch) {
+      if (!justLoggedOut && FTAuth.tryBiometricOnLaunch) {
         const handled = await FTAuth.tryBiometricOnLaunch();
         if (handled) return;
       }
@@ -20,7 +26,6 @@
   }
   boot();
 })();
-
 // ── Helpers ──────────────────────────────────────────────────
 const $ = (id) => document.getElementById(id);
 
@@ -94,9 +99,36 @@ function markSuccess(fieldId) {
 }
 
 async function goAfterLogin(dest, email) {
+  if (window._ftForgotPasswordOpen) return;
+
+  // Pergunta sobre biometria SOMENTE se o usuário fez logout antes
+  // (flag ft_bio_ask_on_login é setado apenas no logout)
+  const askBio = localStorage.getItem('ft_bio_ask_on_login') === '1';
+
+  if (askBio && typeof FTAuth !== 'undefined') {
+    try {
+      const isNativeApp = !!(window.Capacitor?.isNativePlatform?.());
+      const hasPending   = !!(FTAuth.getBiometricPending?.());
+      if (isNativeApp && hasPending && FTAuth.isBiometricAvailableOnDevice) {
+        const available = await FTAuth.isBiometricAvailableOnDevice();
+        if (available) {
+          localStorage.removeItem('ft_bio_ask_on_login');
+          if (typeof FTAuth !== 'undefined' && FTAuth.recordLastLogin && email) {
+            await FTAuth.recordLastLogin(email);
+          }
+          window.location.href = '/pages/biometric-setup.html?from=login';
+          return;
+        }
+      }
+    } catch (e) { /* ignora erros de detecção */ }
+    // Se não conseguiu verificar biometria, limpa o flag para não ficar preso
+    localStorage.removeItem('ft_bio_ask_on_login');
+  }
+
   if (typeof FTAuth !== 'undefined' && FTAuth.recordLastLogin && email) {
     await FTAuth.recordLastLogin(email);
   }
+
   window.location.href = dest.href;
 }
 
@@ -214,6 +246,10 @@ $('login-form').addEventListener('submit', async (e) => {
       } else {
         const cred = await globalThis.FTFirebase.signInEmailPassword(email, password);
         dest = await FTSession.completeLoginFromFirebase(cred.user);
+        // Prepara dados de biometria para oferecer setup logo após o login
+        if (typeof FTAuth !== 'undefined' && FTAuth.stageBiometricSetup) {
+          FTAuth.stageBiometricSetup(email, password, 'password');
+        }
       }
     } else {
       const prev = typeof FTSession !== 'undefined' ? FTSession.parseUser() : null;
@@ -261,7 +297,12 @@ $('btn-google').addEventListener('click', async () => {
       sessionStorage.removeItem('ft_google_redirect_pending');
       const dest = await FTAuth.routeAfterGoogleSignIn(result);
       haptic('medium');
-      window.location.href = dest.href;
+      // Prepara dados de biometria para setup Google
+      const gEmail = String(result.user.email || '').trim();
+      if (gEmail && typeof FTAuth !== 'undefined' && FTAuth.stageBiometricSetup) {
+        FTAuth.stageBiometricSetup(gEmail, '', 'google');
+      }
+      await goAfterLogin(dest, gEmail);
       return;
     }
   } catch (err) {
@@ -333,23 +374,356 @@ $('btn-google').addEventListener('click', async () => {
   });
 })();
 
-// ── Links ──────────────────────────────────────────────────
-$('forgot-link').addEventListener('click', (e) => {
-  e.preventDefault();
-  haptic('light');
-  const email = $('email').value.trim();
-  if (!isEmail(email)) {
-    showError('email', 'email-error', 'Informe o e-mail da conta para abrir recuperação.');
-    $('email').focus();
-    return;
+// ── Forgot-password modal (fluxo OTP) ──────────────────────
+(function initForgotPassword() {
+  const overlay    = $('forgot-overlay');
+  if (!overlay) return;
+
+  const sheet      = $('forgot-sheet');
+  const steps      = {
+    email: $('fp-step-email'),
+    code:  $('fp-step-code'),
+    newpw: $('fp-step-newpw'),
+    done:  $('fp-step-done'),
+  };
+
+  // Inputs passo 1
+  const fpEmail    = $('fp-email');
+  const fpEmailErr = $('fp-email-error');
+  const btnSend    = $('fp-btn-send');
+  const btnCancel  = $('fp-btn-cancel');
+
+  // Inputs passo 2
+  const otpDigits  = Array.from(document.querySelectorAll('.fp-otp-digit'));
+  const fpCodeDest = $('fp-code-dest');
+  const fpCodeErr  = $('fp-code-error');
+  const btnVerify  = $('fp-btn-verify');
+  const btnResend  = $('fp-btn-resend');
+  const btnBack1   = $('fp-btn-back1');
+
+  // Inputs passo 3
+  const fpNewpw    = $('fp-newpw');
+  const fpConfirm  = $('fp-confirmpw');
+  const fpPwErr    = $('fp-pw-error');
+  const btnSave    = $('fp-btn-save');
+  const btnBack2   = $('fp-btn-back2');
+
+  // Passo 4
+  const btnOk      = $('fp-btn-ok');
+
+  // Estado interno
+  let currentEmail = '';
+  let verifiedCode = '';
+
+  // ── Utilitários ──────────────────────────────────────────
+
+  function showStep(name) {
+    Object.entries(steps).forEach(([k, el]) => {
+      el.classList.toggle('fp-step--hidden', k !== name);
+    });
   }
-  clearError('email', 'email-error');
-  const recoveryUrl =
-    'https://accounts.google.com/v3/signin/recoveryidentifier?Email=' +
-    encodeURIComponent(email) +
-    '&flowName=GlifWebSignIn&flowEntry=AccountRecovery';
-  window.open(recoveryUrl, '_blank', 'noopener,noreferrer');
-});
+
+  function openSheet(prefillEmail) {
+    window._ftForgotPasswordOpen = true;   // bloqueia redirects de auth durante o fluxo
+    showStep('email');
+    currentEmail = '';
+    verifiedCode = '';
+    fpEmail.value = prefillEmail || '';
+    clearError(fpEmail, fpEmailErr);
+    overlay.setAttribute('aria-hidden', 'false');
+    overlay.classList.add('fp-open');
+    setTimeout(() => fpEmail.focus(), 380);
+  }
+
+  function closeSheet() {
+    window._ftForgotPasswordOpen = false;
+    overlay.classList.remove('fp-open');
+    overlay.setAttribute('aria-hidden', 'true');
+    setTimeout(() => {
+      showStep('email');
+      resetBtn(btnSend);
+      resetBtn(btnVerify);
+      resetBtn(btnSave);
+      fpEmail.value = '';
+      fpNewpw.value = '';
+      fpConfirm.value = '';
+      otpDigits.forEach(d => { d.value = ''; d.classList.remove('filled'); });
+      clearError(fpEmail, fpEmailErr);
+      clearError(null, fpCodeErr);
+      clearError(null, fpPwErr);
+    }, 380);
+  }
+
+  function showErr(input, errEl, msg) {
+    if (errEl) { errEl.textContent = msg; errEl.style.opacity = '1'; }
+    if (input) input.classList.add('error');
+  }
+
+  function clearError(input, errEl) {
+    if (errEl) { errEl.textContent = ''; errEl.style.opacity = '0'; }
+    if (input) input.classList.remove('error');
+  }
+
+  function setLoading(btn, yes) {
+    btn.classList.toggle('loading', yes);
+    btn.disabled = yes;
+  }
+
+  function resetBtn(btn) {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
+
+  function getOtpValue() {
+    return otpDigits.map(d => d.value.trim()).join('');
+  }
+
+  // ── EmailJS (envia código por e-mail) ────────────────────
+
+  async function sendCodeEmail(email, code) {
+    const cfg = window.FTFIREBASE_CONFIG || {};
+    const { emailjsServiceId, emailjsTemplateId, emailjsPublicKey } = cfg;
+
+    if (!emailjsServiceId || !emailjsTemplateId || !emailjsPublicKey) {
+      // Modo dev: código no console para testar sem EmailJS
+      console.info(
+        `[FP-DEV] Código para ${email}: %c${code}`,
+        'font-size:22px;font-weight:bold;color:#6C63FF'
+      );
+      return;
+    }
+
+    const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        service_id:      emailjsServiceId,
+        template_id:     emailjsTemplateId,
+        user_id:         emailjsPublicKey,
+        template_params: {
+          to_email: email,
+          code,
+          app_name: 'Finance Tracker',
+          expiry:   '10 minutos',
+        },
+      }),
+    });
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      console.warn('[FP] EmailJS error:', text);
+      throw new Error('emailjs_failed');
+    }
+  }
+
+  // ── Passo 1: enviar código ───────────────────────────────
+
+  async function handleSend() {
+    const mail = fpEmail.value.trim();
+    if (!mail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) {
+      showErr(fpEmail, fpEmailErr, 'Digite um e-mail válido.');
+      haptic('error');
+      return;
+    }
+    clearError(fpEmail, fpEmailErr);
+    setLoading(btnSend, true);
+    haptic('medium');
+
+    try {
+      if (typeof FTFirebase === 'undefined' || !FTFirebase.generateOtpCode) {
+        throw new Error('firebase_not_ready');
+      }
+      const code = await FTFirebase.generateOtpCode(mail);
+      await sendCodeEmail(mail, code);
+
+      currentEmail = mail;
+      fpCodeDest.textContent = mail;
+      otpDigits.forEach(d => { d.value = ''; d.classList.remove('filled'); });
+      clearError(null, fpCodeErr);
+      showStep('code');
+      haptic('medium');
+      setTimeout(() => otpDigits[0].focus(), 300);
+    } catch (err) {
+      const code = err && err.code ? String(err.code) : '';
+      let msg = 'Não foi possível enviar. Tente novamente.';
+      if (code === 'auth/user-not-found' || err.message === 'email_not_found') {
+        msg = 'E-mail não encontrado. Verifique e tente de novo.';
+      } else if (code === 'auth/too-many-requests') {
+        msg = 'Muitas tentativas. Aguarde alguns minutos.';
+      } else if (err.message === 'firebase_not_ready') {
+        msg = 'Firebase não iniciado. Reabra o app e tente.';
+      } else if (err.message === 'emailjs_failed') {
+        msg = 'Não foi possível enviar o e-mail. Verifique o EmailJS no firebase-config.js.';
+      }
+      showErr(fpEmail, fpEmailErr, msg);
+      haptic('error');
+    } finally {
+      resetBtn(btnSend);
+    }
+  }
+
+  // ── Passo 2: verificar código ────────────────────────────
+
+  function handleVerify() {
+    const otp = getOtpValue();
+    if (otp.length !== 6 || !/^\d{6}$/.test(otp)) {
+      showErr(null, fpCodeErr, 'Digite todos os 6 dígitos do código.');
+      haptic('error');
+      otpDigits[0].focus();
+      return;
+    }
+    clearError(null, fpCodeErr);
+    verifiedCode = otp;
+    fpNewpw.value = '';
+    fpConfirm.value = '';
+    clearError(null, fpPwErr);
+    showStep('newpw');
+    haptic('medium');
+    setTimeout(() => fpNewpw.focus(), 300);
+  }
+
+  // ── Passo 3: salvar nova senha ───────────────────────────
+
+  async function handleSave() {
+    const pw1 = fpNewpw.value;
+    const pw2 = fpConfirm.value;
+
+    if (!pw1 || pw1.length < 6) {
+      showErr(fpNewpw, fpPwErr, 'A senha precisa ter pelo menos 6 caracteres.');
+      haptic('error');
+      return;
+    }
+    if (pw1 !== pw2) {
+      showErr(fpConfirm, fpPwErr, 'As senhas não coincidem.');
+      haptic('error');
+      return;
+    }
+    clearError(fpNewpw, fpPwErr);
+    clearError(fpConfirm, null);
+    setLoading(btnSave, true);
+    haptic('medium');
+
+    try {
+      if (typeof FTFirebase === 'undefined' || !FTFirebase.callApplyPasswordReset) {
+        throw new Error('firebase_not_ready');
+      }
+      await FTFirebase.callApplyPasswordReset(currentEmail, verifiedCode, pw1);
+      showStep('done');
+      haptic('success');
+    } catch (err) {
+      const errCode = err && err.code ? String(err.code) : '';
+      const msg2    = err && err.message ? String(err.message) : '';
+      console.warn('[FP] applyPasswordReset error', errCode, msg2);
+
+      // Só usa fallback se a função realmente não existe
+      if (errCode === 'functions/not-found' || msg2 === 'firebase_not_ready') {
+        await handleFallbackResetLink();
+        return;
+      }
+
+      let msg = 'Não foi possível alterar a senha. Tente novamente.';
+      if (msg2.includes('code_invalid'))        msg = 'Código incorreto. Volte e verifique o e-mail.';
+      else if (msg2.includes('code_expired'))   msg = 'Código expirado (10 min). Solicite um novo.';
+      else if (msg2.includes('code_used'))      msg = 'Código já utilizado. Solicite um novo.';
+      else if (msg2.includes('code_not_found')) msg = 'Código não encontrado. Solicite um novo.';
+      else if (msg2.includes('weak_password'))  msg = 'Senha muito fraca (mínimo 6 caracteres).';
+      else if (msg2.includes('user_not_found')) msg = 'E-mail não encontrado no sistema.';
+      showErr(null, fpPwErr, msg);
+      haptic('error');
+    } finally {
+      resetBtn(btnSave);
+    }
+  }
+
+  async function handleFallbackResetLink() {
+    // Sem Cloud Function: envia link de redefinição padrão do Firebase
+    try {
+      if (FTFirebase.sendResetEmail) await FTFirebase.sendResetEmail(currentEmail);
+    } catch (_) { /* ignora — link pode já ter sido enviado antes */ }
+    // Vai para tela de sucesso com mensagem adaptada
+    $('fp-step-done').querySelector('.fp-title').textContent = 'Código confirmado!';
+    $('fp-step-done').querySelector('.fp-desc').textContent =
+      'Enviamos um link para ' + currentEmail + '. Clique nele para criar a nova senha.';
+    showStep('done');
+    haptic('medium');
+    resetBtn(btnSave);
+  }
+
+  // ── OTP: auto-avançar entre caixas ──────────────────────
+
+  otpDigits.forEach((input, i) => {
+    input.addEventListener('input', () => {
+      const v = input.value.replace(/\D/g, '');
+      input.value = v ? v[0] : '';
+      input.classList.toggle('filled', !!input.value);
+      if (input.value && i < otpDigits.length - 1) {
+        otpDigits[i + 1].focus();
+      }
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !input.value && i > 0) {
+        otpDigits[i - 1].focus();
+        otpDigits[i - 1].value = '';
+        otpDigits[i - 1].classList.remove('filled');
+      }
+      if (e.key === 'Enter') { e.preventDefault(); btnVerify.click(); }
+    });
+
+    input.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+      pasted.split('').slice(0, 6).forEach((ch, idx) => {
+        if (otpDigits[idx]) {
+          otpDigits[idx].value = ch;
+          otpDigits[idx].classList.add('filled');
+        }
+      });
+      const nextEmpty = otpDigits.findIndex(d => !d.value);
+      (otpDigits[nextEmpty] || otpDigits[5]).focus();
+    });
+  });
+
+  // ── Eventos ─────────────────────────────────────────────
+
+  $('forgot-link').addEventListener('click', (e) => {
+    e.preventDefault();
+    haptic('light');
+    openSheet($('email').value.trim());
+  });
+
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeSheet(); });
+
+  btnCancel.addEventListener('click', () => { haptic('light'); closeSheet(); });
+  btnOk.addEventListener('click',     () => { haptic('light'); closeSheet(); });
+  btnBack1.addEventListener('click',  () => { haptic('light'); showStep('email'); });
+  btnBack2.addEventListener('click',  () => { haptic('light'); showStep('code'); });
+
+  btnResend.addEventListener('click', async () => {
+    haptic('light');
+    showStep('email');
+    setTimeout(() => btnSend.click(), 100);
+  });
+
+  btnSend.addEventListener('click',   () => handleSend());
+  btnVerify.addEventListener('click', () => handleVerify());
+  btnSave.addEventListener('click',   () => handleSave());
+
+  fpEmail.addEventListener('keydown',   (e) => { if (e.key === 'Enter') { e.preventDefault(); btnSend.click(); } });
+  fpNewpw.addEventListener('keydown',   (e) => { if (e.key === 'Enter') { e.preventDefault(); fpConfirm.focus(); } });
+  fpConfirm.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); btnSave.click(); } });
+
+  // Olhinho das senhas
+  document.querySelectorAll('.field-eye[data-target]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const inp = document.getElementById(btn.dataset.target);
+      if (!inp) return;
+      const show = inp.type === 'password';
+      inp.type = show ? 'text' : 'password';
+      btn.setAttribute('aria-label', show ? 'Esconder senha' : 'Mostrar senha');
+    });
+  });
+})();
 
 // ── Dynamic Island pulse on focus ──────────────────────────
 document.querySelectorAll('.field-input').forEach((input) => {

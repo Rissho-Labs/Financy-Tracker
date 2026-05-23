@@ -88,13 +88,21 @@
   }
 
   function logout() {
-    var keepFirebase =
-      global.FTAuth &&
-      typeof FTAuth.shouldKeepFirebaseSessionOnLogout === 'function'
-        ? FTAuth.shouldKeepFirebaseSessionOnLogout()
-        : Promise.resolve(false);
+    // Limpa biometria diretamente no localStorage — funciona mesmo sem FTAuth nesta página
+    try { localStorage.removeItem('ft_biometric_enabled'); } catch (e) {}
+    try { sessionStorage.removeItem('ft_biometric_pending'); } catch (e) {}
+    // Flag persistente: sinaliza que no próximo login deve perguntar sobre biometria
+    try { localStorage.setItem('ft_bio_ask_on_login', '1'); } catch (e) {}
 
-    return Promise.resolve(keepFirebase).then(function (keep) {
+    // Limpeza completa (keychain nativo) se FTAuth estiver disponível
+    var clearBio = (global.FTAuth && typeof FTAuth.clearBiometricLogin === 'function')
+      ? FTAuth.clearBiometricLogin().catch(function () {})
+      : Promise.resolve();
+
+    var keepFirebase = Promise.resolve(false);
+
+    return Promise.all([clearBio, Promise.resolve(keepFirebase)]).then(function (results) {
+      var keep = results[1];
       if (usesFirebase() && !keep) {
         return global.FTFirebase.signOut().catch(function () {}).then(clearAll);
       }

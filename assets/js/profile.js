@@ -193,19 +193,17 @@
   $('logout-btn')?.addEventListener('click', () => {
     haptic('medium');
     $('logout-btn').style.opacity = '0.5';
-    const goLogin = () => {
-      window.location.href = '../index.html';
-    };
+    const goLogin = () => { window.location.href = '../index.html'; };
     setTimeout(() => {
       if (typeof FTSession !== 'undefined' && FTSession.logout) {
         FTSession.logout().then(goLogin).catch(goLogin);
       } else if (typeof FTSession !== 'undefined') {
-        FTSession.clearAll();
+        FTSession.clearAll?.();
         goLogin();
       } else {
         goLogin();
       }
-    }, 400);
+    }, 300);
   });
 
   document.querySelectorAll('.toggle-switch input').forEach((toggle) => {

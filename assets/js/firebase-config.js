@@ -12,4 +12,15 @@ window.FTFIREBASE_CONFIG = {
   measurementId: 'G-NK7JC0G5DY',
   /** Firebase Console → Authentication → Google → ID do cliente Web (obrigatório no celular) */
   googleWebClientId: '934366617514-lh5b8u1hk22ug9i82q5ssc6j3ivbr96j.apps.googleusercontent.com',
+
+  /**
+   * EmailJS — envia o código de redefinição de senha por e-mail.
+   * Configure em https://emailjs.com (conta gratuita, 200 e-mails/mês).
+   * Ver docs/SETUP-PASSWORD-RESET.md para instruções detalhadas.
+   *
+   * Sem EmailJS configurado, o código aparece no console (modo dev).
+   */
+  emailjsServiceId:  'service_3qhxn9s',
+  emailjsTemplateId: 'template_xwhxiuw',
+  emailjsPublicKey:  'A3HBL2otv1HGPSwZS',
 };
