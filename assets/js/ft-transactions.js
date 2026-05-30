@@ -81,6 +81,7 @@
   }
 
   function seedIfEmpty() {
+    if (_firebaseReady()) return;
     var existing = loadRaw();
     if (existing && existing.length) {
       var m = migrateDropIncome(existing);
@@ -216,6 +217,19 @@
     return PAYMENT_LABELS[key] || key || '—';
   }
 
+  function _currentUid() {
+    try {
+      var u = (typeof FTSession !== 'undefined') ? FTSession.parseUser() : null;
+      return (u && u.uid) ? String(u.uid) : null;
+    } catch (e) { return null; }
+  }
+
+  function _firebaseReady() {
+    try {
+      return typeof FTFirebase !== 'undefined' && typeof FTFirebase.isReady === 'function' && FTFirebase.isReady();
+    } catch (e) { return false; }
+  }
+
   function add(item) {
     var list = loadRaw() || [];
     list = migrateDropIncome(list);
@@ -223,7 +237,7 @@
     if ((item.paymentMethod || 'pix') !== 'credito_parcelado') inst = 1;
     var idx = item.installmentIndex != null ? Math.max(1, Math.round(Number(item.installmentIndex))) : 1;
     if (idx > inst) idx = inst;
-    list.unshift({
+    var newTx = {
       id: 'tx_' + Date.now(),
       name: String(item.name || '').trim(),
       location: item.location != null ? String(item.location).trim() : '',
@@ -235,8 +249,17 @@
       installmentIndex: idx,
       category: item.category && CATEGORY_META[item.category] ? item.category : guessCategory(item.name),
       at: item.at || nowIso()
-    });
+    };
+    list.unshift(newTx);
     saveAll(list);
+
+    var uid = _currentUid();
+    if (uid && _firebaseReady()) {
+      FTFirebase.addTransaction(uid, newTx).catch(function (e) {
+        console.warn('[FTTransactions] Firestore add failed', e);
+      });
+    }
+
     return getAll();
   }
 
@@ -245,7 +268,31 @@
       return t.id !== id;
     });
     saveAll(list);
+
+    var uid = _currentUid();
+    if (uid && _firebaseReady()) {
+      FTFirebase.deleteTransaction(uid, id).catch(function (e) {
+        console.warn('[FTTransactions] Firestore delete failed', e);
+      });
+    }
+
     return getAll();
+  }
+
+  function syncFromFirestore(uid) {
+    if (!uid || !_firebaseReady()) return Promise.resolve(false);
+    return FTFirebase.loadTransactions(uid).then(function (rows) {
+      if (!Array.isArray(rows) || rows.length === 0) return false;
+      var localList = loadRaw() || [];
+      var firestoreIds = {};
+      rows.forEach(function (r) { if (r && r.id) firestoreIds[r.id] = true; });
+      var localOnly = localList.filter(function (t) { return !firestoreIds[t.id]; });
+      saveAll(rows.concat(localOnly));
+      return true;
+    }).catch(function (e) {
+      console.warn('[FTTransactions] syncFromFirestore failed', e);
+      return false;
+    });
   }
 
   global.FTTransactions = {
@@ -253,6 +300,7 @@
     getAll: getAll,
     add: add,
     remove: remove,
+    syncFromFirestore: syncFromFirestore,
     seedIfEmpty: seedIfEmpty,
     monthExpenseTotalCents: monthExpenseTotalCents,
     filterTransactions: filterTransactions,

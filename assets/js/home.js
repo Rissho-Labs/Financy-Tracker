@@ -111,7 +111,7 @@ function renderCardStack() {
         `<div class="${innerClass}"${styleAttr}>` +
         '<span class="peek-chip" aria-hidden="true"></span>' +
         `<div class="peek-meta"><span class="peek-name">${card.name}</span><span class="peek-balance">${card.balance}</span></div>` +
-        '<div class="peek-brand" aria-hidden="true"><svg width="36" height="24" viewBox="0 0 54 36"><circle cx="21" cy="18" r="15" fill="rgba(255,255,255,0.25)"/><circle cx="33" cy="18" r="15" fill="rgba(255,255,255,0.15)"/></svg></div>' +
+        (card.surface ? '' : '<div class="peek-brand" aria-hidden="true"><svg width="36" height="24" viewBox="0 0 54 36"><circle cx="21" cy="18" r="15" fill="rgba(255,255,255,0.25)"/><circle cx="33" cy="18" r="15" fill="rgba(255,255,255,0.15)"/></svg></div>') +
         '</div></div>'
       );
     })
@@ -227,11 +227,17 @@ function closeExpenseSheet() {
   }
   sh.classList.remove('ft-sheet--open');
   sh.setAttribute('aria-hidden', 'true');
+  // Reseta preview de foto
+  const img = $('home-foto-img');
+  const placeholder = $('home-foto-placeholder');
+  if (img) { img.src = ''; img.style.display = 'none'; }
+  if (placeholder) placeholder.style.display = '';
 }
 $('expense-sheet-bg')?.addEventListener('click', closeExpenseSheet);
 $('home-exp-cancel')?.addEventListener('click', closeExpenseSheet);
 $('home-exp-cancel-qr')?.addEventListener('click', closeExpenseSheet);
 $('home-exp-cancel-file')?.addEventListener('click', closeExpenseSheet);
+$('home-exp-cancel-foto')?.addEventListener('click', closeExpenseSheet);
 $('add-card-btn')?.addEventListener('click', openExpenseSheet);
 $('action-expense')?.addEventListener('click', openExpenseSheet);
 
@@ -242,7 +248,7 @@ entryMethodBtns.forEach((btn) => {
     entryMethodBtns.forEach((b) => b.classList.remove('active'));
     btn.classList.add('active');
     const method = btn.getAttribute('data-method');
-    ['manual', 'qr', 'file'].forEach((m) => {
+    ['manual', 'qr', 'file', 'foto'].forEach((m) => {
       const wrap = $(`home-${m}-wrap`);
       if (!wrap) return;
       if (m === method) {
@@ -293,6 +299,76 @@ $('home-file-input')?.addEventListener('change', (e) => {
     input.value = '';
     fillExpenseFromSource('Importado do Arquivo', '109,50');
   }, 1200);
+});
+
+// ── Método Foto ───────────────────────────────────────────────
+function setFotoStatus(msg) {
+  const btn = $('home-foto-capture-btn');
+  if (btn) btn.textContent = msg;
+}
+
+function showFotoPreview(dataUrl) {
+  const img = $('home-foto-img');
+  const placeholder = $('home-foto-placeholder');
+  if (img) { img.src = dataUrl; img.style.display = 'block'; }
+  if (placeholder) placeholder.style.display = 'none';
+}
+
+async function runOcrOnFile(file) {
+  const dataUrl = await new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = (e) => res(e.target.result);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+
+  showFotoPreview(dataUrl);
+  setFotoStatus('Lendo nota...');
+  haptic('medium');
+
+  try {
+    // Plugin registrado via ft-mlkit.bundle.js → window.FTMlKit
+    const plugin = window.FTMlKit;
+    if (!plugin || typeof plugin.detectText !== 'function') throw new Error('mlkit_unavailable');
+
+    const base64 = dataUrl.split(',')[1];
+    const result = await plugin.detectText({ base64Image: base64 });
+    const rawText = (result && result.text) || '';
+    if (!rawText) throw new Error('no_text');
+
+    const parsed = typeof FTReceiptParser !== 'undefined'
+      ? FTReceiptParser.parse(rawText)
+      : { name: 'Gasto por foto', amountCents: NaN, category: 'other' };
+
+    setFotoStatus('Tirar Foto');
+    haptic('light');
+    fillExpenseFromSource(
+      parsed.name,
+      Number.isFinite(parsed.amountCents) && parsed.amountCents > 0
+        ? (parsed.amountCents / 100).toFixed(2).replace('.', ',')
+        : ''
+    );
+
+  } catch (err) {
+    console.warn('[Foto OCR]', err.message);
+    setFotoStatus('Tirar Foto');
+    haptic('light');
+    fillExpenseFromSource('Gasto registrado por foto', '');
+  }
+}
+
+$('home-foto-capture-btn')?.addEventListener('click', () => {
+  $('home-foto-input')?.click();
+});
+
+$('home-foto-input')?.addEventListener('change', (e) => {
+  const input = e.target;
+  if (!input.files || input.files.length === 0) return;
+  const file = input.files[0];
+  if (!file.type.startsWith('image/')) return;
+  const f = file;
+  input.value = '';
+  runOcrOnFile(f);
 });
 
 let selectedPayment = 'pix';
@@ -385,15 +461,76 @@ $('see-all-btn')?.addEventListener('click', () => {
   window.location.href = 'history.html';
 });
 
-// ── Transaction rows & stat card (delegated; list innerHTML refreshes) ─
-document.querySelector('.transactions-section')?.addEventListener('click', (e) => {
-  if (e.target.closest('.tx-item')) haptic('light');
-});
+// ── Transaction rows & stat card ──────────────────────────────
+function clearDeleteMode() {
+  document.querySelectorAll('.tx-item--delete-mode').forEach((el) => el.classList.remove('tx-item--delete-mode'));
+}
+
+(function setupTxInteractions() {
+  const section = document.querySelector('.transactions-section');
+  if (!section) return;
+
+  let pressTimer = null;
+  let pressTarget = null;
+
+  function startPress(el) {
+    pressTarget = el;
+    pressTimer = setTimeout(() => {
+      if (!pressTarget) return;
+      const isAlreadyOpen = pressTarget.classList.contains('tx-item--delete-mode');
+      clearDeleteMode();
+      if (!isAlreadyOpen) {
+        pressTarget.classList.add('tx-item--delete-mode');
+        haptic('medium');
+      }
+      pressTimer = null;
+      pressTarget = null;
+    }, 500);
+  }
+
+  function cancelPress() {
+    if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+    pressTarget = null;
+  }
+
+  section.addEventListener('touchstart', (e) => {
+    const item = e.target.closest('.tx-item');
+    if (!item || e.target.closest('.tx-delete-btn')) return;
+    startPress(item);
+  }, { passive: true });
+
+  section.addEventListener('touchend', cancelPress, { passive: true });
+  section.addEventListener('touchmove', cancelPress, { passive: true });
+
+  // Botão excluir
+  section.addEventListener('click', (e) => {
+    const delBtn = e.target.closest('.tx-delete-btn');
+    if (delBtn) {
+      const item = delBtn.closest('.tx-item');
+      const id = item?.dataset.id;
+      if (id && typeof FTTransactions !== 'undefined') {
+        haptic('strong');
+        item.classList.add('tx-item--removing');
+        setTimeout(() => {
+          FTTransactions.remove(id);
+          clearDeleteMode();
+          if (typeof window.__ftSyncHome === 'function') window.__ftSyncHome();
+        }, 220);
+      }
+      return;
+    }
+    // Toque fora de modo delete → fecha
+    if (!e.target.closest('.tx-item--delete-mode')) clearDeleteMode();
+    else haptic('light');
+  });
+})();
+
 document.querySelector('.stats-section')?.addEventListener('click', (e) => {
   if (e.target.closest('.stat-card')) haptic('light');
 });
 
 const svgGasto = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--tx-stroke)" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M19 9H5a2 2 0 0 0 0 4h14a2 2 0 0 1 0 4H6"/></svg>`;
+const svgTrash = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
 
 window.__ftSyncHome = function syncHomeData() {
   if (typeof FTTransactions === 'undefined') return;
@@ -405,7 +542,6 @@ window.__ftSyncHome = function syncHomeData() {
     return d.toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
   };
 
-  FTTransactions.seedIfEmpty();
   const monthSpend = FTTransactions.monthExpenseTotalCents();
   const wb = $('wallet-balance');
   if (wb) wb.textContent = fmtBRL(monthSpend);
@@ -434,13 +570,27 @@ window.__ftSyncHome = function syncHomeData() {
       .map((t) => {
         const wrap = '--tx-color:#6366f124;--tx-stroke:#818cf8;';
         const nameEsc = String(t.name).replace(/&/g, '&amp;').replace(/</g, '&lt;');
-        return `<li class="tx-item" role="listitem"><div class="tx-icon-wrap" style="${wrap}">${svgGasto}</div><div class="tx-info"><span class="tx-name">${nameEsc}</span><span class="tx-date">${fmtWhen(t.at)}</span></div><span class="tx-amount negative">- ${fmtBRL(t.amountCents)}</span></li>`;
+        return `<li class="tx-item" data-id="${t.id}" role="listitem"><div class="tx-icon-wrap" style="${wrap}">${svgGasto}</div><div class="tx-info"><span class="tx-name">${nameEsc}</span><span class="tx-date">${fmtWhen(t.at)}</span></div><span class="tx-amount negative">- ${fmtBRL(t.amountCents)}</span><button class="tx-delete-btn" aria-label="Excluir gasto">${svgTrash}</button></li>`;
       })
       .join('');
     ul.innerHTML = rows;
   }
 };
 window.__ftSyncHome();
+
+// Sincroniza do Firestore e atualiza o total se houver dados novos
+(function () {
+  var u = typeof FTSession !== 'undefined' ? FTSession.parseUser() : null;
+  if (!u || !u.uid) return;
+  if (typeof FTTransactions === 'undefined' || typeof FTTransactions.syncFromFirestore !== 'function') return;
+  // Limpa seeds locais antes de sincronizar (quando Firebase está disponível)
+  var local = JSON.parse(localStorage.getItem('ft_transactions') || '[]');
+  var hasOnlySeeds = local.length > 0 && local.every(function (t) { return String(t.id).startsWith('tx_seed_'); });
+  if (hasOnlySeeds) localStorage.removeItem('ft_transactions');
+  FTTransactions.syncFromFirestore(u.uid).then(function (synced) {
+    if (typeof window.__ftSyncHome === 'function') window.__ftSyncHome();
+  });
+})();
 
 // ── Entrance stagger animation ────────────────────────────────
 // Adds a subtle scale-in on cards after load

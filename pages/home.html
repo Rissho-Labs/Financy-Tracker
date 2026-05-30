@@ -151,48 +151,7 @@
           <button class="see-all-btn" id="see-all-btn" aria-label="Ver histórico completo de gastos">Ver tudo</button>
         </div>
 
-        <ul class="tx-list" role="list">
-          <li class="tx-item" role="listitem">
-            <div class="tx-icon-wrap tx-icon--accent">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--tx-stroke)" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8L2 7h20l-6-4z"/></svg>
-            </div>
-            <div class="tx-info">
-              <span class="tx-name">Apple Store</span>
-              <span class="tx-date">Hoje, 14:32</span>
-            </div>
-            <span class="tx-amount negative">- R$ 299,00</span>
-          </li>
-          <li class="tx-item" role="listitem">
-            <div class="tx-icon-wrap tx-icon--success">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--tx-stroke)" stroke-width="2" stroke-linecap="round"><polyline points="7 17 17 7"/><polyline points="7 7 17 7 17 17"/></svg>
-            </div>
-            <div class="tx-info">
-              <span class="tx-name">Salário</span>
-              <span class="tx-date">01 Mai, 08:00</span>
-            </div>
-            <span class="tx-amount positive">+ R$ 6.200,00</span>
-          </li>
-          <li class="tx-item" role="listitem">
-            <div class="tx-icon-wrap tx-icon--warn">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--tx-stroke)" stroke-width="2" stroke-linecap="round"><path d="M3 2h13l4 4v14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><polyline points="8 2 8 8 16 8"/></svg>
-            </div>
-            <div class="tx-info">
-              <span class="tx-name">iFood</span>
-              <span class="tx-date">30 Abr, 20:15</span>
-            </div>
-            <span class="tx-amount negative">- R$ 78,50</span>
-          </li>
-          <li class="tx-item" role="listitem">
-            <div class="tx-icon-wrap tx-icon--info">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--tx-stroke)" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-            </div>
-            <div class="tx-info">
-              <span class="tx-name">Spotify</span>
-              <span class="tx-date">28 Abr, 12:00</span>
-            </div>
-            <span class="tx-amount negative">- R$ 21,90</span>
-          </li>
-        </ul>
+        <ul class="tx-list" role="list"></ul>
       </section>
 
       <!-- Bottom spacer for nav bar -->
@@ -240,6 +199,10 @@
             <button type="button" class="entry-method-btn" data-method="file">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
               <span>Arquivo</span>
+            </button>
+            <button type="button" class="entry-method-btn" data-method="foto">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              <span>Foto</span>
             </button>
           </div>
 
@@ -297,6 +260,16 @@
               <button type="button" class="tx-add-btn" id="home-file-picker-btn">Escolher Arquivo</button>
               <button type="button" class="ft-sheet__close" id="home-exp-cancel-file">Cancelar</button>
             </div>
+
+            <div id="home-foto-wrap" class="entry-wrap entry-wrap--centered">
+              <div class="foto-preview-box" id="home-foto-preview-box">
+                <svg id="home-foto-placeholder" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                <img id="home-foto-img" src="" alt="Foto capturada" style="display:none;" />
+              </div>
+              <input type="file" id="home-foto-input" class="file-input-hidden" accept="image/*" capture="environment" />
+              <button type="button" class="tx-add-btn" id="home-foto-capture-btn">Tirar Foto</button>
+              <button type="button" class="ft-sheet__close" id="home-exp-cancel-foto">Cancelar</button>
+            </div>
           </div>
         </div>
       </div>
@@ -304,6 +277,10 @@
 
   </div><!-- /phone-frame -->
 
+  <script src="../assets/js/firebase-config.js"></script>
+  <script src="../assets/js/ft-firebase.bundle.js"></script>
+  <script src="../assets/js/ft-mlkit.bundle.js"></script>
+  <script src="../assets/js/receipt-parser.js"></script>
   <script src="../assets/js/ft-session.js"></script>
   <script src="../assets/js/ft-cards.js"></script>
   <script src="../assets/js/ft-transactions.js"></script>

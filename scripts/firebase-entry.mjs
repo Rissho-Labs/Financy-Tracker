@@ -30,6 +30,11 @@ import {
   doc,
   setDoc,
   getDoc,
+  deleteDoc,
+  collection,
+  getDocs,
+  query,
+  orderBy,
   serverTimestamp,
 } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
@@ -656,6 +661,28 @@ async function applyNewPassword(oobCode, newPassword) {
   await confirmPasswordReset(auth, oobCode, newPassword);
 }
 
+// ── Transações por utilizador ────────────────────────────────
+
+async function addTransaction(uid, tx) {
+  if (!ready || !db) throw new Error('firebase_not_ready');
+  const txId = String(tx.id);
+  const payload = Object.assign({}, tx, { syncedAt: serverTimestamp() });
+  await setDoc(doc(db, 'users', String(uid), 'transactions', txId), payload);
+}
+
+async function loadTransactions(uid) {
+  if (!ready || !db) return [];
+  const snap = await getDocs(
+    query(collection(db, 'users', String(uid), 'transactions'), orderBy('at', 'desc'))
+  );
+  return snap.docs.map(function (d) { return d.data(); });
+}
+
+async function deleteTransaction(uid, txId) {
+  if (!ready || !db) throw new Error('firebase_not_ready');
+  await deleteDoc(doc(db, 'users', String(uid), 'transactions', String(txId)));
+}
+
 function watchAuth(cb) {
   if (!ready || !auth) return function () {};
   return onAuthStateChanged(auth, cb);
@@ -694,6 +721,9 @@ const api = {
   applyNewPassword,
   generateOtpCode,
   callApplyPasswordReset,
+  addTransaction,
+  loadTransactions,
+  deleteTransaction,
 };
 
 if (typeof window !== 'undefined') {

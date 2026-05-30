@@ -68,6 +68,21 @@ if (fs.existsSync(nativeGoogleEntry)) {
   });
 }
 
+const mlkitEntry = path.join(root, 'scripts', 'mlkit-entry.mjs');
+const mlkitOut = path.join(root, 'assets', 'js', 'ft-mlkit.bundle.js');
+if (fs.existsSync(mlkitEntry)) {
+  fs.mkdirSync(path.dirname(mlkitOut), { recursive: true });
+  await esbuild.build({
+    entryPoints: [mlkitEntry],
+    bundle: true,
+    format: 'iife',
+    outfile: mlkitOut,
+    platform: 'browser',
+    target: ['es2020'],
+    logLevel: 'warning',
+  });
+}
+
 const firebaseEntry = path.join(root, 'scripts', 'firebase-entry.mjs');
 const firebaseOut = path.join(root, 'assets', 'js', 'ft-firebase.bundle.js');
 if (fs.existsSync(firebaseEntry)) {
