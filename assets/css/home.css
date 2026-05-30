@@ -261,31 +261,15 @@
   box-sizing: border-box;
 }
 
-/* First card: Visão Geral — solid dark gradient */
+/* First card: Visão Geral — sem fundo, só texto */
 .card-peek-inner--surface {
-  --card-color-a: #1e1b4b;
-  --card-color-b: #312e81;
-  background: linear-gradient(135deg, #1e1b4b, #312e81);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10);
-}
-html[data-theme="light"] .card-peek-inner--surface {
-  background: linear-gradient(135deg, #312e81, #4338ca);
-  border-color: rgba(255, 255, 255, 0.18);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 .card-peek-inner--surface .peek-chip {
-  background: rgba(255, 255, 255, 0.18);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
-}
-html[data-theme="light"] .card-peek-inner--surface .peek-name {
-  color: rgba(255, 255, 255, 0.7);
-}
-html[data-theme="light"] .card-peek-inner--surface .peek-balance {
-  color: #ffffff;
-}
-html[data-theme="light"] .card-peek-inner--surface .peek-brand {
-  opacity: 0.85;
+  background: transparent;
+  box-shadow: none;
 }
 .card-peek-inner::before {
   content: '';
@@ -361,16 +345,8 @@ html[data-theme="light"] .card-peek-inner--surface .peek-brand {
 /* ── Wallet body ─────────────────────────────────────────────── */
 .wallet-body {
   position: relative;
-  margin-top: 72px; /* abaixo dos peeks */
-  /* Paleta alinhada ao app (violeta/slate) — antes tom couro que destoava */
-  background: linear-gradient(180deg, #252336 0%, #1a1828 45%, #12101c 100%);
-  border-radius: 0 0 24px 24px;
+  margin-top: 72px;
   padding: 20px 20px 22px;
-  box-shadow:
-    0 20px 60px rgba(0,0,0,0.6),
-    0 0 0 1px rgba(255,255,255,0.05),
-    inset 0 1px 0 rgba(255,255,255,0.07);
-  overflow: hidden;
   z-index: 1;
 }
 
@@ -880,6 +856,28 @@ html[data-theme="light"] .foto-preview-box {
   transition: opacity 0.3s;
 }
 .nav-item.active .nav-indicator { opacity: 1; }
+
+/* ── FAB (Floating Action Button) ────────────────────────────── */
+.nav-fab {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6C63FF, #8B5CF6);
+  border: none;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  top: -14px;
+  box-shadow: 0 6px 24px rgba(108,99,255,0.55), 0 2px 8px rgba(0,0,0,0.4);
+  transition: transform 180ms var(--ease-spring), box-shadow 180ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-fab:hover  { transform: translateY(-2px) scale(1.05); box-shadow: 0 10px 32px rgba(108,99,255,0.65), 0 4px 12px rgba(0,0,0,0.4); }
+.nav-fab:active { transform: scale(0.93); box-shadow: 0 3px 12px rgba(108,99,255,0.4); }
 
 /* ── Responsive: real mobile ─────────────────────────────────── */
 @media (max-width: 430px) {

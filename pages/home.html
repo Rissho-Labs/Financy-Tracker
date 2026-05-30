@@ -71,12 +71,6 @@
 
         <div class="section-title-row">
           <h2 class="section-title">Resumo do Mês</h2>
-          <button class="add-card-btn" id="add-card-btn" aria-label="Adicionar transação">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            <span>Novo Gasto</span>
-          </button>
         </div>
 
         <!-- Wallet container -->
@@ -105,7 +99,7 @@
             <!-- Balance display -->
             <div class="wallet-balance-area">
               <p class="wallet-balance-label">Total gasto no mês</p>
-              <h2 class="wallet-balance" id="wallet-balance" aria-live="polite">R$ 8.241,75</h2>
+              <h2 class="wallet-balance" id="wallet-balance" aria-live="polite">R$ 0,00</h2>
               <div class="wallet-trend">
                 <span class="trend-badge negative" id="wallet-pct-badge" aria-live="polite">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
@@ -115,34 +109,11 @@
               </div>
             </div>
 
-            <div class="wallet-actions wallet-actions--single" role="group" aria-label="Ação rápida">
-              <button class="wallet-action-btn expense wallet-action-btn--wide" type="button" id="action-expense" aria-label="Registar novo gasto">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                <span>Novo gasto</span>
-              </button>
-            </div>
-
           </div><!-- /wallet-body -->
         </div><!-- /wallet-outer -->
 
       </section>
 
-      <!-- ── QUICK STATS ─────────────────────────────────────── -->
-      <section class="stats-section" aria-label="Resumo de gastos">
-        <div class="stats-grid stats-grid--single">
-          <div class="stat-card stat-card--wide" id="stat-expense-summary">
-            <div class="stat-icon-wrap expense-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="7 7 17 17"/><polyline points="17 7 17 17 7 17"/></svg>
-            </div>
-            <div class="stat-info">
-              <p class="stat-label">Gastos no mês</p>
-              <p class="stat-value expense-val" id="stat-month-spend">R$ 0,00</p>
-            </div>
-            <div class="stat-trend neutral" id="stat-budget-pct">—</div>
-          </div>
-        </div>
-        <p class="stats-budget-hint" id="stats-budget-hint">Orçamento mensal: —</p>
-      </section>
 
       <!-- ── RECENT TRANSACTIONS ──────────────────────────────── -->
       <section class="transactions-section" aria-label="Gastos recentes">
@@ -169,6 +140,9 @@
       <button class="nav-item" aria-label="Cartões" id="nav-wallet" onclick="window.location.href='cards.html'">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
         <span>Cartões</span>
+      </button>
+      <button class="nav-fab" id="nav-fab" aria-label="Novo gasto">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       </button>
       <button class="nav-item" aria-label="Metas" id="nav-tx" onclick="window.location.href='goals.html'">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>

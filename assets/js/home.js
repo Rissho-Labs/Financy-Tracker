@@ -80,22 +80,6 @@ const cards = [
     balance: 'Todas as despesas',
     surface: true,
   },
-  {
-    panelTitle: 'Negócios',
-    ariaLabel: 'Cartão Negócios',
-    name: 'Negócios',
-    balance: 'R$ 8.580,23',
-    colorA: '#059669',
-    colorB: '#10B981',
-  },
-  {
-    panelTitle: 'Reserva',
-    ariaLabel: 'Cartão Reserva',
-    name: 'Reserva',
-    balance: 'R$ 9.841,52',
-    colorA: '#EA580C',
-    colorB: '#F59E0B',
-  },
 ];
 let activeCard = 0;
 
@@ -238,8 +222,7 @@ $('home-exp-cancel')?.addEventListener('click', closeExpenseSheet);
 $('home-exp-cancel-qr')?.addEventListener('click', closeExpenseSheet);
 $('home-exp-cancel-file')?.addEventListener('click', closeExpenseSheet);
 $('home-exp-cancel-foto')?.addEventListener('click', closeExpenseSheet);
-$('add-card-btn')?.addEventListener('click', openExpenseSheet);
-$('action-expense')?.addEventListener('click', openExpenseSheet);
+$('nav-fab')?.addEventListener('click', openExpenseSheet);
 
 const entryMethodBtns = document.querySelectorAll('#home-entry-methods-grid .entry-method-btn');
 entryMethodBtns.forEach((btn) => {
