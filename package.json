@@ -5,6 +5,11 @@
   "description": "Finance Tracker — interface web + shell Android (Capacitor)",
   "scripts": {
     "www:prepare": "node scripts/prepare-www.mjs",
+    "setup:deepseek": "node scripts/setup-deepseek-config.mjs",
+    "deploy:rules": "npm run www:prepare && npx firebase-tools deploy --only firestore:rules,storage",
+    "deploy:hosting": "npm run www:prepare && npx firebase-tools deploy --only hosting",
+    "deploy:functions": "npx firebase-tools deploy --only functions",
+    "deploy:firebase": "npm run www:prepare && npx firebase-tools deploy --only firestore:rules,storage,hosting,functions",
     "start": "node scripts/start-dev.mjs",
     "serve": "serve www -l 5050 --no-etag",
     "cap:sync": "npm run www:prepare && cap sync",

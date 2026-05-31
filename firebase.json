@@ -5,6 +5,30 @@
   "storage": {
     "rules": "storage.rules"
   },
+  "hosting": {
+    "public": "www",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "headers": [
+      {
+        "source": "**/*",
+        "headers": [{ "key": "Cache-Control", "value": "no-store" }]
+      }
+    ],
+    "redirects": [
+      { "source": "/pages/home.html", "destination": "/features/transactions/home.html", "type": 301 },
+      { "source": "/pages/gastos.html", "destination": "/features/transactions/gastos.html", "type": 301 },
+      { "source": "/pages/history.html", "destination": "/features/transactions/history.html", "type": 301 },
+      { "source": "/pages/cards.html", "destination": "/features/cards/cards.html", "type": 301 },
+      { "source": "/pages/goals.html", "destination": "/features/goals/goals.html", "type": 301 },
+      { "source": "/pages/onboarding.html", "destination": "/features/auth/onboarding.html", "type": 301 },
+      { "source": "/pages/register.html", "destination": "/features/auth/register.html", "type": 301 },
+      { "source": "/pages/profile.html", "destination": "/features/auth/profile.html", "type": 301 },
+      { "source": "/pages/biometric-setup.html", "destination": "/features/biometrics/biometric-setup.html", "type": 301 },
+      { "source": "/pages/reset-password.html", "destination": "/features/auth/reset-password.html", "type": 301 },
+      { "source": "/pages/reset-senha.html", "destination": "/features/auth/reset-senha.html", "type": 301 },
+      { "source": "/pages/verificar-email.html", "destination": "/features/auth/verificar-email.html", "type": 301 }
+    ]
+  },
   "functions": [
     {
       "source": "functions",

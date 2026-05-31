@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 56 56" fill="none" role="img" aria-label="Finance Tracker">
+  <rect width="56" height="56" rx="16" fill="#12121c"/>
+  <rect x="1" y="1" width="54" height="54" rx="15" stroke="url(#border)" stroke-width="1.5"/>
+  <path d="M28 10L42 17V33L28 40L14 33V17L28 10Z" fill="url(#fill)" opacity="0.95"/>
+  <path d="M22 28H34M28 22V34" stroke="#0a0a0f" stroke-width="2.8" stroke-linecap="round"/>
+  <defs>
+    <linearGradient id="fill" x1="14" y1="10" x2="42" y2="40">
+      <stop offset="0%" stop-color="#39ff14"/>
+      <stop offset="100%" stop-color="#00f0ff"/>
+    </linearGradient>
+    <linearGradient id="border" x1="0" y1="0" x2="56" y2="56">
+      <stop offset="0%" stop-color="#39ff14" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#00f0ff" stop-opacity="0.5"/>
+    </linearGradient>
+  </defs>
+</svg>

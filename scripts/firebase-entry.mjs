@@ -652,7 +652,7 @@ async function sendResetEmail(email) {
   const mail = String(email || '').trim();
   if (!mail) throw new Error('missing_email');
   const actionCodeSettings = {
-    url: `https://financy-4d5f7.web.app/pages/reset-password.html`,
+    url: `https://financy-4d5f7.web.app/features/auth/reset-password.html`,
     handleCodeInApp: false,
   };
   await sendPasswordResetEmail(auth, mail, actionCodeSettings);

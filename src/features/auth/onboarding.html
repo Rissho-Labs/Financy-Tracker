@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <meta name="description" content="Finance Tracker — Configure seu perfil financeiro." />
+  <title>Finance Tracker — Primeiros Passos</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles/tokens.css" />
+  <link rel="stylesheet" href="/styles/reset.css" />
+  <link rel="stylesheet" href="/styles/global.css" />
+  <link rel="stylesheet" href="/features/auth/onboarding.css" />
+  <script src="/core/ft-theme.js"></script>
+  <script src="/core/ft-build.js"></script>
+  <script src="/core/ft-storage.js"></script>
+  <script src="/core/ft-routes.js"></script>
+  <script src="/shared/js/ft-ai-consent.js"></script>
+  <link rel="stylesheet" href="/shared/css/ai-consent.css" />
+</head>
+<body>
+
+  <div class="bg-blobs" aria-hidden="true">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <div class="phone-frame" role="main" id="app">
+
+    <!-- Status bar -->
+    <div class="status-bar" aria-hidden="true">
+      <span class="status-time" id="status-clock">12:00</span>
+      <div class="status-icons">
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="none"><rect x="0" y="4" width="3" height="7" rx="1" fill="white" opacity="0.4"/><rect x="4.5" y="2.5" width="3" height="8.5" rx="1" fill="white" opacity="0.6"/><rect x="9" y="0.5" width="3" height="10.5" rx="1" fill="white"/></svg>
+        <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="3.5" stroke="white" stroke-opacity="0.35"/><rect x="2" y="2" width="17" height="8" rx="2" fill="white"/></svg>
+      </div>
+    </div>
+    <div class="dynamic-island" aria-hidden="true"></div>
+
+    <!-- Progress bar -->
+    <div class="ob-progress-wrap" aria-label="Progresso do questionário">
+      <div class="ob-progress-track" aria-hidden="true">
+        <div class="ob-progress-fill" id="ob-progress-fill"></div>
+      </div>
+      <span class="ob-step-label" id="ob-step-label">Passo 1 de 3</span>
+    </div>
+
+    <!-- Steps container -->
+    <div class="ob-steps-container" id="ob-steps-container">
+
+      <!-- ── STEP 1: Budget ──────────────────────────────────── -->
+      <div class="ob-step" id="step-1" role="region" aria-labelledby="step1-title">
+        <div class="ob-step-inner">
+          <div class="ob-emoji" aria-hidden="true">💰</div>
+          <h1 class="ob-title" id="step1-title">Qual o seu orçamento<br>mensal?</h1>
+          <p class="ob-subtitle">Defina quanto pretende gastar por mês. Você pode ajustar isso depois.</p>
+
+          <form class="budget-value-form" id="budget-value-form" novalidate>
+            <div class="budget-display" aria-live="polite">
+              <div class="budget-display__value-block">
+                <span class="budget-currency">R$</span>
+                <input
+                  type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                id="budget-display"
+                class="budget-value budget-value-input"
+                value="3.000"
+                maxlength="5"
+                aria-label="Orçamento mensal em reais"
+                autocomplete="off"
+                enterkeyhint="done"
+              />
+              </div>
+            </div>
+          </form>
+          <button type="button" id="budget-dismiss-trap" class="budget-dismiss-trap" tabindex="-1" aria-hidden="true"></button>
+          <p class="budget-display-hint">Toque no valor para digitar.</p>
+
+          <div class="slider-wrap">
+            <input
+              type="range"
+              id="budget-slider"
+              class="budget-slider"
+              min="500"
+              max="30000"
+              step="100"
+              value="3000"
+              aria-label="Orçamento mensal"
+              aria-valuemin="500"
+              aria-valuemax="30000"
+              aria-valuenow="3000"
+            />
+            <div class="slider-labels" aria-hidden="true">
+              <span>R$ 500</span>
+              <span>R$ 30.000</span>
+            </div>
+          </div>
+
+          <div class="budget-presets" role="group" aria-label="Valores predefinidos">
+            <button class="preset-btn" data-value="1500" type="button">R$ 1.500</button>
+            <button class="preset-btn" data-value="3000" type="button">R$ 3.000</button>
+            <button class="preset-btn" data-value="5000" type="button">R$ 5.000</button>
+            <button class="preset-btn" data-value="10000" type="button">R$ 10.000</button>
+          </div>
+
+          <p class="budget-hint" aria-live="polite" id="budget-hint">
+            💡 Valor equivale a <strong id="budget-daily">R$ 100</strong>/dia
+          </p>
+        </div>
+      </div>
+
+      <!-- ── STEP 2: Motivation ─────────────────────────────── -->
+      <div class="ob-step ob-step--hidden" id="step-2" role="region" aria-labelledby="step2-title">
+        <div class="ob-step-inner">
+          <div class="ob-emoji" aria-hidden="true">🎯</div>
+          <p class="ob-eyebrow">Motivo de uso</p>
+          <h1 class="ob-title" id="step2-title">Por que você quer<br>controlar suas finanças?</h1>
+          <p class="ob-subtitle ob-subtitle--personalize">
+            <span class="ob-subtitle__lead">Personalizar sua experiência</span>
+            <span class="ob-subtitle__body">Usamos só estas respostas para ajustar dicas, lembretes e textos ao seu perfil — tudo no app, sem repassar a terceiros.</span>
+          </p>
+
+          <div class="motivation-grid" role="radiogroup" aria-label="Selecione sua motivação">
+
+            <button class="motivation-card" id="mot-0" data-motivation="clarity" type="button" role="radio" aria-checked="false">
+              <span class="mot-icon" aria-hidden="true">🔍</span>
+              <span class="mot-title">Não tenho clareza financeira</span>
+              <span class="mot-desc">Quero entender pra onde vai meu dinheiro</span>
+              <span class="mot-check" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+            </button>
+
+            <button class="motivation-card" id="mot-1" data-motivation="goal" type="button" role="radio" aria-checked="false">
+              <span class="mot-icon" aria-hidden="true">🏆</span>
+              <span class="mot-title">Atingir um objetivo específico</span>
+              <span class="mot-desc">Tenho uma meta financeira em mente</span>
+              <span class="mot-check" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              <span class="mot-badge" aria-hidden="true">+ Detalhes</span>
+            </button>
+
+            <button class="motivation-card" id="mot-2" data-motivation="relationship" type="button" role="radio" aria-checked="false">
+              <span class="mot-icon" aria-hidden="true">💚</span>
+              <span class="mot-title">Melhorar meu relacionamento com o dinheiro</span>
+              <span class="mot-desc">Quero ter hábitos financeiros mais saudáveis</span>
+              <span class="mot-check" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+            </button>
+
+            <button class="motivation-card" id="mot-3" data-motivation="none" type="button" role="radio" aria-checked="false">
+              <span class="mot-icon" aria-hidden="true">📊</span>
+              <span class="mot-title">Só quero organizar meus gastos</span>
+              <span class="mot-desc">Controle geral das suas despesas</span>
+              <span class="mot-check" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+            </button>
+
+          </div>
+          <span class="field-error" id="motivation-error" role="alert" aria-live="polite" style="text-align:center;display:block;margin-top:8px;"></span>
+
+          <div class="ob-privacy-block" role="group" aria-labelledby="ob-privacy-title">
+            <h2 class="ob-privacy-title" id="ob-privacy-title">Leitura de notas fiscais (IA)</h2>
+            <p class="ob-privacy-text">Opcional: autorize o envio de imagens/PDFs a serviços de IA (DeepSeek) e reconhecimento local (ML Kit) para registrar gastos automaticamente. Você pode recusar e lançar gastos manualmente.</p>
+            <label class="ai-consent-check ob-privacy-check">
+              <input type="checkbox" id="ob-ai-consent" />
+              <span>Autorizo o processamento das imagens conforme descrito acima (LGPD).</span>
+            </label>
+            <span class="field-error" id="ob-ai-consent-error" role="alert" aria-live="polite"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── STEP 3: Specific Goal (conditional) ────────────── -->
+      <div class="ob-step ob-step--hidden" id="step-3" role="region" aria-labelledby="step3-title">
+        <div class="ob-step-inner">
+          <div class="ob-emoji" aria-hidden="true">🏆</div>
+          <h1 class="ob-title" id="step3-title">Defina seu objetivo</h1>
+          <p class="ob-subtitle">Vamos calcular quanto você precisa guardar por mês para chegar lá.</p>
+
+          <div class="goal-form">
+
+            <div class="field-group">
+              <label class="field-label" for="goal-name">Nome do objetivo</label>
+              <div class="field-wrapper">
+                <svg class="field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                <input id="goal-name" type="text" class="field-input" placeholder="Ex: Viagem para Europa" aria-describedby="goal-name-error" />
+              </div>
+              <span class="field-error" id="goal-name-error" role="alert" aria-live="polite"></span>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label" for="goal-value">Valor alvo</label>
+              <div class="field-wrapper goal-value-wrap">
+                <svg class="field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                <span class="field-prefix goal-field-prefix" aria-hidden="true">R$</span>
+                <input id="goal-value" type="number" class="field-input field-input--goal-value" placeholder="0,00" inputmode="numeric" min="0" aria-describedby="goal-value-error" />
+              </div>
+              <span class="field-error" id="goal-value-error" role="alert" aria-live="polite"></span>
+            </div>
+
+            <div class="goal-dates">
+              <div class="field-group goal-date-field">
+                <label class="field-label" for="goal-start">Data de início</label>
+                <div class="field-wrapper">
+                  <svg class="field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  <input id="goal-start" type="date" class="field-input field-input--date" aria-describedby="goal-start-error" />
+                </div>
+                <span class="field-error" id="goal-start-error" role="alert" aria-live="polite"></span>
+              </div>
+
+              <div class="field-group goal-date-field">
+                <label class="field-label" for="goal-end">Data de conclusão</label>
+                <div class="field-wrapper">
+                  <svg class="field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  <input id="goal-end" type="date" class="field-input field-input--date" aria-describedby="goal-end-error" />
+                </div>
+                <span class="field-error" id="goal-end-error" role="alert" aria-live="polite"></span>
+              </div>
+            </div>
+
+            <!-- Auto-calculation result -->
+            <div class="goal-calc" id="goal-calc" aria-live="polite">
+              <div class="goal-calc-icon" aria-hidden="true">📅</div>
+              <div class="goal-calc-info">
+                <span class="goal-calc-label">Você precisa guardar</span>
+                <span class="goal-calc-value" id="goal-monthly-save">—</span>
+                <span class="goal-calc-label">por mês para atingir o objetivo</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /ob-steps-container -->
+
+    <!-- Navigation buttons (fixed at bottom) -->
+    <div class="ob-nav">
+      <button class="ob-nav-back" id="ob-back-btn" aria-label="Voltar" type="button">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        <span>Voltar</span>
+      </button>
+      <button class="btn btn-primary ob-nav-next" id="ob-next-btn" type="button">
+        <span class="btn-text" id="ob-next-label">Continuar</span>
+        <svg id="ob-next-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        <div class="btn-spinner" aria-hidden="true"></div>
+      </button>
+    </div>
+
+  </div><!-- /phone-frame -->
+
+  <script src="/core/firebase-config.js"></script>
+  <script src="/core/ft-firebase.bundle.js"></script>
+  <script src="/core/ft-session.js"></script>
+  <script src="/features/auth/onboarding.js"></script>
+</body>
+</html>

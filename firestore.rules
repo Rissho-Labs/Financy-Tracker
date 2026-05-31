@@ -1,38 +1,77 @@
 rules_version = '2';
+/**
+ * Firestore — Princípio do Privilégio Mínimo
+ * @author Rickson.Hirata
+ */
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /userEmails/{emailKey} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null
+
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    function isOwnerOnCreate() {
+      return request.auth != null
         && request.resource.data.keys().hasAll(['uid'])
         && request.resource.data.uid == request.auth.uid;
+    }
+
+    function isOwnerOnResource() {
+      return request.auth != null
+        && resource.data.keys().hasAll(['uid'])
+        && resource.data.uid == request.auth.uid;
+    }
+
+    match /userEmails/{emailKey} {
+      allow read: if request.auth != null
+        && (resource == null || resource.data.uid == request.auth.uid);
+      allow create, update: if isOwnerOnCreate();
+      allow delete: if isOwnerOnResource();
     }
 
     match /userNames/{usernameKey} {
       allow read: if true;
-      allow write: if request.auth != null
-        && request.resource.data.keys().hasAll(['uid'])
-        && request.resource.data.uid == request.auth.uid;
+      allow create, update: if isOwnerOnCreate();
+      allow delete: if isOwnerOnResource();
     }
 
-    // Códigos OTP de redefinição de senha — cliente só escreve, nunca lê.
-    // A Cloud Function lê via Admin SDK (ignora estas regras).
+    // OTP redefinição — cliente escreve, Cloud Function lê via Admin SDK
     match /passwordResetCodes/{key} {
       allow create, update: if true;
       allow read, delete: if false;
     }
 
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
 
       match /transactions/{txId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId)
+          && (!request.resource.data.keys().hasAny(['userId'])
+              || request.resource.data.userId == request.auth.uid);
+        allow update, delete: if isOwner(userId)
+          && (!resource.data.keys().hasAny(['userId'])
+              || resource.data.userId == request.auth.uid);
       }
+
       match /goals/{goalId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId)
+          && (!request.resource.data.keys().hasAny(['userId'])
+              || request.resource.data.userId == request.auth.uid);
+        allow update, delete: if isOwner(userId)
+          && (!resource.data.keys().hasAny(['userId'])
+              || resource.data.userId == request.auth.uid);
       }
+
       match /cards/{cardId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId)
+          && (!request.resource.data.keys().hasAny(['userId'])
+              || request.resource.data.userId == request.auth.uid);
+        allow update, delete: if isOwner(userId)
+          && (!resource.data.keys().hasAny(['userId'])
+              || resource.data.userId == request.auth.uid);
       }
     }
   }

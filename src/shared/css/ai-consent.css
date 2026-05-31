@@ -1,0 +1,93 @@
+/**
+ * Modal de consentimento IA — LGPD
+ * @author Rickson.Hirata
+ */
+.ai-consent-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: var(--space-md);
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(6px);
+}
+
+.ai-consent-sheet {
+  width: min(390px, 100%);
+  padding: var(--space-lg) var(--space-md) calc(var(--space-lg) + env(safe-area-inset-bottom));
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.45);
+}
+
+.ai-consent-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: var(--space-sm);
+  color: var(--neon-blue);
+}
+
+.ai-consent-text {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-sm);
+}
+
+.ai-consent-text--muted {
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.ai-consent-check {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: flex-start;
+  margin: var(--space-md) 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.ai-consent-check input {
+  margin-top: 3px;
+  accent-color: var(--neon-green);
+}
+
+.ai-consent-actions {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
+.ai-consent-btn {
+  flex: 1;
+  padding: 12px var(--space-md);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+  transition: opacity var(--duration) var(--ease-smooth);
+}
+
+.ai-consent-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ai-consent-btn--ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+.ai-consent-btn--primary {
+  background: linear-gradient(135deg, var(--neon-green), var(--neon-blue));
+  color: #0a0a0f;
+  box-shadow: var(--shadow-btn);
+}

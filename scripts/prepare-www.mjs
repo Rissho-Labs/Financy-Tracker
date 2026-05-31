@@ -1,6 +1,6 @@
 /**
- * Copia ficheiros estáticos para `www/` antes de `cap sync` / `serve`.
- * O Capacitor exige webDir numa subpasta (não aceita ".").
+ * Copia `src/` para `www/` e gera bundles em `src/core/`.
+ * @author Rickson.Hirata
  */
 import fs from 'fs';
 import path from 'path';
@@ -9,7 +9,10 @@ import * as esbuild from 'esbuild';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '..');
+const src = path.join(root, 'src');
 const www = path.join(root, 'www');
+const core = path.join(src, 'core');
+const scriptsDir = path.join(root, 'scripts');
 
 function writeBuildStamp() {
   const pkgPath = path.join(root, 'package.json');
@@ -18,7 +21,7 @@ function writeBuildStamp() {
     version = JSON.parse(fs.readFileSync(pkgPath, 'utf8')).version || version;
   } catch (e) { /* ignore */ }
   const stamp = `${version}-${Date.now().toString(36)}`;
-  const out = path.join(root, 'assets', 'js', 'ft-build.js');
+  const out = path.join(core, 'ft-build.js');
   fs.mkdirSync(path.dirname(out), { recursive: true });
   fs.writeFileSync(
     out,
@@ -31,98 +34,67 @@ function rmrf(dir) {
   if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true, force: true });
 }
 
-function copyRecursive(src, dest) {
-  const stat = fs.statSync(src);
+function copyRecursive(srcDir, destDir) {
+  const stat = fs.statSync(srcDir);
   if (stat.isDirectory()) {
-    fs.mkdirSync(dest, { recursive: true });
-    for (const name of fs.readdirSync(src)) {
-      copyRecursive(path.join(src, name), path.join(dest, name));
+    fs.mkdirSync(destDir, { recursive: true });
+    for (const name of fs.readdirSync(srcDir)) {
+      copyRecursive(path.join(srcDir, name), path.join(destDir, name));
     }
   } else {
-    fs.mkdirSync(path.dirname(dest), { recursive: true });
-    fs.copyFileSync(src, dest);
+    fs.mkdirSync(path.dirname(destDir), { recursive: true });
+    fs.copyFileSync(srcDir, destDir);
   }
 }
 
-const entries = ['index.html', 'assets', 'pages'];
-for (const name of entries) {
-  if (!fs.existsSync(path.join(root, name))) {
-    console.error(`prepare-www: em falta: ${name}`);
-    process.exit(1);
+async function buildBundle(entryName, outName, format = 'iife') {
+  const entry = path.join(scriptsDir, entryName);
+  const outfile = path.join(core, outName);
+  if (!fs.existsSync(entry)) {
+    console.warn(`prepare-www: ${entryName} em falta — skip ${outName}`);
+    return;
   }
-}
-
-const biometricEntry = path.join(root, 'scripts', 'biometric-entry.mjs');
-const biometricOut = path.join(root, 'assets', 'js', 'ft-biometric.bundle.js');
-if (fs.existsSync(biometricEntry)) {
-  fs.mkdirSync(path.dirname(biometricOut), { recursive: true });
+  fs.mkdirSync(path.dirname(outfile), { recursive: true });
   await esbuild.build({
-    entryPoints: [biometricEntry],
+    entryPoints: [entry],
     bundle: true,
-    format: 'esm',
-    outfile: biometricOut,
-    platform: 'browser',
-    target: ['es2020'],
-    logLevel: 'warning',
-  });
-} else {
-  console.warn('prepare-www: biometric-entry.mjs em falta — skip ft-biometric.bundle.js');
-}
-
-const nativeGoogleEntry = path.join(root, 'scripts', 'firebase-native-google-entry.mjs');
-const nativeGoogleOut = path.join(root, 'assets', 'js', 'ft-native-google.bundle.js');
-if (fs.existsSync(nativeGoogleEntry)) {
-  fs.mkdirSync(path.dirname(nativeGoogleOut), { recursive: true });
-  await esbuild.build({
-    entryPoints: [nativeGoogleEntry],
-    bundle: true,
-    format: 'esm',
-    outfile: nativeGoogleOut,
+    format,
+    outfile,
     platform: 'browser',
     target: ['es2020'],
     logLevel: 'warning',
   });
 }
 
-const mlkitEntry = path.join(root, 'scripts', 'mlkit-entry.mjs');
-const mlkitOut = path.join(root, 'assets', 'js', 'ft-mlkit.bundle.js');
-if (fs.existsSync(mlkitEntry)) {
-  fs.mkdirSync(path.dirname(mlkitOut), { recursive: true });
-  await esbuild.build({
-    entryPoints: [mlkitEntry],
-    bundle: true,
-    format: 'iife',
-    outfile: mlkitOut,
-    platform: 'browser',
-    target: ['es2020'],
-    logLevel: 'warning',
-  });
+if (!fs.existsSync(src)) {
+  console.error('prepare-www: pasta src/ em falta');
+  process.exit(1);
 }
 
-const firebaseEntry = path.join(root, 'scripts', 'firebase-entry.mjs');
-const firebaseOut = path.join(root, 'assets', 'js', 'ft-firebase.bundle.js');
-if (fs.existsSync(firebaseEntry)) {
-  fs.mkdirSync(path.dirname(firebaseOut), { recursive: true });
-  await esbuild.build({
-    entryPoints: [firebaseEntry],
-    bundle: true,
-    format: 'iife',
-    outfile: firebaseOut,
-    platform: 'browser',
-    target: ['es2020'],
-    logLevel: 'warning',
-  });
-} else {
-  console.warn('prepare-www: firebase-entry.mjs em falta — skip ft-firebase.bundle.js');
-}
+await buildBundle('biometric-entry.mjs', 'ft-biometric.bundle.js', 'esm');
+await buildBundle('firebase-native-google-entry.mjs', 'ft-native-google.bundle.js', 'esm');
+await buildBundle('mlkit-entry.mjs', 'ft-mlkit.bundle.js', 'iife');
+await buildBundle('firebase-entry.mjs', 'ft-firebase.bundle.js', 'iife');
 
 writeBuildStamp();
 
 rmrf(www);
 fs.mkdirSync(www, { recursive: true });
 
-for (const name of entries) {
-  copyRecursive(path.join(root, name), path.join(www, name));
+// Entrada na raiz de www/
+copyRecursive(path.join(src, 'app', 'index.html'), path.join(www, 'index.html'));
+
+const appJs = path.join(src, 'app', 'app.js');
+if (fs.existsSync(appJs)) {
+  copyRecursive(appJs, path.join(www, 'app', 'app.js'));
 }
 
-console.log('prepare-www: www/ atualizado.');
+// Espelha módulos FSD
+for (const dir of ['core', 'shared', 'styles', 'assets', 'features']) {
+  const from = path.join(src, dir);
+  if (fs.existsSync(from)) {
+    copyRecursive(from, path.join(www, dir));
+  }
+}
+
+console.log('prepare-www: www/ atualizado a partir de src/.');

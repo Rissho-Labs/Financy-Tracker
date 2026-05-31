@@ -92,17 +92,18 @@ Copie o SHA-1 (debug) → [Firebase → app Android](https://console.firebase.go
 
 ---
 
-## 🗂️ Estrutura de Diretórios e Arquivos
+## 🗂️ Estrutura de Diretórios (Feature-Sliced Design)
 
-Entender a organização do projeto é vital para a manutenção:
+Documentação completa: `src/ARCHITECTURE.md` — **Rickson.Hirata**
 
-- `/assets/`: Contém arquivos de estilização (CSS) e lógica do usuário (JS). Subpastas dividem o código por página/componente.
-- `/pages/`: Os arquivos HTML individuais para cada tela (home, profile, cards, onboarding, etc).
-- `/index.html`: Arquivo raiz da aplicação e ponto de entrada.
-- `/scripts/`: Scripts automatizados para desenvolvimento (como o `prepare-www.mjs`).
-- `/android/`: O código fonte nativo do aplicativo Android configurado e gerado pelo Capacitor. 
-- `capacitor.config.json`: Arquivo de configuração essencial do Capacitor. Define o ID do app, nome e o diretório base web.
-- `package.json`: Lista todas as dependências, versionamento e scripts que orquestram a aplicação.
+- `src/app/`: Entrada (`index.html`, `app.js`)
+- `src/core/`: Auth, Firebase, storage, routes, bundles
+- `src/features/`: Domínios (auth, biometrics, cards, goals, transactions)
+- `src/shared/`: Componentes reutilizáveis (notificações, consentimento IA)
+- `src/styles/`: `tokens.css`, `reset.css`, `global.css` (dark + neon)
+- `src/assets/`: Mídia estática
+- `scripts/`: Build (`prepare-www.mjs` → copia `src/` para `www/`)
+- `android/`: Shell Capacitor
 
 ---
 

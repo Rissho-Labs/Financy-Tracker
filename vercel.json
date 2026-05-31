@@ -3,30 +3,40 @@
   "outputDirectory": "www",
   "cleanUrls": true,
   "trailingSlash": false,
+  "redirects": [
+    { "source": "/pages/home.html", "destination": "/features/transactions/home.html", "permanent": true },
+    { "source": "/pages/gastos.html", "destination": "/features/transactions/gastos.html", "permanent": true },
+    { "source": "/pages/history.html", "destination": "/features/transactions/history.html", "permanent": true },
+    { "source": "/pages/cards.html", "destination": "/features/cards/cards.html", "permanent": true },
+    { "source": "/pages/goals.html", "destination": "/features/goals/goals.html", "permanent": true },
+    { "source": "/pages/onboarding.html", "destination": "/features/auth/onboarding.html", "permanent": true },
+    { "source": "/pages/register.html", "destination": "/features/auth/register.html", "permanent": true },
+    { "source": "/pages/profile.html", "destination": "/features/auth/profile.html", "permanent": true },
+    { "source": "/pages/biometric-setup.html", "destination": "/features/biometrics/biometric-setup.html", "permanent": true },
+    { "source": "/pages/reset-password.html", "destination": "/features/auth/reset-password.html", "permanent": true },
+    { "source": "/pages/reset-senha.html", "destination": "/features/auth/reset-senha.html", "permanent": true },
+    { "source": "/pages/verificar-email.html", "destination": "/features/auth/verificar-email.html", "permanent": true }
+  ],
   "headers": [
     {
-      "source": "/assets/css/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-store" }
-      ]
+      "source": "/styles/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
     },
     {
-      "source": "/pages/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-store" }
-      ]
+      "source": "/features/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
+    },
+    {
+      "source": "/core/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
     },
     {
       "source": "/",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-store" }
-      ]
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
     },
     {
       "source": "/index.html",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-store" }
-      ]
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
     }
   ]
 }
