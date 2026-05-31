@@ -4,6 +4,8 @@
    @author Rickson.Hirata
    ────────────────────────────────────────────────────────────── */
 
+@import url('./motion.css');
+
 /* ── Ambient blobs ──────────────────────────────────────────── */
 .bg-blobs {
   position: fixed;

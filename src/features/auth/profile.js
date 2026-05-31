@@ -110,10 +110,6 @@
   $('share-link-btn')?.addEventListener('click', () => {
     haptic('light');
   });
-  $('show-qr-btn')?.addEventListener('click', () => {
-    haptic('light');
-  });
-
   document.querySelectorAll('.req-btn').forEach((btn) => {
     btn.addEventListener('click', function () {
       haptic('medium');

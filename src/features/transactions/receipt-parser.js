@@ -7,6 +7,8 @@
 
   // Palavras-chave de totais encontrados em cupons fiscais brasileiros
   var TOTAL_PATTERNS = [
+    /valor\s*(?:total\s*)?(?:do\s*)?documento[:\s]+R?\$?\s*([\d.,]+)/i,
+    /valor\s*(?:a?\s*)?pagar[:\s]+R?\$?\s*([\d.,]+)/i,
     /total\s+a?\s*pagar[:\s]+R?\$?\s*([\d.,]+)/i,
     /valor\s+total[:\s]+R?\$?\s*([\d.,]+)/i,
     /total\s+geral[:\s]+R?\$?\s*([\d.,]+)/i,
@@ -24,7 +26,7 @@
     transport:     /posto|combustivel|combustível|gasolina|etanol|diesel|uber|99|taxi|táxi|estacionamento|pedágio|pedagio|auto\s*peças|autopeças/i,
     subscriptions: /netflix|spotify|amazon|disney|hbo|paramount|globo\s*play|apple|youtube|prime/i,
     shopping:      /magazine|lojas|loja|shopping|americanas|renner|riachuelo|c&a|zara|hm|h&m|marisa|pernambucanas|shein|temu/i,
-    services:      /farmácia|farmacia|drogaria|droga|hospital|clinica|clínica|dentist|médico|medico|laboratório|laboratorio|academia|salão|salao|barbearia/i,
+    services:      /farmácia|farmacia|drogaria|droga|hospital|clinica|clínica|dentist|médico|medico|laboratório|laboratorio|academia|salão|salao|barbearia|das\s*mei|simples\s*nacional|receita\s*federal|pgfn|guia\s*de\s*arrecada|tributo|inss/i,
   };
 
   function parseBRLtoCents(raw) {
@@ -66,6 +68,10 @@
   }
 
   function extractName(lines) {
+    var full = lines.join('\n');
+    if (/das|simples\s*nacional|\bmei\b/i.test(full)) {
+      return 'DAS MEI — Simples Nacional';
+    }
     // Nome do estabelecimento costuma estar nas primeiras linhas não-numéricas
     for (var i = 0; i < Math.min(6, lines.length); i++) {
       var line = lines[i].trim();
@@ -78,7 +84,7 @@
       var clean = line.replace(/[^a-záàâãéèêíïóôõöúüçñA-Z0-9\s&'.\-]/g, '').trim();
       if (clean.length >= 3) return clean;
     }
-    return 'Gasto registrado por foto';
+    return 'Gasto registrado por escaneamento';
   }
 
   function extractCategory(text) {
@@ -92,7 +98,7 @@
 
   function parse(rawText) {
     if (!rawText || typeof rawText !== 'string') {
-      return { name: 'Gasto registrado por foto', amountCents: NaN, category: 'other' };
+      return { name: 'Gasto registrado por escaneamento', amountCents: NaN, category: 'other' };
     }
     var lines = rawText.split(/\n|\r/).map(function (l) { return l.trim(); }).filter(Boolean);
     var amountCents = extractTotal(lines);

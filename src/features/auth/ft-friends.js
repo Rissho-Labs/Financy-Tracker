@@ -123,6 +123,69 @@
     return null;
   }
 
+  function normalizeUsername(u) {
+    return String(u || '')
+      .trim()
+      .toLowerCase()
+      .replace(/^@/, '');
+  }
+
+  function normalizeTag(t) {
+    return String(t || '')
+      .trim()
+      .replace(/^#/, '');
+  }
+
+  function findCatalogByHandle(username, tag) {
+    var u = normalizeUsername(username);
+    var t = normalizeTag(tag);
+    for (var i = 0; i < CATALOG.length; i++) {
+      var c = CATALOG[i];
+      if (c.username.toLowerCase() === u && String(c.tag) === t) return c;
+    }
+    return null;
+  }
+
+  function getCurrentHandle() {
+    if (typeof global.FTSession !== 'undefined' && FTSession.parseUser) {
+      var user = FTSession.parseUser();
+      if (user) {
+        return {
+          username: normalizeUsername(user.username),
+          tag: normalizeTag(user.tag),
+        };
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Adiciona amigo a partir do payload do QR (@user + #tag).
+   * @returns {{ ok: boolean, reason?: string, name?: string, id?: string }}
+   */
+  function addFriendFromQr(parsed) {
+    if (!parsed || !parsed.username || !parsed.tag) {
+      return { ok: false, reason: 'invalid_payload' };
+    }
+    var self = getCurrentHandle();
+    if (
+      self &&
+      self.username === normalizeUsername(parsed.username) &&
+      self.tag === normalizeTag(parsed.tag)
+    ) {
+      return { ok: false, reason: 'self' };
+    }
+    var entry = findCatalogByHandle(parsed.username, parsed.tag);
+    if (!entry) {
+      return { ok: false, reason: 'not_found' };
+    }
+    if (isFriend(entry.id)) {
+      return { ok: false, reason: 'already_friend', name: entry.name };
+    }
+    addFriend(entry.id);
+    return { ok: true, name: entry.name, id: entry.id };
+  }
+
   function normalizeFriend(entry, friendsSince) {
     return {
       id: entry.id,
@@ -241,6 +304,8 @@
     count: count,
     isFriend: isFriend,
     addFriend: addFriend,
+    addFriendFromQr: addFriendFromQr,
+    findCatalogByHandle: findCatalogByHandle,
     removeFriend: removeFriend,
     searchCatalog: searchCatalog,
     filterFriends: filterFriends,

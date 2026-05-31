@@ -5,7 +5,14 @@
 (function (global) {
   'use strict';
 
-  var RECEIPT_SYSTEM = 'Você extrai dados de notas fiscais e cupons brasileiros. Responda SOMENTE JSON: {"establishment":"","date":"YYYY-MM-DD","time":"HH:MM","amountCents":0,"paymentMethod":"pix|dinheiro|debito|credito|credito_parcelado|","installments":1,"category":"food|shopping|transport|subscriptions|services|other|""}';
+  var RECEIPT_SYSTEM =
+    'Você extrai dados de documentos de gasto brasileiros: notas fiscais, cupons, boletos, contas (água, luz, telefone), ' +
+    'DAS MEI, DARF, GPS, guias de arrecadação do Simples Nacional, comprovantes de pagamento tributário e PGDAS-D. ' +
+    'Responda SOMENTE JSON: {"isValidReceipt":true,"establishment":"","date":"YYYY-MM-DD","time":"HH:MM","amountCents":0,"paymentMethod":"pix|dinheiro|debito|credito|credito_parcelado|","installments":1,"category":"food|shopping|transport|subscriptions|services|other|""}. ' +
+    'Para DAS MEI use establishment como "DAS MEI" ou "Simples Nacional (MEI)" e category "services". ' +
+    'amountCents = valor total do documento em centavos (ex: R$ 75,90 → 7590). ' +
+    'Use isValidReceipt:true para DAS, boletos e guias tributárias válidas. ' +
+    'Use isValidReceipt:false apenas se NÃO for documento financeiro (selfie, paisagem, meme, tela irrelevante).';
 
   function getLocalApiKey() {
     try {
@@ -39,6 +46,7 @@
     var cat = String(raw.category || '').toLowerCase();
     if (cats.indexOf(cat) === -1) cat = '';
     return {
+      isValidReceipt: raw.isValidReceipt !== false,
       establishment: String(raw.establishment || raw.name || '').trim(),
       date: String(raw.date || '').trim(),
       time: String(raw.time || '').trim(),
@@ -52,6 +60,7 @@
 
   function emptyResult() {
     return {
+      isValidReceipt: false,
       establishment: '',
       date: '',
       time: '',
@@ -67,6 +76,7 @@
     if (typeof global.FTReceiptParser === 'undefined') return emptyResult();
     var p = global.FTReceiptParser.parse(ocrText || '');
     return {
+      isValidReceipt: !!(p.amountCents > 0 && p.name && p.name.indexOf('escaneamento') < 0),
       establishment: p.name || '',
       date: '',
       time: '',
@@ -88,15 +98,18 @@
     return Number.isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
   }
 
-  async function callDeepSeekDirect(apiKey, ocrText, imageBase64) {
+  async function callDeepSeekDirect(apiKey, ocrText, imageBase64, imageMime) {
+    var mime = imageMime || 'image/jpeg';
     var userContent;
-    if (imageBase64) {
+    var hint = 'Extraia os dados deste documento de gasto brasileiro (nota, boleto, DAS MEI, conta ou comprovante).\nTexto/OCR:\n' + (ocrText || '(vazio)');
+
+    if (imageBase64 && mime.indexOf('image/') === 0) {
       userContent = [
-        { type: 'text', text: 'Extraia os dados desta nota fiscal/cupom brasileiro.\nOCR:\n' + (ocrText || '') },
-        { type: 'image_url', image_url: { url: 'data:image/jpeg;base64,' + imageBase64 } },
+        { type: 'text', text: hint },
+        { type: 'image_url', image_url: { url: 'data:' + mime + ';base64,' + imageBase64 } },
       ];
     } else {
-      userContent = 'Extraia os dados:\n\n' + (ocrText || '');
+      userContent = hint;
     }
 
     var res = await fetch('https://api.deepseek.com/chat/completions', {
@@ -122,7 +135,7 @@
     return normalize(parseJsonContent(content));
   }
 
-  async function analyze(ocrText, imageBase64) {
+  async function analyze(ocrText, imageBase64, imageMime) {
     if (typeof global.FTFirebase !== 'undefined' &&
         typeof global.FTFirebase.callAnalyzeReceipt === 'function' &&
         typeof global.FTFirebase.isReady === 'function' &&
@@ -138,7 +151,7 @@
     var apiKey = getLocalApiKey();
     if (apiKey) {
       try {
-        return await callDeepSeekDirect(apiKey, ocrText, imageBase64);
+        return await callDeepSeekDirect(apiKey, ocrText, imageBase64, imageMime);
       } catch (e) {
         console.warn('[DeepSeekReceipt] Direct API failed', e.message || e);
       }

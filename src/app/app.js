@@ -29,26 +29,36 @@
 // ── Helpers ──────────────────────────────────────────────────
 const $ = (id) => document.getElementById(id);
 
-(function applyEmailHint() {
-  try {
-    const hint = sessionStorage.getItem('ft_login_email_hint');
-    if (hint && $('email')) {
-      $('email').value = hint;
-      sessionStorage.removeItem('ft_login_email_hint');
-    }
-    if (
-      typeof FTAuth !== 'undefined' &&
-      FTAuth.hasPendingGoogleLink &&
-      FTAuth.hasPendingGoogleLink()
-    ) {
-      showGoogleError(
-        'Este e-mail já tem senha. Digite a senha abaixo e toque em Entrar para vincular o Google.'
-      );
-      const btnText = $('btn-signin')?.querySelector('.btn-text');
-      if (btnText) btnText.textContent = 'Vincular e entrar';
-    }
-  } catch (e) {}
-})();
+const authContainer = () => $('auth-container');
+
+function showAuthStep2() {
+  const el = authContainer();
+  if (el) {
+    el.classList.add('show-step-2');
+    el.setAttribute('data-step', '2');
+  }
+  const s1 = document.querySelector('.step-1');
+  const s2 = document.querySelector('.step-2');
+  if (s1) s1.setAttribute('aria-hidden', 'true');
+  if (s2) s2.setAttribute('aria-hidden', 'false');
+}
+
+function showAuthStep1() {
+  const el = authContainer();
+  if (el) {
+    el.classList.remove('show-step-2');
+    el.setAttribute('data-step', '1');
+  }
+  const s1 = document.querySelector('.step-1');
+  const s2 = document.querySelector('.step-2');
+  if (s1) s1.setAttribute('aria-hidden', 'false');
+  if (s2) s2.setAttribute('aria-hidden', 'true');
+}
+
+function isOnAuthStep2() {
+  return authContainer()?.classList.contains('show-step-2');
+}
+
 const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 
 function haptic(type = 'light') {
@@ -73,6 +83,27 @@ function showGoogleError(msg) {
 function clearGoogleError() {
   showGoogleError('');
 }
+
+(function applyEmailHint() {
+  try {
+    const hint = sessionStorage.getItem('ft_login_email_hint');
+    if (hint && $('email')) {
+      $('email').value = hint;
+      sessionStorage.removeItem('ft_login_email_hint');
+    }
+    if (
+      typeof FTAuth !== 'undefined' &&
+      FTAuth.hasPendingGoogleLink &&
+      FTAuth.hasPendingGoogleLink()
+    ) {
+      showGoogleError(
+        'Este e-mail já tem senha. Continue e digite a senha abaixo para vincular o Google.'
+      );
+      const btnText = $('btn-signin')?.querySelector('.btn-text');
+      if (btnText) btnText.textContent = 'Vincular e entrar';
+    }
+  } catch (e) {}
+})();
 
 function showError(fieldId, errorId, msg) {
   const field = $(fieldId);
@@ -145,50 +176,96 @@ const eyeClosed = `
   <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
   <line x1="1" y1="1" x2="23" y2="23"/>`;
 
-toggleBtn.addEventListener('click', () => {
-  const isHidden = passwordInput.type === 'password';
-  passwordInput.type = isHidden ? 'text' : 'password';
-  eyeIcon.innerHTML = isHidden ? eyeClosed : eyeOpen;
-  toggleBtn.setAttribute('aria-label', isHidden ? 'Ocultar senha' : 'Mostrar senha');
-  haptic('light');
-});
+if (toggleBtn && passwordInput && eyeIcon) {
+  toggleBtn.addEventListener('click', () => {
+    const isHidden = passwordInput.type === 'password';
+    passwordInput.type = isHidden ? 'text' : 'password';
+    eyeIcon.innerHTML = isHidden ? eyeClosed : eyeOpen;
+    toggleBtn.setAttribute('aria-label', isHidden ? 'Ocultar senha' : 'Mostrar senha');
+    haptic('light');
+  });
+}
 
-// ── Inline validation ──────────────────────────────────────
-$('email').addEventListener('blur', () => {
-  const val = $('email').value;
-  if (!val) return clearError('email', 'email-error');
-  if (!isEmail(val)) {
+// ── E-mail: validação e step 1 → 2 ───────────────────────
+const emailInput = $('email');
+if (emailInput) {
+  emailInput.addEventListener('blur', () => {
+    const val = emailInput.value.trim();
+    if (!val) return clearError('email', 'email-error');
+    if (!isEmail(val)) {
+      showError('email', 'email-error', 'Digite um e-mail válido.');
+      haptic('light');
+    } else {
+      clearError('email', 'email-error');
+      markSuccess('email');
+    }
+  });
+  emailInput.addEventListener('input', () => {
+    if (emailInput.classList.contains('error') && isEmail(emailInput.value)) {
+      clearError('email', 'email-error');
+      markSuccess('email');
+    }
+  });
+  emailInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      $('btn-continue-email')?.click();
+    }
+  });
+}
+
+function goToPasswordStep() {
+  const mail = ($('email')?.value || '').trim();
+  if (!mail) {
+    showError('email', 'email-error', 'O e-mail é obrigatório.');
+    haptic('error');
+    return false;
+  }
+  if (!isEmail(mail)) {
     showError('email', 'email-error', 'Digite um e-mail válido.');
-    haptic('light');
-  } else {
-    clearError('email', 'email-error');
-    markSuccess('email');
+    haptic('error');
+    return false;
   }
-});
-$('email').addEventListener('input', () => {
-  if ($('email').classList.contains('error') && isEmail($('email').value)) {
-    clearError('email', 'email-error');
-    markSuccess('email');
-  }
+  const display = $('user-email-display');
+  if (display) display.textContent = mail;
+  clearError('email', 'email-error');
+  markSuccess('email');
+  showAuthStep2();
+  haptic('medium');
+  setTimeout(() => $('password')?.focus(), 320);
+  return true;
+}
+
+$('btn-continue-email')?.addEventListener('click', () => {
+  goToPasswordStep();
 });
 
-$('password').addEventListener('blur', () => {
-  const val = $('password').value;
-  if (!val) return clearError('password', 'password-error');
-  if (val.length < 6) {
-    showError('password', 'password-error', 'Mínimo de 6 caracteres.');
-    haptic('light');
-  } else {
-    clearError('password', 'password-error');
-    markSuccess('password');
-  }
+$('btn-back-email')?.addEventListener('click', () => {
+  haptic('light');
+  showAuthStep1();
+  setTimeout(() => $('email')?.focus(), 280);
 });
-$('password').addEventListener('input', () => {
-  if ($('password').classList.contains('error') && $('password').value.length >= 6) {
-    clearError('password', 'password-error');
-    markSuccess('password');
-  }
-});
+
+const passwordEl = $('password');
+if (passwordEl) {
+  passwordEl.addEventListener('blur', () => {
+    const val = passwordEl.value;
+    if (!val) return clearError('password', 'password-error');
+    if (val.length < 6) {
+      showError('password', 'password-error', 'Mínimo de 6 caracteres.');
+      haptic('light');
+    } else {
+      clearError('password', 'password-error');
+      markSuccess('password');
+    }
+  });
+  passwordEl.addEventListener('input', () => {
+    if (passwordEl.classList.contains('error') && passwordEl.value.length >= 6) {
+      clearError('password', 'password-error');
+      markSuccess('password');
+    }
+  });
+}
 
 // ── Ripple effect ──────────────────────────────────────────
 function addRipple(btn, e) {
@@ -201,20 +278,28 @@ function addRipple(btn, e) {
   btn.classList.add('ripple');
 }
 
-$('btn-signin').addEventListener('click', (e) => addRipple($('btn-signin'), e));
+$('btn-signin')?.addEventListener('click', (e) => addRipple($('btn-signin'), e));
+$('btn-continue-email')?.addEventListener('click', (e) => addRipple($('btn-continue-email'), e));
 
 // ── Form submit ────────────────────────────────────────────
 $('login-form').addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  const email = $('email').value.trim();
+  if (!isOnAuthStep2()) {
+    goToPasswordStep();
+    return;
+  }
+
+  const email = ($('email')?.value || '').trim();
   const password = $('password').value;
   let valid = true;
 
   if (!email) {
+    showAuthStep1();
     showError('email', 'email-error', 'O e-mail é obrigatório.');
     valid = false;
   } else if (!isEmail(email)) {
+    showAuthStep1();
     showError('email', 'email-error', 'Digite um e-mail válido.');
     valid = false;
   }
@@ -311,8 +396,12 @@ $('btn-google').addEventListener('click', async () => {
     const code = err && err.code ? String(err.code) : '';
     if (code === 'auth/account-exists-with-different-credential' && FTAuth.handleGoogleAccountExists) {
       const info = FTAuth.handleGoogleAccountExists(err);
-      if ($('email') && info.email) $('email').value = info.email;
-      showGoogleError(info.message || 'Digite sua senha e toque em Entrar para vincular o Google.');
+      if (info.email && $('email')) {
+        $('email').value = info.email;
+      }
+      showGoogleError(
+        info.message || 'Digite sua senha e toque em Vincular e entrar.'
+      );
       const btnText = $('btn-signin')?.querySelector('.btn-text');
       if (btnText) btnText.textContent = 'Vincular e entrar';
     } else {
@@ -689,7 +778,7 @@ $('btn-google').addEventListener('click', async () => {
   $('forgot-link').addEventListener('click', (e) => {
     e.preventDefault();
     haptic('light');
-    openSheet($('email').value.trim());
+    openSheet(($('email')?.value || '').trim());
   });
 
   overlay.addEventListener('click', (e) => { if (e.target === overlay) closeSheet(); });

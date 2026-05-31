@@ -75,18 +75,27 @@ await buildBundle('biometric-entry.mjs', 'ft-biometric.bundle.js', 'esm');
 await buildBundle('firebase-native-google-entry.mjs', 'ft-native-google.bundle.js', 'esm');
 await buildBundle('mlkit-entry.mjs', 'ft-mlkit.bundle.js', 'iife');
 await buildBundle('firebase-entry.mjs', 'ft-firebase.bundle.js', 'iife');
+await buildBundle('qr-entry.mjs', 'ft-qr.bundle.js', 'iife');
+await buildBundle('pdf-entry.mjs', 'ft-pdf.bundle.js', 'iife');
 
 writeBuildStamp();
 
 rmrf(www);
 fs.mkdirSync(www, { recursive: true });
 
+const pdfWorkerSrc = path.join(root, 'node_modules', 'pdfjs-dist', 'build', 'pdf.worker.min.mjs');
+const pdfWorkerWww = path.join(www, 'assets', 'pdf.worker.min.mjs');
+if (fs.existsSync(pdfWorkerSrc)) {
+  fs.mkdirSync(path.dirname(pdfWorkerWww), { recursive: true });
+  fs.copyFileSync(pdfWorkerSrc, pdfWorkerWww);
+}
+
 // Entrada na raiz de www/
 copyRecursive(path.join(src, 'app', 'index.html'), path.join(www, 'index.html'));
 
-const appJs = path.join(src, 'app', 'app.js');
-if (fs.existsSync(appJs)) {
-  copyRecursive(appJs, path.join(www, 'app', 'app.js'));
+const appDir = path.join(src, 'app');
+if (fs.existsSync(appDir)) {
+  copyRecursive(appDir, path.join(www, 'app'));
 }
 
 // Espelha módulos FSD

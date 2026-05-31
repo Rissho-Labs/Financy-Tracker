@@ -1,0 +1,31 @@
+/**
+ * Motion tokens — GPU-friendly, estilo premium
+ * @author Rickson.Hirata
+ */
+
+:root {
+  --ease-spring: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration-medium: 300ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.motion-press {
+  transition: transform var(--duration-fast) var(--ease-spring);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.motion-press:active:not(:disabled) {
+  transform: scale(0.96);
+}

@@ -22,7 +22,10 @@
     "@capacitor/core": "^8.3.2",
     "@capgo/capacitor-native-biometric": "^8.4.2",
     "@pantrist/capacitor-plugin-ml-kit-text-recognition": "^8.0.0",
-    "firebase": "^12.13.0"
+    "firebase": "^12.13.0",
+    "html5-qrcode": "^2.3.8",
+    "pdfjs-dist": "^4.10.38",
+    "qrcode": "^1.5.4"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.3.2",

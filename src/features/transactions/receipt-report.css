@@ -26,7 +26,15 @@
   text-align: center;
   transform: scale(0.85);
   transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  pointer-events: none;
+  pointer-events: auto;
+  max-width: 320px;
+  width: 100%;
+}
+
+.ft-success-new-btn {
+  width: 100%;
+  margin: 0 0 12px;
+  pointer-events: auto;
 }
 
 .ft-success-overlay--open .ft-success-card {
@@ -75,6 +83,185 @@
 .ft-success-hint {
   font-size: 14px;
   color: rgba(255, 255, 255, 0.55);
+  margin: 0;
+}
+
+/* ── Analisando imagem (IA) ── */
+.ft-analyze-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  padding: 24px;
+  pointer-events: auto;
+}
+
+.ft-analyze-overlay.ft-analyze-overlay--open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.ft-analyze-card {
+  width: min(100%, 300px);
+  text-align: center;
+  padding: 20px 18px 22px;
+  border-radius: var(--radius-md, 16px);
+  background: rgba(20, 20, 28, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+}
+
+.ft-analyze-preview-wrap {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 16px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ft-analyze-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ft-analyze-preview.hidden {
+  display: none;
+}
+
+.ft-analyze-preview-placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.ft-analyze-progress-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin: 0 auto 14px;
+}
+
+.ft-analyze-ring-wrap {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+
+.ft-analyze-ring {
+  width: 48px;
+  height: 48px;
+  display: block;
+}
+
+.ft-analyze-ring-bg {
+  stroke: rgba(0, 240, 255, 0.15);
+}
+
+.ft-analyze-ring-progress {
+  stroke: var(--neon-blue, #00f0ff);
+  stroke-dasharray: 125.664;
+  stroke-dashoffset: 125.664;
+  transition: stroke-dashoffset 0.2s ease;
+  filter: drop-shadow(0 0 6px rgba(0, 240, 255, 0.45));
+}
+
+.ft-analyze-percent {
+  font-size: 22px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+  min-width: 3.2ch;
+  text-align: left;
+  letter-spacing: -0.5px;
+}
+
+.ft-analyze-title {
+  margin: 0 0 6px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.ft-analyze-hint {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* ── Erro na análise ── */
+.ft-analyze-error-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10060;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  padding: 24px;
+}
+
+.ft-analyze-error-overlay.ft-analyze-error-overlay--open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.ft-analyze-error-card {
+  width: min(100%, 320px);
+  text-align: center;
+  padding: 24px 20px;
+  border-radius: var(--radius-md, 16px);
+  background: rgba(20, 20, 28, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ft-analyze-error-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: rgba(255, 69, 58, 0.15);
+  border: 1px solid rgba(255, 69, 58, 0.35);
+  color: #ff453a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ft-analyze-error-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.ft-analyze-error-title {
+  margin: 0 0 18px;
+  font-size: 15px;
+  line-height: 1.45;
+  font-weight: 600;
+  color: #fff;
+}
+
+.ft-analyze-error-retry {
+  width: 100%;
   margin: 0;
 }
 

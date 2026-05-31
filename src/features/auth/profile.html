@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="/features/transactions/home.css" />
   <link rel="stylesheet" href="/features/auth/profile.css" />
   <link rel="stylesheet" href="/features/auth/profile-friends.css" />
+  <link rel="stylesheet" href="/features/auth/profile-qr.css" />
   <link rel="stylesheet" href="/features/goals/goals.css" />
   <script src="/core/ft-theme.js"></script>
   <script src="/core/ft-build.js"></script>
@@ -204,6 +205,9 @@
         </div>
         <div class="friends-toolbar">
           <input type="search" id="friends-filter" class="friends-search" placeholder="Buscar amigos…" autocomplete="off" aria-label="Buscar na lista de amigos" />
+          <button type="button" class="friends-scan-btn" id="friends-scan-btn" aria-label="Escanear QR Code">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          </button>
           <button type="button" class="friends-add-btn" id="friends-add-btn" aria-label="Adicionar amigo">+</button>
         </div>
         <p id="friends-empty" class="friends-empty">Você ainda não tem amigos aqui</p>
@@ -235,6 +239,46 @@
       </div>
     </div>
 
+    <!-- Meu QR Code -->
+    <div id="profile-qr-modal" class="ft-sheet profile-qr-sheet" aria-hidden="true">
+      <div class="ft-sheet__backdrop" data-close="profile-qr-modal" aria-hidden="true"></div>
+      <div class="ft-sheet__panel ft-form-sheet profile-qr-sheet__panel" role="dialog" aria-labelledby="profile-qr-title">
+        <div class="ft-sheet__handle" aria-hidden="true"></div>
+        <h2 id="profile-qr-title" class="ft-sheet__title">Seu QR Code</h2>
+        <div class="profile-qr-display">
+          <div class="profile-qr-canvas-wrap">
+            <canvas id="profile-qr-canvas" width="220" height="220" aria-label="QR Code do seu perfil"></canvas>
+          </div>
+          <p id="profile-qr-handle" class="profile-qr-handle">@usuario #0000</p>
+          <p class="profile-qr-sub">Mostre este código para seus amigos te adicionarem.</p>
+        </div>
+        <h3 class="profile-qr-steps-title">Adicione seus amigos com QR Code</h3>
+        <ol class="profile-qr-steps">
+          <li>Vá até <strong>Perfil</strong></li>
+          <li>Toque em <strong>Amigos</strong> e depois no ícone de <strong>QR Code</strong> ao lado do <strong>+</strong></li>
+          <li>Aponte a câmera do celular no QR Code do seu amigo</li>
+          <li>Amigo adicionado</li>
+        </ol>
+        <button type="button" class="ft-sheet__close" id="profile-qr-close">Fechar</button>
+      </div>
+    </div>
+
+    <!-- Escanear QR de amigo -->
+    <div id="friend-qr-scan-modal" class="ft-sheet profile-qr-scan-sheet" aria-hidden="true">
+      <div class="ft-sheet__backdrop" data-close="friend-qr-scan-modal" aria-hidden="true"></div>
+      <div class="ft-sheet__panel ft-form-sheet profile-qr-scan-sheet__panel" role="dialog" aria-labelledby="friend-qr-scan-title">
+        <div class="ft-sheet__handle" aria-hidden="true"></div>
+        <h2 id="friend-qr-scan-title" class="ft-sheet__title">Escanear QR Code</h2>
+        <div class="qr-reader-host">
+          <div id="qr-reader"></div>
+          <div class="qr-scan-frame" aria-hidden="true"></div>
+        </div>
+        <p class="qr-scan-hint">Posicione o QR Code dentro do quadrado verde.</p>
+        <p id="qr-scan-status" class="qr-scan-status" aria-live="polite"></p>
+        <button type="button" class="ft-sheet__close" id="friend-qr-scan-close">Cancelar</button>
+      </div>
+    </div>
+
     <div id="pw-modal" class="ft-sheet" aria-hidden="true">
       <div class="ft-sheet__backdrop"></div>
       <div class="ft-sheet__panel ft-form-sheet" role="dialog" aria-labelledby="pw-modal-title">
@@ -261,8 +305,11 @@
   <script src="/core/ft-session.js"></script>
   <script src="/shared/js/notification-panel.js"></script>
   <script src="/shared/js/ft-bottom-nav.js"></script>
+  <script src="/core/ft-qr.bundle.js"></script>
+  <script src="/features/auth/ft-qr.js"></script>
   <script src="/features/auth/ft-friends.js"></script>
   <script src="/features/auth/profile-friends.js"></script>
+  <script src="/features/auth/profile-qr.js"></script>
   <script src="/features/auth/profile.js"></script>
 </body>
 </html>

@@ -25,7 +25,7 @@
 
   function haptic(type) {
     if (navigator.vibrate) {
-      var p = { light: [8], medium: [18], strong: [30] };
+      var p = { light: [8], medium: [18], strong: [30], error: [20, 50, 20] };
       navigator.vibrate(p[type] || [8]);
     }
   }
@@ -43,8 +43,39 @@
       '        <polyline points="20 6 9 17 4 12"/>' +
       '      </svg>' +
       '    </div>' +
-      '    <p class="ft-success-title" id="ft-success-title">Registro concluído!</p>' +
-      '    <p class="ft-success-hint">Toque em qualquer lugar para continuar</p>' +
+      '    <p class="ft-success-title" id="ft-success-title">Registo feito</p>' +
+      '    <button type="button" class="tx-add-btn ft-success-new-btn" id="ft-success-new-expense">+ Novo gasto</button>' +
+      '    <p class="ft-success-hint">Toque fora para voltar à home</p>' +
+      '  </div>' +
+      '</div>' +
+      '<div id="ft-analyze-overlay" class="ft-analyze-overlay" aria-hidden="true" role="status" aria-live="polite">' +
+      '  <div class="ft-analyze-card">' +
+      '    <div class="ft-analyze-preview-wrap">' +
+      '      <img id="ft-analyze-preview" class="ft-analyze-preview hidden" src="" alt="" />' +
+      '      <div class="ft-analyze-preview-placeholder" id="ft-analyze-placeholder" aria-hidden="true">' +
+      '        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' +
+      '      </div>' +
+      '    </div>' +
+      '    <div class="ft-analyze-progress-row">' +
+      '      <div class="ft-analyze-ring-wrap" aria-hidden="true">' +
+      '        <svg class="ft-analyze-ring" viewBox="0 0 48 48">' +
+      '          <circle class="ft-analyze-ring-bg" cx="24" cy="24" r="20" fill="none" stroke-width="4"/>' +
+      '          <circle class="ft-analyze-ring-progress" id="ft-analyze-ring-progress" cx="24" cy="24" r="20" fill="none" stroke-width="4" stroke-linecap="round" transform="rotate(-90 24 24)"/>' +
+      '        </svg>' +
+      '      </div>' +
+      '      <span class="ft-analyze-percent" id="ft-analyze-percent">0%</span>' +
+      '    </div>' +
+      '    <p class="ft-analyze-title">Analisando a imagem</p>' +
+      '    <p class="ft-analyze-hint">A IA está lendo nota, boleto ou conta…</p>' +
+      '  </div>' +
+      '</div>' +
+      '<div id="ft-analyze-error-overlay" class="ft-analyze-error-overlay" aria-hidden="true" role="alertdialog" aria-labelledby="ft-analyze-error-title">' +
+      '  <div class="ft-analyze-error-card">' +
+      '    <div class="ft-analyze-error-icon" aria-hidden="true">' +
+      '      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>' +
+      '    </div>' +
+      '    <p class="ft-analyze-error-title" id="ft-analyze-error-title">Não foi possível registrar o seu gasto. Tente novamente.</p>' +
+      '    <button type="button" class="tx-add-btn ft-analyze-error-retry" id="ft-analyze-error-retry">Tentar novamente</button>' +
       '  </div>' +
       '</div>' +
       '<div id="receipt-lightbox" class="receipt-lightbox" aria-hidden="true">' +
@@ -99,8 +130,21 @@
       '</div>';
     document.body.appendChild(wrap);
 
-    $('ft-success-overlay')?.addEventListener('click', function () {
+    $('ft-success-overlay')?.addEventListener('click', function (e) {
+      if (e.target.id === 'ft-success-overlay') hideSuccess();
+    });
+
+    $('ft-success-new-expense')?.addEventListener('click', function (e) {
+      e.stopPropagation();
       hideSuccess();
+      if (typeof global.__ftEnsureHomeView === 'function') global.__ftEnsureHomeView();
+      setTimeout(function () {
+        if (typeof global.__ftOpenExpenseSheet === 'function') global.__ftOpenExpenseSheet();
+      }, 120);
+    });
+
+    $('ft-analyze-error-retry')?.addEventListener('click', function () {
+      hideAnalyzeError();
     });
 
     $('receipt-report-bg')?.addEventListener('click', close);
@@ -268,13 +312,134 @@
   }
 
   var successDismissCb = null;
+  var analyzeErrorRetryCb = null;
+  var analyzeProgressTimer = null;
+  var analyzeProgressValue = 0;
+  var analyzeProgressTarget = 0;
+  var RING_CIRC = 2 * Math.PI * 20;
+
+  function delayMs(ms) {
+    return new Promise(function (resolve) { setTimeout(resolve, ms); });
+  }
+
+  function renderAnalyzeProgress(pct) {
+    analyzeProgressValue = Math.min(100, Math.max(0, Math.round(pct)));
+    var ring = $('ft-analyze-ring-progress');
+    var label = $('ft-analyze-percent');
+    if (label) label.textContent = analyzeProgressValue + '%';
+    if (ring) {
+      var offset = RING_CIRC - (analyzeProgressValue / 100) * RING_CIRC;
+      ring.style.strokeDasharray = String(RING_CIRC);
+      ring.style.strokeDashoffset = String(offset);
+    }
+  }
+
+  function startAnalyzeProgress() {
+    stopAnalyzeProgress();
+    analyzeProgressTarget = 5;
+    renderAnalyzeProgress(0);
+    analyzeProgressTimer = setInterval(function () {
+      if (analyzeProgressValue < analyzeProgressTarget) {
+        renderAnalyzeProgress(analyzeProgressValue + 1);
+      }
+    }, 35);
+  }
+
+  function setAnalyzeProgressTarget(target) {
+    analyzeProgressTarget = Math.min(100, Math.max(analyzeProgressValue, Math.round(target)));
+  }
+
+  function stopAnalyzeProgress() {
+    if (analyzeProgressTimer) {
+      clearInterval(analyzeProgressTimer);
+      analyzeProgressTimer = null;
+    }
+  }
+
+  async function completeAnalyzeProgress() {
+    setAnalyzeProgressTarget(100);
+    var guard = 0;
+    while (analyzeProgressValue < 100 && guard < 150) {
+      if (analyzeProgressValue < analyzeProgressTarget) {
+        renderAnalyzeProgress(analyzeProgressValue + 1);
+      }
+      guard += 1;
+      await delayMs(25);
+    }
+    renderAnalyzeProgress(100);
+    stopAnalyzeProgress();
+    await delayMs(280);
+  }
+
+  function resetAnalyzeProgress() {
+    stopAnalyzeProgress();
+    analyzeProgressValue = 0;
+    analyzeProgressTarget = 0;
+    renderAnalyzeProgress(0);
+  }
+
+  function showAnalyzing(previewUrl) {
+    injectDom();
+    resetAnalyzeProgress();
+    startAnalyzeProgress();
+    setAnalyzeProgressTarget(12);
+    var el = $('ft-analyze-overlay');
+    var img = $('ft-analyze-preview');
+    var ph = $('ft-analyze-placeholder');
+    if (previewUrl && img) {
+      img.src = previewUrl;
+      img.classList.remove('hidden');
+      ph?.classList.add('hidden');
+    } else {
+      if (img) {
+        img.src = '';
+        img.classList.add('hidden');
+      }
+      ph?.classList.remove('hidden');
+    }
+    el?.classList.add('ft-analyze-overlay--open');
+    el?.setAttribute('aria-hidden', 'false');
+  }
+
+  function hideAnalyzing() {
+    var el = $('ft-analyze-overlay');
+    el?.classList.remove('ft-analyze-overlay--open');
+    el?.setAttribute('aria-hidden', 'true');
+    resetAnalyzeProgress();
+    var img = $('ft-analyze-preview');
+    if (img) {
+      img.src = '';
+      img.classList.add('hidden');
+    }
+    $('ft-analyze-placeholder')?.classList.remove('hidden');
+  }
+
+  function showAnalyzeError(onRetry) {
+    injectDom();
+    analyzeErrorRetryCb = typeof onRetry === 'function' ? onRetry : null;
+    var el = $('ft-analyze-error-overlay');
+    el?.classList.add('ft-analyze-error-overlay--open');
+    el?.setAttribute('aria-hidden', 'false');
+    haptic('strong');
+  }
+
+  function hideAnalyzeError() {
+    var el = $('ft-analyze-error-overlay');
+    el?.classList.remove('ft-analyze-error-overlay--open');
+    el?.setAttribute('aria-hidden', 'true');
+    if (analyzeErrorRetryCb) {
+      var cb = analyzeErrorRetryCb;
+      analyzeErrorRetryCb = null;
+      cb();
+    }
+  }
 
   function showSuccess(title, onDismiss) {
     injectDom();
     successDismissCb = typeof onDismiss === 'function' ? onDismiss : null;
     var el = $('ft-success-overlay');
     var titleEl = $('ft-success-title');
-    if (titleEl && title) titleEl.textContent = title;
+    if (titleEl) titleEl.textContent = title || 'Registo feito';
     el?.classList.add('ft-success-overlay--open');
     el?.setAttribute('aria-hidden', 'false');
     haptic('medium');
@@ -333,6 +498,14 @@
   global.FTReceiptReport = {
     showSuccess: showSuccess,
     hideSuccess: hideSuccess,
+    showAnalyzing: showAnalyzing,
+    hideAnalyzing: hideAnalyzing,
+    startAnalyzeProgress: startAnalyzeProgress,
+    setAnalyzeProgressTarget: setAnalyzeProgressTarget,
+    completeAnalyzeProgress: completeAnalyzeProgress,
+    stopAnalyzeProgress: stopAnalyzeProgress,
+    showAnalyzeError: showAnalyzeError,
+    hideAnalyzeError: hideAnalyzeError,
     open: open,
     close: close,
     init: init,

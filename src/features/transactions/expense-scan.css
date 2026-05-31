@@ -1,0 +1,136 @@
+/**
+ * Escanear nota / boleto / conta — câmera com recorte quadrado
+ * @author Rickson.Hirata
+ */
+
+#expense-scan-modal {
+  z-index: 10100;
+}
+
+.qr-reader-host {
+  position: relative;
+  width: 100%;
+  min-height: 280px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: #000;
+  border: 1px solid var(--border);
+}
+
+.expense-scan-flip-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 4;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: transform var(--duration-fast, 0.15s) ease;
+}
+
+.expense-scan-flip-btn:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.expense-scan-flip-btn:disabled {
+  opacity: 0.45;
+  cursor: wait;
+}
+
+.qr-reader-host video {
+  border-radius: var(--radius-md);
+}
+
+.qr-scan-frame {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-scan-frame::before {
+  content: '';
+  width: min(72vw, 260px);
+  height: min(72vw, 260px);
+  border: 2px solid rgba(57, 255, 20, 0.85);
+  border-radius: 16px;
+  box-shadow:
+    0 0 0 9999px rgba(0, 0, 0, 0.45),
+    0 0 24px rgba(57, 255, 20, 0.25);
+}
+
+.expense-scan-sheet__panel {
+  max-height: min(92vh, 780px);
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.expense-scan-hint {
+  margin: 12px 0 8px;
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.expense-scan-status {
+  margin: 0 0 10px;
+  min-height: 18px;
+  font-size: 12px;
+  text-align: center;
+  color: var(--neon-green);
+}
+
+.expense-scan-status.is-error {
+  color: var(--danger);
+}
+
+.expense-scan-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.expense-scan-capture-btn {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px dashed rgba(57, 255, 20, 0.45);
+  border-radius: var(--radius-sm);
+  background: rgba(57, 255, 20, 0.08);
+  color: var(--text-primary);
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.expense-scan-capture-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.expense-scan-capture-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+#home-qr-wrap .entry-scan-intro {
+  text-align: center;
+  padding: 8px 4px 0;
+}
+
+#home-qr-wrap .entry-help-text {
+  margin: 12px 0 16px;
+}

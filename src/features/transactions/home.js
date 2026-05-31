@@ -126,23 +126,31 @@ function closeExpenseSheet() {
   }
   sh.classList.remove('ft-sheet--open');
   sh.setAttribute('aria-hidden', 'true');
-  // Reseta preview de foto
-  const img = $('home-foto-img');
-  const placeholder = $('home-foto-placeholder');
-  if (img) { img.src = ''; img.style.display = 'none'; }
-  if (placeholder) placeholder.style.display = '';
   const filePreview = $('home-file-preview');
   const fileHelp = $('home-file-help');
   if (filePreview) { filePreview.src = ''; filePreview.classList.add('hidden'); }
-  if (fileHelp) fileHelp.textContent = 'Envie imagem ou PDF da nota. A leitura é automática — o gasto é registrado sem ir para o modo manual.';
+  if (fileHelp) fileHelp.textContent = 'JPG, PNG, WEBP, GIF, BMP, TIFF, HEIC ou PDF — leitura automática pela IA.';
   resetFilePickerBtn();
 }
 $('expense-sheet-bg')?.addEventListener('click', closeExpenseSheet);
 $('home-exp-cancel')?.addEventListener('click', closeExpenseSheet);
 $('home-exp-cancel-qr')?.addEventListener('click', closeExpenseSheet);
 $('home-exp-cancel-file')?.addEventListener('click', closeExpenseSheet);
-$('home-exp-cancel-foto')?.addEventListener('click', closeExpenseSheet);
 $('nav-fab')?.addEventListener('click', openExpenseSheet);
+
+function openExpenseScan() {
+  if (typeof FTExpenseScan === 'undefined') {
+    alert('Leitor de câmera indisponível.');
+    return;
+  }
+  FTExpenseScan.open({
+    onClose: function (result) {
+      if (result && result.success) {
+        /* sheet fechado pelo FTReceiptFlow.onClosePanels */
+      }
+    },
+  });
+}
 
 const entryMethodBtns = document.querySelectorAll('#home-entry-methods-grid .entry-method-btn');
 entryMethodBtns.forEach((btn) => {
@@ -151,7 +159,7 @@ entryMethodBtns.forEach((btn) => {
     entryMethodBtns.forEach((b) => b.classList.remove('active'));
     btn.classList.add('active');
     const method = btn.getAttribute('data-method');
-    ['manual', 'qr', 'file', 'foto'].forEach((m) => {
+    ['manual', 'qr', 'file'].forEach((m) => {
       const wrap = $(`home-${m}-wrap`);
       if (!wrap) return;
       if (m === method) {
@@ -160,52 +168,16 @@ entryMethodBtns.forEach((btn) => {
         wrap.classList.remove('active');
       }
     });
+    if (method === 'qr') {
+      openExpenseScan();
+    }
   });
 });
 
-function fillExpenseFromSource(name, valueDisplay) {
-  document.querySelector('.entry-method-btn[data-method="manual"]')?.click();
-  const nameEl = $('home-exp-name');
-  const amtEl = $('home-exp-amt');
-  if (nameEl) nameEl.value = name;
-  if (amtEl) amtEl.value = valueDisplay;
-}
-
-$('home-simulate-qr-btn')?.addEventListener('click', (e) => {
-  e.preventDefault();
-  const btn = e.currentTarget;
-  const oldText = btn.textContent;
-  btn.textContent = 'Lendo...';
-  btn.style.opacity = '0.7';
+$('home-open-scan-btn')?.addEventListener('click', () => {
   haptic('medium');
-  setTimeout(() => {
-    btn.textContent = oldText;
-    btn.style.opacity = '1';
-    fillExpenseFromSource('Nota Fiscal (Supermercado)', '254,90');
-  }, 1200);
+  openExpenseScan();
 });
-
-$('home-file-picker-btn')?.addEventListener('click', () => {
-  $('home-file-input')?.click();
-});
-
-$('home-file-input')?.addEventListener('change', (e) => {
-  const input = e.target;
-  if (!input.files || input.files.length === 0) return;
-  const file = input.files[0];
-  input.value = '';
-  processReceiptFile(file, 'arquivo');
-});
-
-// ── Nota fiscal: arquivo / foto → DeepSeek + registro automático ──
-function readFileAsDataUrl(file) {
-  return new Promise(function (resolve, reject) {
-    const r = new FileReader();
-    r.onload = function (e) { resolve(e.target.result); };
-    r.onerror = reject;
-    r.readAsDataURL(file);
-  });
-}
 
 function resetFilePickerBtn() {
   const btn = $('home-file-picker-btn');
@@ -223,21 +195,6 @@ function setFilePickerBusy(busy, label) {
   if (label) btn.textContent = label;
 }
 
-function setFotoCaptureBusy(busy, label) {
-  const btn = $('home-foto-capture-btn');
-  if (!btn) return;
-  btn.disabled = !!busy;
-  btn.style.opacity = busy ? '0.75' : '1';
-  if (label) btn.textContent = label;
-}
-
-function showFotoPreview(dataUrl) {
-  const img = $('home-foto-img');
-  const placeholder = $('home-foto-placeholder');
-  if (img) { img.src = dataUrl; img.style.display = 'block'; }
-  if (placeholder) placeholder.style.display = 'none';
-}
-
 function showFilePreview(dataUrl, isImage) {
   const img = $('home-file-preview');
   const help = $('home-file-help');
@@ -251,155 +208,52 @@ function showFilePreview(dataUrl, isImage) {
   if (help) help.textContent = 'Analisando nota com IA…';
 }
 
-async function uploadReceiptIfPossible(txId, dataUrl) {
-  try {
-    const u = typeof FTSession !== 'undefined' ? FTSession.parseUser() : null;
-    if (!u || !u.uid) return { receiptImageUrl: null, receiptImageData: dataUrl };
-    if (typeof FTFirebase !== 'undefined' && FTFirebase.isReady() && typeof FTFirebase.uploadReceiptImage === 'function') {
-      const url = await FTFirebase.uploadReceiptImage(u.uid, txId, dataUrl);
-      return { receiptImageUrl: url, receiptImageData: dataUrl };
-    }
-  } catch (e) {
-    console.warn('[Receipt upload]', e.message || e);
-  }
-  return { receiptImageUrl: null, receiptImageData: dataUrl };
-}
-
-async function createTransactionFromReceipt(dataUrl, parsed, fallbackName) {
-  if (typeof FTTransactions === 'undefined') return null;
-  const txId = 'tx_' + Date.now();
-  const at = typeof FTDeepSeekReceipt !== 'undefined'
-    ? FTDeepSeekReceipt.buildAtIso(parsed.date, parsed.time)
-    : new Date().toISOString();
-  const images = await uploadReceiptIfPossible(txId, dataUrl);
-  const name = parsed.establishment || fallbackName || 'Gasto registrado por nota';
-  const pay = parsed.paymentMethod || '';
-  const inst = pay === 'credito_parcelado' ? Math.max(2, parsed.installments || 2) : 1;
-
-  FTTransactions.add({
-    id: txId,
-    name,
-    location: name,
-    amountCents: parsed.amountCents || 0,
-    paymentMethod: pay,
-    installments: inst,
-    category: parsed.category || undefined,
-    at,
-    receiptDate: parsed.date || '',
-    receiptTime: parsed.time || '',
-    hasReceiptReport: true,
-    receiptImageUrl: images.receiptImageUrl,
-    receiptImageData: images.receiptImageData,
-    ocrProvider: parsed.provider || 'deepseek',
-  });
-
-  return txId;
-}
-
-async function processReceiptFile(file, source) {
-  source = source || 'arquivo';
-
-  if (typeof FTAiConsent !== 'undefined') {
-    const allowed = await FTAiConsent.requestConsent();
-    if (!allowed) return;
-  }
-
-  const isImage = file.type.startsWith('image/');
-  const isPdf = file.type === 'application/pdf';
-  if (!isImage && !isPdf) {
-    alert('Envie uma imagem (JPG, PNG) ou PDF da nota fiscal.');
-    return;
-  }
-
-  const fallbackName = source === 'foto' ? 'Gasto registrado por foto' : 'Gasto registrado por arquivo';
-  if (source === 'foto') setFotoCaptureBusy(true, 'Analisando nota...');
-  else setFilePickerBusy(true, 'Analisando nota...');
-  haptic('medium');
-
-  let dataUrl;
-  try {
-    dataUrl = await readFileAsDataUrl(file);
-  } catch (e) {
-    alert('Não foi possível ler o arquivo.');
-    resetFilePickerBtn();
-    setFotoCaptureBusy(false, 'Tirar Foto');
-    return;
-  }
-
-  if (source === 'foto') showFotoPreview(dataUrl);
-  else showFilePreview(dataUrl, isImage);
-
-  let rawText = isPdf ? 'Documento PDF: ' + (file.name || 'nota') : '';
-  const base64 = isImage ? (dataUrl.split(',')[1] || '') : '';
-
-  if (isImage) {
-    try {
-      const plugin = window.FTMlKit;
-      if (plugin && typeof plugin.detectText === 'function') {
-        const result = await plugin.detectText({ base64Image: base64 });
-        rawText = (result && result.text) || rawText;
-      }
-    } catch (err) {
-      console.warn('[OCR ML Kit]', err.message);
-    }
-  }
-
-  let parsed;
-  try {
-    if (typeof FTDeepSeekReceipt !== 'undefined') {
-      parsed = await FTDeepSeekReceipt.analyze(rawText, base64);
-    } else if (typeof FTReceiptParser !== 'undefined') {
-      const legacy = FTReceiptParser.parse(rawText);
-      parsed = {
-        establishment: legacy.name,
-        date: '',
-        time: '',
-        amountCents: legacy.amountCents,
-        paymentMethod: '',
-        installments: 1,
-        category: legacy.category,
-        provider: 'mlkit',
-      };
-    } else {
-      parsed = { establishment: '', date: '', time: '', amountCents: 0, paymentMethod: '', installments: 1, category: '', provider: 'none' };
-    }
-  } catch (err) {
-    console.warn('[DeepSeek receipt]', err.message);
-    parsed = { establishment: fallbackName, date: '', time: '', amountCents: 0, paymentMethod: '', installments: 1, category: '', provider: 'none' };
-  }
-
-  closeExpenseSheet();
-  resetFilePickerBtn();
-  setFotoCaptureBusy(false, 'Tirar Foto');
-
-  await createTransactionFromReceipt(dataUrl, parsed, fallbackName);
-
-  if (typeof window.__ftSyncHome === 'function') window.__ftSyncHome();
-
-  if (typeof FTReceiptReport !== 'undefined') {
-    FTReceiptReport.showSuccess('Nota registrada com sucesso!', function () {
-      haptic('light');
-    });
-  } else {
-    haptic('medium');
-  }
-}
-
-$('home-foto-capture-btn')?.addEventListener('click', () => {
-  $('home-foto-input')?.click();
+$('home-file-picker-btn')?.addEventListener('click', () => {
+  $('home-file-input')?.click();
 });
 
-$('home-foto-input')?.addEventListener('change', (e) => {
+$('home-file-input')?.addEventListener('change', async (e) => {
   const input = e.target;
   if (!input.files || input.files.length === 0) return;
   const file = input.files[0];
-  if (!file.type.startsWith('image/')) {
-    alert('Selecione uma imagem da nota fiscal.');
-    input.value = '';
+  input.value = '';
+
+  if (typeof FTReceiptFlow === 'undefined') {
+    alert('Módulo de leitura indisponível.');
     return;
   }
-  input.value = '';
-  processReceiptFile(file, 'foto');
+
+  if (typeof FTReceiptFlow !== 'undefined' && !FTReceiptFlow.isAllowedReceiptFile(file)) {
+    alert(FTReceiptFlow.invalidReceiptTypeMessage());
+    haptic('strong');
+    return;
+  }
+
+  setFilePickerBusy(true, 'Analisando nota…');
+  haptic('medium');
+
+  if (
+    typeof FTReceiptFlow !== 'undefined' &&
+    FTReceiptFlow.isReceiptImageFile(file) &&
+    typeof FTReceiptFlow.readFileAsDataUrl === 'function'
+  ) {
+    try {
+      const dataUrl = await FTReceiptFlow.readFileAsDataUrl(file);
+      showFilePreview(dataUrl, true);
+    } catch (_) { /* ignore */ }
+  }
+
+  const result = await FTReceiptFlow.processFile(file, {
+    source: 'arquivo',
+    onClosePanels: closeExpenseSheet,
+    onSynced: () => { if (typeof window.__ftSyncHome === 'function') window.__ftSyncHome(); },
+    onHaptic: haptic,
+  });
+
+  resetFilePickerBtn();
+  if (result && result.ok && !result.redirected) {
+    /* modal de sucesso exibido pelo FTReceiptFlow */
+  }
 });
 
 let selectedPayment = 'pix';
@@ -679,6 +533,30 @@ window.__ftSyncHome();
   FTTransactions.syncFromFirestore(u.uid).then(function () {
     if (typeof window.__ftSyncHome === 'function') window.__ftSyncHome();
   });
+})();
+
+window.__ftOpenExpenseSheet = openExpenseSheet;
+window.__ftCloseExpenseSheet = closeExpenseSheet;
+window.__ftReturnToHomeView = function () {
+  return false;
+};
+
+(function bootHomeReceiptUi() {
+  try {
+    if (sessionStorage.getItem('ft_show_receipt_success') === '1') {
+      sessionStorage.removeItem('ft_show_receipt_success');
+      setTimeout(function () {
+        if (typeof FTReceiptReport !== 'undefined') {
+          FTReceiptReport.showSuccess('Registo feito');
+        }
+      }, 350);
+    }
+    var sp = new URLSearchParams(window.location.search);
+    if (sp.get('expense') === '1') {
+      history.replaceState({}, '', window.location.pathname + window.location.hash);
+      requestAnimationFrame(openExpenseSheet);
+    }
+  } catch (_) {}
 })();
 
 })();

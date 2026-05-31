@@ -21,6 +21,7 @@
   <link rel="stylesheet" href="/styles/tokens.css" />
   <link rel="stylesheet" href="/styles/reset.css" />
   <link rel="stylesheet" href="/styles/global.css" />
+  <link rel="stylesheet" href="/app/login.css" />
   <script src="/core/ft-theme.js"></script>
   <script src="/core/ft-build.js"></script>
   <script src="/core/ft-storage.js"></script>
@@ -78,131 +79,191 @@
     <div class="card-scroll">
       <div class="card">
 
-        <!-- Logo + header -->
-        <div class="card-header">
-          <div class="app-icon" aria-hidden="true">
-            <img
-              id="app-logo-img"
-              class="app-logo-img"
-              src="/assets/img/logo.svg"
-              width="56"
-              height="56"
-              alt="Finance Tracker"
-              decoding="async"
-              onerror="this.classList.add('app-logo-img--hidden');document.getElementById('app-logo-fallback').classList.add('is-visible');"
-            />
-            <div id="app-logo-fallback" class="app-logo-fallback" aria-hidden="true">
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                <path d="M16 4L28 10V22L16 28L4 22V10L16 4Z" fill="url(#grad1)" opacity="0.9"/>
-                <path d="M10 16H22M16 10V22" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-                <defs>
-                  <linearGradient id="grad1" x1="4" y1="4" x2="28" y2="28">
-                    <stop offset="0%" stop-color="#39ff14"/>
-                    <stop offset="100%" stop-color="#00f0ff"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
-          </div>
-          <h1 class="card-title">Bem-vindo</h1>
-          <p class="card-subtitle">
-            <span class="dot" aria-hidden="true">●</span>
-            Entre para rastrear suas finanças
-          </p>
-        </div>
-
-        <!-- Google Sign-in -->
-        <button id="btn-google" class="btn btn-google" type="button" aria-label="Entrar com Google">
-          <svg class="google-icon" width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
-            <path fill="#FFC107" d="M43.6 20H24v8h11.3C33.7 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 20-9 20-20 0-1.3-.1-2.7-.4-4z"/>
-            <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.1 18.9 12 24 12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 16.3 4 9.7 8.4 6.3 14.7z"/>
-            <path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5l-6.2-5.2C29.4 35.5 26.8 36 24 36c-5.2 0-9.7-3-11.4-7.3l-6.5 5C9.6 39.5 16.3 44 24 44z"/>
-            <path fill="#1976D2" d="M43.6 20H24v8h11.3c-.8 2.2-2.3 4-4.3 5.3l6.2 5.2C41.4 35.4 44 30.1 44 24c0-1.3-.1-2.7-.4-4z"/>
-          </svg>
-          <span>Entrar com Google</span>
-        </button>
-        <p id="google-error" class="field-error google-error" role="alert"></p>
-
-        <!-- Divider -->
-        <div class="divider" role="separator">
-          <span class="divider-line" aria-hidden="true"></span>
-          <span class="divider-text">ou continue com e-mail</span>
-          <span class="divider-line" aria-hidden="true"></span>
-        </div>
-
-        <!-- Form -->
         <form id="login-form" class="login-form" novalidate>
+          <div class="auth-container" id="auth-container" data-step="1" aria-live="polite">
+            <div class="auth-slider">
 
-          <div class="field-group" id="field-email">
-            <label class="field-label" for="email">E-mail</label>
-            <div class="field-wrapper">
-              <svg class="field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <rect x="2" y="4" width="20" height="16" rx="3"/>
-                <path d="M2 7l10 7 10-7"/>
-              </svg>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                class="field-input"
-                placeholder="seu@email.com"
-                autocomplete="email"
-                inputmode="email"
-                required
-                aria-required="true"
-                aria-describedby="email-error"
-              />
+              <!-- Step 1: E-mail -->
+              <section class="step-1 auth-step" aria-label="Informe seu e-mail" aria-hidden="false">
+                <div class="auth-step__body">
+                  <div class="card-header">
+                    <div class="app-icon" aria-hidden="true">
+                      <img
+                        class="app-logo-img"
+                        src="/assets/img/logo.svg"
+                        width="56"
+                        height="56"
+                        alt=""
+                        decoding="async"
+                        onerror="this.classList.add('app-logo-img--hidden');this.nextElementSibling.classList.add('is-visible');"
+                      />
+                      <div class="app-logo-fallback" aria-hidden="true">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                          <path d="M16 4L28 10V22L16 28L4 22V10L16 4Z" fill="url(#gradLogin1)" opacity="0.9"/>
+                          <path d="M10 16H22M16 10V22" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                          <defs>
+                            <linearGradient id="gradLogin1" x1="4" y1="4" x2="28" y2="28">
+                              <stop offset="0%" stop-color="#39ff14"/>
+                              <stop offset="100%" stop-color="#00f0ff"/>
+                            </linearGradient>
+                          </defs>
+                        </svg>
+                      </div>
+                    </div>
+                    <h1 class="card-title">Bem-vindo</h1>
+                    <p class="card-subtitle">
+                      <span class="dot" aria-hidden="true">●</span>
+                      Entre para rastrear suas finanças
+                    </p>
+                  </div>
+
+                  <button id="btn-google" class="btn btn-google motion-press" type="button" aria-label="Entrar com Google">
+                    <svg class="google-icon" width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+                      <path fill="#FFC107" d="M43.6 20H24v8h11.3C33.7 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 20-9 20-20 0-1.3-.1-2.7-.4-4z"/>
+                      <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.1 18.9 12 24 12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 16.3 4 9.7 8.4 6.3 14.7z"/>
+                      <path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5l-6.2-5.2C29.4 35.5 26.8 36 24 36c-5.2 0-9.7-3-11.4-7.3l-6.5 5C9.6 39.5 16.3 44 24 44z"/>
+                      <path fill="#1976D2" d="M43.6 20H24v8h11.3c-.8 2.2-2.3 4-4.3 5.3l6.2 5.2C41.4 35.4 44 30.1 44 24c0-1.3-.1-2.7-.4-4z"/>
+                    </svg>
+                    <span>Entrar com Google</span>
+                  </button>
+                  <p id="google-error" class="field-error google-error" role="alert"></p>
+
+                  <div class="divider" role="separator">
+                    <span class="divider-line" aria-hidden="true"></span>
+                    <span class="divider-text">ou entre com</span>
+                    <span class="divider-line" aria-hidden="true"></span>
+                  </div>
+
+                  <div class="auth-step-fields">
+                    <div class="field-group" id="field-email">
+                      <label class="field-label" for="email">E-mail</label>
+                      <div class="field-wrapper">
+                        <svg class="field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                          <rect x="2" y="4" width="20" height="16" rx="3"/>
+                          <path d="M2 7l10 7 10-7"/>
+                        </svg>
+                        <input
+                          id="email"
+                          name="email"
+                          type="email"
+                          class="field-input"
+                          placeholder="nome@exemplo.com"
+                          autocomplete="email"
+                          inputmode="email"
+                          required
+                          aria-required="true"
+                          aria-describedby="email-error"
+                        />
+                      </div>
+                      <span class="field-error" id="email-error" role="alert" aria-live="polite"></span>
+                    </div>
+
+                    <div class="btn-neon-shell">
+                      <button type="button" id="btn-continue-email" class="btn btn-primary btn-neon motion-press" aria-label="Continuar com e-mail">
+                        <span class="btn-text">Continuar</span>
+                        <div class="btn-spinner" aria-hidden="true"></div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Step 2: Senha -->
+              <section class="step-2 auth-step" aria-label="Informe sua senha" aria-hidden="true">
+                <div class="auth-step__body">
+                  <button type="button" id="btn-back-email" class="auth-back-btn motion-press" aria-label="Voltar para o e-mail">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+                    Voltar
+                  </button>
+
+                  <div class="card-header">
+                    <div class="app-icon" aria-hidden="true">
+                      <img
+                        class="app-logo-img"
+                        src="/assets/img/logo.svg"
+                        width="56"
+                        height="56"
+                        alt=""
+                        decoding="async"
+                        onerror="this.classList.add('app-logo-img--hidden');this.nextElementSibling.classList.add('is-visible');"
+                      />
+                      <div class="app-logo-fallback" aria-hidden="true">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                          <path d="M16 4L28 10V22L16 28L4 22V10L16 4Z" fill="url(#gradLogin2)" opacity="0.9"/>
+                          <path d="M10 16H22M16 10V22" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                          <defs>
+                            <linearGradient id="gradLogin2" x1="4" y1="4" x2="28" y2="28">
+                              <stop offset="0%" stop-color="#39ff14"/>
+                              <stop offset="100%" stop-color="#00f0ff"/>
+                            </linearGradient>
+                          </defs>
+                        </svg>
+                      </div>
+                    </div>
+                    <h1 class="card-title">Bem-vindo</h1>
+                    <p class="card-subtitle">
+                      <span class="dot" aria-hidden="true">●</span>
+                      Entre para rastrear suas finanças
+                    </p>
+                  </div>
+
+                  <p class="auth-greeting">Olá, <span id="user-email-display"></span></p>
+
+                  <div class="auth-step-2-actions">
+                    <div class="auth-password-row">
+                      <div class="field-group" id="field-password">
+                        <label class="field-label" for="password">Senha</label>
+                        <div class="field-wrapper">
+                          <svg class="field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect x="3" y="11" width="18" height="11" rx="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            <circle cx="12" cy="16" r="1" fill="currentColor"/>
+                          </svg>
+                          <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            class="field-input"
+                            placeholder="Digite sua senha"
+                            autocomplete="current-password"
+                            required
+                            aria-required="true"
+                            aria-describedby="password-error"
+                          />
+                          <button type="button" id="toggle-password" class="eye-btn motion-press" aria-label="Mostrar senha">
+                            <svg id="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                              <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                          </button>
+                        </div>
+                        <div class="password-meta password-meta--step2">
+                          <span class="field-error" id="password-error" role="alert" aria-live="polite"></span>
+                          <a href="#" class="forgot-link" id="forgot-link">Esqueceu a senha?</a>
+                          <button type="button" class="biometric-hint" hidden aria-hidden="true">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                              <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z" opacity="0.4"/>
+                              <path d="M8 12c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4"/>
+                              <path d="M12 16v2M8 8.5C9 7.5 10.4 7 12 7"/>
+                            </svg>
+                            <span>Face ID / Biometria</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="btn-neon-shell">
+                      <button id="btn-signin" type="submit" class="btn btn-primary btn-neon motion-press" aria-label="Acessar conta">
+                        <span class="btn-text">Acessar Conta</span>
+                        <div class="btn-spinner" aria-hidden="true"></div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
             </div>
-            <span class="field-error" id="email-error" role="alert" aria-live="polite"></span>
           </div>
-
-          <div class="field-group" id="field-password">
-            <label class="field-label" for="password">Senha</label>
-            <div class="field-wrapper">
-              <svg class="field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <rect x="3" y="11" width="18" height="11" rx="2"/>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                <circle cx="12" cy="16" r="1" fill="currentColor"/>
-              </svg>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                class="field-input"
-                placeholder="Digite sua senha"
-                autocomplete="current-password"
-                required
-                aria-required="true"
-                aria-describedby="password-error"
-              />
-              <button type="button" id="toggle-password" class="eye-btn" aria-label="Mostrar senha">
-                <svg id="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                  <circle cx="12" cy="12" r="3"/>
-                </svg>
-              </button>
-            </div>
-            <div class="password-meta">
-              <span class="field-error" id="password-error" role="alert" aria-live="polite"></span>
-              <a href="#" class="forgot-link" id="forgot-link">Esqueceu a senha?</a>
-            </div>
-          </div>
-
-          <!-- Biometric hint (iOS/Android) — shown only when biometric was set up -->
-          <div class="biometric-hint" hidden aria-hidden="true">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z" opacity="0.4"/>
-              <path d="M8 12c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4"/>
-              <path d="M12 16v2M8 8.5C9 7.5 10.4 7 12 7"/>
-            </svg>
-            <span>Use Face ID / Biometria</span>
-          </div>
-
-          <button id="btn-signin" type="submit" class="btn btn-primary" aria-label="Entrar na conta">
-            <span class="btn-text">Entrar</span>
-            <div class="btn-spinner" aria-hidden="true"></div>
-          </button>
-
         </form>
 
         <!-- Footer link -->

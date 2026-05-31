@@ -351,5 +351,17 @@
   bindBackdropClose('friend-search-modal');
   bindBackdropClose('friend-profile-modal');
 
+  if (window.FTProfileQR) {
+    FTProfileQR.onFriendsChanged = function () {
+      renderFriendsList();
+      renderSearchResults();
+    };
+  }
+
+  window.addEventListener('ft-friends-changed', function () {
+    renderFriendsList();
+    renderSearchResults();
+  });
+
   renderFriendsList();
 })();

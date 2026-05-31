@@ -1,0 +1,161 @@
+/**
+ * QR Code — exibir e escanear
+ * @author Rickson.Hirata
+ */
+
+#profile-qr-modal {
+  z-index: 10080;
+}
+
+#friend-qr-scan-modal {
+  z-index: 10090;
+}
+
+.profile-qr-sheet__panel {
+  max-height: min(88vh, 720px);
+  overflow-y: auto;
+}
+
+.profile-qr-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.profile-qr-canvas-wrap {
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+
+#profile-qr-canvas {
+  display: block;
+  width: 220px;
+  height: 220px;
+}
+
+.profile-qr-handle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--neon-blue);
+}
+
+.profile-qr-sub {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.profile-qr-steps-title {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.profile-qr-steps {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-qr-steps li {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.profile-qr-steps li strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Scanner */
+.profile-qr-scan-sheet__panel {
+  max-height: min(92vh, 780px);
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.qr-reader-host {
+  position: relative;
+  width: 100%;
+  min-height: 280px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: #000;
+  border: 1px solid var(--border);
+}
+
+.qr-reader-host video {
+  border-radius: var(--radius-md);
+}
+
+.qr-scan-frame {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-scan-frame::before {
+  content: '';
+  width: min(72vw, 260px);
+  height: min(72vw, 260px);
+  border: 2px solid rgba(57, 255, 20, 0.85);
+  border-radius: 16px;
+  box-shadow:
+    0 0 0 9999px rgba(0, 0, 0, 0.45),
+    0 0 24px rgba(57, 255, 20, 0.25);
+}
+
+.qr-scan-hint {
+  margin: 12px 0 8px;
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.qr-scan-status {
+  margin: 0 0 12px;
+  min-height: 18px;
+  font-size: 12px;
+  text-align: center;
+  color: var(--neon-green);
+}
+
+.qr-scan-status.is-error {
+  color: var(--danger);
+}
+
+.friends-scan-btn {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  border-radius: var(--radius-sm);
+  background: var(--neon-blue-dim);
+  color: var(--neon-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-spring);
+}
+
+.friends-scan-btn:active {
+  transform: scale(0.94);
+}

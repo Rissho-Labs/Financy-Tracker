@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="/features/transactions/home.css" />
   <link rel="stylesheet" href="/features/transactions/transactions.css" />
   <link rel="stylesheet" href="/features/transactions/receipt-report.css" />
+  <link rel="stylesheet" href="/features/transactions/expense-scan.css" />
   <link rel="stylesheet" href="/shared/css/ai-consent.css" />
   <script src="/core/ft-theme.js"></script>
   <script src="/core/ft-build.js"></script>
@@ -185,10 +186,6 @@
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
               <span>Arquivo</span>
             </button>
-            <button type="button" class="entry-method-btn" data-method="foto">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-              <span>Foto</span>
-            </button>
           </div>
 
           <div class="expense-modes-stage">
@@ -228,11 +225,11 @@
             </div>
 
             <div id="home-qr-wrap" class="entry-wrap entry-wrap--centered">
-              <div class="camera-mock">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M8 3v18"/><path d="M16 3v18"/><path d="M3 8h18"/><path d="M3 16h18"/></svg>
-                <p class="entry-help-text">Aponte para o código de barras ou QR Code da nota fiscal.</p>
+              <div class="entry-scan-intro">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                <p class="entry-help-text">Nota fiscal, boleto ou conta de luz/água — QR Code, código de barras ou foto da nota. A IA interpreta e registra o gasto automaticamente.</p>
               </div>
-              <button type="button" class="tx-add-btn" id="home-simulate-qr-btn">Simular Leitura</button>
+              <button type="button" class="tx-add-btn" id="home-open-scan-btn">Abrir câmera</button>
               <button type="button" class="ft-sheet__close" id="home-exp-cancel-qr">Cancelar</button>
             </div>
 
@@ -240,24 +237,36 @@
               <div class="file-drop-mock">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
                 <img id="home-file-preview" src="" alt="" class="file-preview-img hidden" />
-                <p id="home-file-help" class="entry-help-text">Envie imagem ou PDF da nota. A leitura é automática — o gasto é registrado sem ir para o modo manual.</p>
+                <p id="home-file-help" class="entry-help-text">JPG, PNG, WEBP, GIF, BMP, TIFF, HEIC ou PDF — leitura automática pela IA.</p>
               </div>
-              <input type="file" id="home-file-input" class="file-input-hidden" accept=".pdf,image/*" />
+              <input type="file" id="home-file-input" class="file-input-hidden" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif,.bmp,.tif,.tiff,.heic,.heif,application/pdf,image/jpeg,image/png,image/webp,image/gif,image/bmp,image/tiff,image/heic,image/heif" />
               <button type="button" class="tx-add-btn" id="home-file-picker-btn">Escolher Arquivo</button>
               <button type="button" class="ft-sheet__close" id="home-exp-cancel-file">Cancelar</button>
             </div>
-
-            <div id="home-foto-wrap" class="entry-wrap entry-wrap--centered">
-              <div class="foto-preview-box" id="home-foto-preview-box">
-                <svg id="home-foto-placeholder" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                <img id="home-foto-img" src="" alt="Foto capturada" style="display:none;" />
-              </div>
-              <input type="file" id="home-foto-input" class="file-input-hidden" accept="image/*" capture />
-              <button type="button" class="tx-add-btn" id="home-foto-capture-btn">Tirar Foto</button>
-              <button type="button" class="ft-sheet__close" id="home-exp-cancel-foto">Cancelar</button>
-            </div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Escanear gasto (câmera) -->
+    <div id="expense-scan-modal" class="ft-sheet expense-scan-sheet" aria-hidden="true">
+      <div class="ft-sheet__backdrop" data-close="expense-scan-modal" aria-hidden="true"></div>
+      <div class="ft-sheet__panel ft-form-sheet expense-scan-sheet__panel" role="dialog" aria-labelledby="expense-scan-title">
+        <div class="ft-sheet__handle" aria-hidden="true"></div>
+        <h2 id="expense-scan-title" class="ft-sheet__title">Escanear gasto</h2>
+        <div class="qr-reader-host">
+          <div id="expense-qr-reader"></div>
+          <button type="button" class="expense-scan-flip-btn" id="expense-scan-flip-btn" aria-label="Virar câmera">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 19H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"/><path d="M13 5h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5"/><circle cx="12" cy="12" r="3"/><path d="M18 8l2-2 2 2"/><path d="M6 16l-2 2-2-2"/></svg>
+          </button>
+          <div class="qr-scan-frame" aria-hidden="true"></div>
+        </div>
+        <p class="expense-scan-hint">Posicione QR, código de barras ou a nota dentro do quadrado.</p>
+        <p id="expense-scan-status" class="expense-scan-status" aria-live="polite"></p>
+        <div class="expense-scan-actions">
+          <button type="button" class="expense-scan-capture-btn" id="expense-scan-capture-btn">Capturar nota</button>
+        </div>
+        <button type="button" class="ft-sheet__close" id="expense-scan-close">Cancelar</button>
       </div>
     </div>
 
@@ -266,9 +275,13 @@
   <script src="/core/firebase-config.js"></script>
   <script src="/core/deepseek-config.js"></script>
   <script src="/core/ft-firebase.bundle.js"></script>
+  <script src="/core/ft-pdf.bundle.js"></script>
+  <script src="/core/ft-qr.bundle.js"></script>
   <script src="/core/ft-mlkit.bundle.js"></script>
   <script src="/features/transactions/receipt-parser.js"></script>
   <script src="/features/transactions/deepseek-receipt.js"></script>
+  <script src="/features/transactions/ft-receipt-flow.js"></script>
+  <script src="/features/transactions/ft-expense-scan.js"></script>
   <script src="/core/ft-session.js"></script>
   <script src="/features/cards/ft-cards.js"></script>
   <script src="/features/transactions/ft-transactions.js"></script>

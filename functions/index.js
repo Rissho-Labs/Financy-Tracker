@@ -15,18 +15,19 @@ initializeApp();
 
 const deepseekApiKey = defineSecret('DEEPSEEK_API_KEY');
 
-const RECEIPT_SYSTEM_PROMPT = `Você extrai dados de notas fiscais e cupons brasileiros.
-Responda SOMENTE com JSON válido (sem markdown) neste formato:
+const RECEIPT_SYSTEM_PROMPT = `Você extrai dados de documentos de gasto brasileiros: notas fiscais, cupons, boletos, contas (água, luz), DAS MEI, DARF, GPS, guias do Simples Nacional e comprovantes tributários.
+Responda SOMENTE com JSON válido (sem markdown):
 {
-  "establishment": "nome do estabelecimento ou string vazia",
-  "date": "YYYY-MM-DD ou string vazia",
-  "time": "HH:MM (24h) ou string vazia",
-  "amountCents": número inteiro em centavos (ex: 2549 para R$ 25,49) ou 0,
+  "isValidReceipt": true ou false,
+  "establishment": "nome ou DAS MEI / Simples Nacional",
+  "date": "YYYY-MM-DD ou vazio",
+  "time": "HH:MM ou vazio",
+  "amountCents": inteiro em centavos (7590 = R$ 75,90),
   "paymentMethod": "pix" | "dinheiro" | "debito" | "credito" | "credito_parcelado" | "",
-  "installments": número inteiro de parcelas (1 se à vista),
+  "installments": 1,
   "category": "food" | "shopping" | "transport" | "subscriptions" | "services" | "other" | ""
 }
-Use string vazia ou 0 quando não encontrar. paymentMethod deve ser uma das chaves listadas.`;
+DAS MEI e guias tributárias são isValidReceipt:true, category services. isValidReceipt:false só para imagens que não são documento financeiro.`;
 
 function emailKey(email) {
   return String(email || '').trim().toLowerCase().replace(/[^a-z0-9@._]/g, '_');
@@ -56,6 +57,7 @@ function normalizeParsed(raw) {
   var cat = String(raw.category || '').toLowerCase();
   if (cats.indexOf(cat) === -1) cat = '';
   return {
+    isValidReceipt: raw.isValidReceipt !== false,
     establishment: String(raw.establishment || '').trim(),
     date: String(raw.date || '').trim(),
     time: String(raw.time || '').trim(),
@@ -70,11 +72,11 @@ async function callDeepSeek(apiKey, ocrText, imageBase64) {
   var userContent;
   if (imageBase64) {
     userContent = [
-      { type: 'text', text: 'Extraia os dados desta nota fiscal/cupom brasileiro.\nTexto OCR auxiliar:\n' + (ocrText || '(vazio)') },
+      { type: 'text', text: 'Extraia os dados deste documento (nota, boleto, DAS MEI, conta ou comprovante).\nTexto OCR auxiliar:\n' + (ocrText || '(vazio)') },
       { type: 'image_url', image_url: { url: 'data:image/jpeg;base64,' + imageBase64 } },
     ];
   } else {
-    userContent = 'Extraia os dados desta nota fiscal/cupom brasileiro:\n\n' + (ocrText || '');
+    userContent = 'Extraia os dados deste documento de gasto brasileiro (pode ser DAS MEI, boleto ou nota):\n\n' + (ocrText || '');
   }
 
   var res = await fetch('https://api.deepseek.com/chat/completions', {

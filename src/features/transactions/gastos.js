@@ -28,7 +28,7 @@
     setInterval(t, 10000);
   })();
 
-  /** Post-DB: replace implementations to call APIs / OCR pipeline. */
+  /** @deprecated hooks mantidos para extensões futuras */
   window.FTGastoHooks = {
     beforeOpenScan: async () => {},
     afterScanParsed: async (_payload) => {},
@@ -140,7 +140,7 @@
         t.id +
         '" aria-label="Remover"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>';
 
-      li.querySelector('.tx-name').textContent = t.name;
+      li.querySelector('.tx-name').textContent = t.name + (t.hasReceiptReport ? ' · nota' : '');
       li.querySelector('.tx-date').textContent = fmtWhen(t.at) + extraInfo;
       ul.appendChild(li);
     });
@@ -163,7 +163,30 @@
       const method = btn.getAttribute('data-method');
       document.querySelectorAll('.entry-wrap').forEach((w) => w.classList.remove('active'));
       $(`gasto-${method}-wrap`)?.classList.add('active');
+      if (method === 'qr') {
+        openExpenseScan();
+      }
     });
+  });
+
+  function openExpenseScan() {
+    if (typeof FTExpenseScan === 'undefined') {
+      alert('Leitor de câmera indisponível.');
+      return;
+    }
+    FTExpenseScan.open({
+      onClose: function (result) {
+        if (result && result.success) {
+          renderList();
+          closeSidebar();
+        }
+      },
+    });
+  }
+
+  $('gasto-open-scan-btn')?.addEventListener('click', () => {
+    haptic();
+    openExpenseScan();
   });
 
   // ── Payment Methods ──
@@ -245,42 +268,8 @@
     closeSidebar();
   });
 
-  // ── Mock Scanners / file (hooks fire for future DB pipeline) ──
-  async function simulateScanFill(name, val) {
-    openSidebar();
-    setTimeout(async () => {
-      document.querySelector('.entry-method-btn[data-method="manual"]')?.click();
-      $('gasto-name').value = name;
-      $('gasto-amount').value = val;
-      $('gasto-amount').focus({ preventScroll: true });
-      haptic('medium');
-      try {
-        await window.FTGastoHooks.afterScanParsed({ name, amountDisplay: val });
-      } catch (_) {}
-    }, 0);
-  }
-
-  $('simulate-qr-btn')?.addEventListener('click', async (e) => {
-    e.preventDefault();
-    haptic();
-    try {
-      await window.FTGastoHooks.beforeOpenScan();
-    } catch (_) {}
-    const btn = e.currentTarget;
-    const oldText = btn.textContent;
-    btn.textContent = 'Lendo...';
-    btn.style.opacity = 0.7;
-    setTimeout(() => {
-      btn.textContent = oldText;
-      btn.style.opacity = 1;
-      simulateScanFill('Nota Fiscal (Supermercado)', '254,90');
-    }, 1200);
-  });
-
-  $('gasto-file-picker-btn')?.addEventListener('click', async () => {
-    try {
-      await window.FTGastoHooks.beforeFilePick();
-    } catch (_) {}
+  // ── Escanear / arquivo → DeepSeek + registro automático ──
+  $('gasto-file-picker-btn')?.addEventListener('click', () => {
     $('gasto-file-input')?.click();
   });
 
@@ -288,20 +277,64 @@
     const input = e.target;
     if (!input.files || input.files.length === 0) return;
     const file = input.files[0];
-    const fileWrap = $('gasto-file-wrap');
-    const p = fileWrap?.querySelector('p');
-    const oldText = p?.textContent;
-    if (p) p.textContent = 'Processando arquivo: ' + file.name;
+    input.value = '';
+
+    if (typeof FTReceiptFlow === 'undefined') {
+      alert('Módulo de leitura indisponível.');
+      return;
+    }
+
+    if (!FTReceiptFlow.isAllowedReceiptFile(file)) {
+      alert(FTReceiptFlow.invalidReceiptTypeMessage());
+      haptic('strong');
+      return;
+    }
+
+    const help = $('gasto-file-help');
+    const btn = $('gasto-file-picker-btn');
+    if (help) help.textContent = 'Analisando nota com IA…';
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Analisando…';
+    }
     haptic();
-    try {
-      await window.FTGastoHooks.afterFileParsed({ fileName: file.name, file });
-    } catch (_) {}
-    setTimeout(() => {
-      if (p && oldText !== undefined) p.textContent = oldText;
-      input.value = '';
-      simulateScanFill('Importado do Arquivo', '109,50');
-    }, 1500);
+
+    const result = await FTReceiptFlow.processFile(file, {
+      source: 'arquivo',
+      onClosePanels: closeSidebar,
+      onSynced: renderList,
+      onHaptic: haptic,
+    });
+
+    if (help) help.textContent = 'JPG, PNG, WEBP, GIF, BMP, TIFF, HEIC ou PDF.';
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Escolher Arquivo';
+    }
+
+    if (result && result.ok && !result.redirected) {
+      renderList();
+    }
   });
+
+  window.__ftOpenExpenseSheet = function () {
+    var base = typeof FTRoutes !== 'undefined' ? FTRoutes.home : '/features/transactions/home.html';
+    var sep = base.indexOf('?') >= 0 ? '&' : '?';
+    window.location.href = base + sep + 'expense=1';
+  };
+
+  window.__ftReturnToHomeView = function () {
+    try {
+      if (String(window.location.pathname).indexOf('gastos') < 0) return false;
+      sessionStorage.setItem('ft_show_receipt_success', '1');
+      window.location.href = typeof FTRoutes !== 'undefined' ? FTRoutes.home : '/features/transactions/home.html';
+      return true;
+    } catch (_) {
+      return false;
+    }
+  };
+
+  window.addEventListener('ft-transactions-changed', renderList);
 
   renderList();
 })();

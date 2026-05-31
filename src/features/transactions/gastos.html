@@ -13,6 +13,8 @@
   <link rel="stylesheet" href="/styles/global.css" />
   <link rel="stylesheet" href="/features/transactions/home.css" />
   <link rel="stylesheet" href="/features/transactions/transactions.css" />
+  <link rel="stylesheet" href="/features/transactions/expense-scan.css" />
+  <link rel="stylesheet" href="/features/transactions/receipt-report.css" />
   <script src="/core/ft-theme.js"></script>
   <script src="/core/ft-build.js"></script>
   <script src="/core/ft-storage.js"></script>
@@ -127,27 +129,58 @@
             </form>
           </div>
 
-          <div id="gasto-qr-wrap" class="entry-wrap hidden" style="text-align:center; padding: 24px 10px 8px;">
-            <div class="camera-mock">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M8 3v18"/><path d="M16 3v18"/><path d="M3 8h18"/><path d="M3 16h18"/></svg>
-              <p style="margin: 16px 0; color: var(--text-secondary); font-size: 14px;">Aponte para o código de barras ou QR Code da nota fiscal.</p>
-            </div>
-            <button type="button" class="tx-add-btn" id="simulate-qr-btn">Simular Leitura</button>
+          <div id="gasto-qr-wrap" class="entry-wrap" style="text-align:center; padding: 24px 10px 8px;">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            <p style="margin: 16px 0; color: var(--text-secondary); font-size: 14px;">Nota, boleto ou conta — QR, código de barras ou foto. A IA registra o gasto automaticamente.</p>
+            <button type="button" class="tx-add-btn" id="gasto-open-scan-btn">Abrir câmera</button>
           </div>
 
-          <div id="gasto-file-wrap" class="entry-wrap hidden" style="text-align:center; padding: 24px 10px 8px;">
+          <div id="gasto-file-wrap" class="entry-wrap" style="text-align:center; padding: 24px 10px 8px;">
             <div class="file-drop-mock">
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-              <p style="margin: 16px 0; color: var(--text-secondary); font-size: 14px;">Importe uma NFE em PDF ou Imagem para leitura automática.</p>
+              <p id="gasto-file-help" style="margin: 16px 0; color: var(--text-secondary); font-size: 14px;">JPG, PNG, WEBP, GIF, BMP, TIFF, HEIC ou PDF.</p>
             </div>
-            <input type="file" id="gasto-file-input" style="display:none;" accept=".pdf,image/*" />
+            <input type="file" id="gasto-file-input" style="display:none;" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif,.bmp,.tif,.tiff,.heic,.heif,application/pdf,image/jpeg,image/png,image/webp,image/gif,image/bmp,image/tiff,image/heic,image/heif" />
             <button type="button" class="tx-add-btn" id="gasto-file-picker-btn">Escolher Arquivo</button>
           </div>
         </div>
       </aside>
     </div>
+
+    <!-- Escanear gasto (câmera) -->
+    <div id="expense-scan-modal" class="ft-sheet expense-scan-sheet" aria-hidden="true">
+      <div class="ft-sheet__backdrop" data-close="expense-scan-modal" aria-hidden="true"></div>
+      <div class="ft-sheet__panel ft-form-sheet expense-scan-sheet__panel" role="dialog" aria-labelledby="expense-scan-title">
+        <div class="ft-sheet__handle" aria-hidden="true"></div>
+        <h2 id="expense-scan-title" class="ft-sheet__title">Escanear gasto</h2>
+        <div class="qr-reader-host">
+          <div id="expense-qr-reader"></div>
+          <button type="button" class="expense-scan-flip-btn" id="expense-scan-flip-btn" aria-label="Virar câmera">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 19H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"/><path d="M13 5h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5"/><circle cx="12" cy="12" r="3"/><path d="M18 8l2-2 2 2"/><path d="M6 16l-2 2-2-2"/></svg>
+          </button>
+          <div class="qr-scan-frame" aria-hidden="true"></div>
+        </div>
+        <p class="expense-scan-hint">Posicione QR, código de barras ou a nota dentro do quadrado.</p>
+        <p id="expense-scan-status" class="expense-scan-status" aria-live="polite"></p>
+        <div class="expense-scan-actions">
+          <button type="button" class="expense-scan-capture-btn" id="expense-scan-capture-btn">Capturar nota</button>
+        </div>
+        <button type="button" class="ft-sheet__close" id="expense-scan-close">Cancelar</button>
+      </div>
+    </div>
   </div>
 
+  <script src="/core/firebase-config.js"></script>
+  <script src="/core/deepseek-config.js"></script>
+  <script src="/core/ft-firebase.bundle.js"></script>
+  <script src="/core/ft-pdf.bundle.js"></script>
+  <script src="/core/ft-qr.bundle.js"></script>
+  <script src="/core/ft-mlkit.bundle.js"></script>
+  <script src="/features/transactions/receipt-parser.js"></script>
+  <script src="/features/transactions/deepseek-receipt.js"></script>
+  <script src="/features/transactions/ft-receipt-flow.js"></script>
+  <script src="/features/transactions/ft-expense-scan.js"></script>
+  <script src="/features/transactions/ft-receipt-report.js"></script>
   <script src="/core/ft-session.js"></script>
   <script src="/features/cards/ft-cards.js"></script>
   <script src="/features/transactions/ft-transactions.js"></script>
