@@ -1,10 +1,16 @@
 /**
- * Gastos (apenas saídas) em localStorage — ft_transactions
+ * Gastos (apenas saídas).
+ * SESSION_ONLY: dados só na sessão atual — zerados a cada reload/start do app.
+ * Quando o banco estiver pronto, altere SESSION_ONLY para false.
  */
 (function (global) {
   'use strict';
 
   var KEY = 'ft_transactions';
+  var SESSION_FLAG = 'ft_app_session';
+  /** true = temporário (sessão); false = localStorage + Firestore */
+  var SESSION_ONLY = true;
+  var _sessionMem = null;
 
   var CATEGORY_META = {
     food: { label: 'Alimentação', icon: '🍔', stroke: '#10B981' },
@@ -27,7 +33,47 @@
     return new Date().toISOString();
   }
 
+  function resetSessionStore() {
+    _sessionMem = [];
+    try {
+      sessionStorage.removeItem(KEY);
+      sessionStorage.removeItem(SESSION_FLAG);
+      localStorage.removeItem(KEY);
+    } catch (e) { /* ignore */ }
+  }
+
+  function beginNewAppSession() {
+    resetSessionStore();
+  }
+
+  function ensureAppSession() {
+    if (!SESSION_ONLY) return;
+    try {
+      localStorage.removeItem(KEY);
+      if (!sessionStorage.getItem(SESSION_FLAG)) {
+        sessionStorage.removeItem(KEY);
+        _sessionMem = [];
+        sessionStorage.setItem(SESSION_FLAG, '1');
+      }
+    } catch (e) {
+      _sessionMem = [];
+    }
+  }
+
   function loadRaw() {
+    if (SESSION_ONLY) {
+      ensureAppSession();
+      if (_sessionMem === null) {
+        try {
+          var sessionRaw = sessionStorage.getItem(KEY);
+          _sessionMem = sessionRaw ? JSON.parse(sessionRaw) : [];
+          if (!Array.isArray(_sessionMem)) _sessionMem = [];
+        } catch (e) {
+          _sessionMem = [];
+        }
+      }
+      return _sessionMem.slice();
+    }
     try {
       var raw = localStorage.getItem(KEY);
       if (!raw) return null;
@@ -39,8 +85,18 @@
   }
 
   function saveAll(list) {
+    if (SESSION_ONLY) {
+      ensureAppSession();
+      _sessionMem = migrateDropIncome(list || []).slice();
+      try {
+        sessionStorage.setItem(KEY, JSON.stringify(_sessionMem));
+      } catch (e) { /* ignore */ }
+      return;
+    }
     localStorage.setItem(KEY, JSON.stringify(list));
   }
+
+  if (SESSION_ONLY) ensureAppSession();
 
   function migrateDropIncome(list) {
     return list.filter(function (t) {
@@ -59,82 +115,52 @@
   }
 
   function ensureTransaction(t) {
+    var pay = t.paymentMethod != null ? String(t.paymentMethod) : 'pix';
+    if (pay === '' && !t.hasReceiptReport) pay = 'pix';
     var inst = Math.max(1, Math.round(Number(t.installments)) || 1);
-    if ((t.paymentMethod || 'pix') !== 'credito_parcelado') inst = 1;
+    if (pay !== 'credito_parcelado') inst = 1;
     var idx = Math.max(1, Math.round(Number(t.installmentIndex)) || 1);
     if (idx > inst) idx = inst;
     var cat = t.category && CATEGORY_META[t.category] ? t.category : guessCategory(t.name);
     var loc = t.location != null && String(t.location).trim() !== '' ? String(t.location).trim() : String(t.name || '').trim();
+    var hasReceipt = !!(t.hasReceiptReport || t.receiptImageUrl || t.receiptImageData);
     return {
       id: t.id,
       name: String(t.name || '').trim(),
       location: loc,
       amountCents: Math.max(0, Math.round(Number(t.amountCents) || 0)),
       type: t.type || 'expense',
-      paymentMethod: t.paymentMethod || 'pix',
+      paymentMethod: pay,
       category: cat,
       installments: inst,
       installmentIndex: idx,
       cardId: t.cardId || null,
-      at: t.at || nowIso()
+      at: t.at || nowIso(),
+      hasReceiptReport: hasReceipt,
+      receiptImageUrl: t.receiptImageUrl || null,
+      receiptImageData: t.receiptImageData || null,
+      receiptDate: t.receiptDate != null ? String(t.receiptDate) : '',
+      receiptTime: t.receiptTime != null ? String(t.receiptTime) : '',
+      ocrProvider: t.ocrProvider || null
     };
   }
 
-  function seedIfEmpty() {
-    if (_firebaseReady()) return;
-    var existing = loadRaw();
-    if (existing && existing.length) {
-      var m = migrateDropIncome(existing);
-      if (m.length !== existing.length) saveAll(m);
-      return;
-    }
-    var d = new Date();
-    var y = d.getFullYear();
-    var mo = String(d.getMonth() + 1).padStart(2, '0');
-    var day = String(d.getDate()).padStart(2, '0');
-    var seed = [
-      {
-        id: 'tx_seed_1',
-        name: 'Apple Store',
-        location: 'Shopping Morumbi',
-        amountCents: 29900,
-        type: 'expense',
-        category: 'shopping',
-        paymentMethod: 'credito_parcelado',
-        installments: 12,
-        installmentIndex: 1,
-        at: y + '-' + mo + '-' + day + 'T14:32:00'
-      },
-      {
-        id: 'tx_seed_3',
-        name: 'iFood',
-        location: 'App iFood',
-        amountCents: 7850,
-        type: 'expense',
-        category: 'food',
-        paymentMethod: 'pix',
-        installments: 1,
-        installmentIndex: 1,
-        at: y + '-' + mo + '-30T20:15:00'
-      },
-      {
-        id: 'tx_seed_4',
-        name: 'Spotify',
-        location: 'Assinatura digital',
-        amountCents: 2190,
-        type: 'expense',
-        category: 'subscriptions',
-        paymentMethod: 'credito',
-        installments: 1,
-        installmentIndex: 1,
-        at: y + '-' + mo + '-28T12:00:00'
-      }
-    ];
-    saveAll(seed);
+  function isDemoSeed(t) {
+    return !!(t && String(t.id || '').startsWith('tx_seed_'));
+  }
+
+  /** Remove transações de demonstração (Apple Store, iFood, etc.) do cache local. */
+  function clearDemoSeeds() {
+    var list = loadRaw();
+    if (!list || !list.length) return;
+    var filtered = list.filter(function (t) {
+      return !isDemoSeed(t);
+    });
+    if (filtered.length !== list.length) saveAll(filtered);
   }
 
   function getAll() {
-    seedIfEmpty();
+    clearDemoSeeds();
     return migrateDropIncome(loadRaw() || []).map(ensureTransaction);
   }
 
@@ -214,6 +240,7 @@
   }
 
   function paymentLabel(key) {
+    if (!key) return '—';
     return PAYMENT_LABELS[key] || key || '—';
   }
 
@@ -230,15 +257,21 @@
     } catch (e) { return false; }
   }
 
-  function add(item) {
-    var list = loadRaw() || [];
-    list = migrateDropIncome(list);
+  function getById(id) {
+    var list = getAll();
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === id) return list[i];
+    }
+    return null;
+  }
+
+  function buildTxFromItem(item) {
     var inst = item.installments != null ? Math.max(1, Math.round(Number(item.installments))) : 1;
     if ((item.paymentMethod || 'pix') !== 'credito_parcelado') inst = 1;
     var idx = item.installmentIndex != null ? Math.max(1, Math.round(Number(item.installmentIndex))) : 1;
     if (idx > inst) idx = inst;
-    var newTx = {
-      id: 'tx_' + Date.now(),
+    return {
+      id: item.id || ('tx_' + Date.now()),
       name: String(item.name || '').trim(),
       location: item.location != null ? String(item.location).trim() : '',
       amountCents: Math.max(0, Math.round(Number(item.amountCents) || 0)),
@@ -248,17 +281,56 @@
       installments: inst,
       installmentIndex: idx,
       category: item.category && CATEGORY_META[item.category] ? item.category : guessCategory(item.name),
-      at: item.at || nowIso()
+      at: item.at || nowIso(),
+      hasReceiptReport: !!item.hasReceiptReport,
+      receiptImageUrl: item.receiptImageUrl || null,
+      receiptImageData: item.receiptImageData || null,
+      receiptDate: item.receiptDate != null ? String(item.receiptDate) : '',
+      receiptTime: item.receiptTime != null ? String(item.receiptTime) : '',
+      ocrProvider: item.ocrProvider || null
     };
+  }
+
+  function _syncTx(uid, tx, method) {
+    if (SESSION_ONLY) return;
+    if (!uid || !_firebaseReady()) return;
+    var fn = method === 'update' ? FTFirebase.updateTransaction : FTFirebase.addTransaction;
+    var payload = Object.assign({}, tx);
+    delete payload.receiptImageData;
+    fn(uid, payload).catch(function (e) {
+      console.warn('[FTTransactions] Firestore ' + method + ' failed', e);
+    });
+  }
+
+  function add(item) {
+    var list = loadRaw() || [];
+    list = migrateDropIncome(list);
+    var newTx = buildTxFromItem(item);
+    if (!item.id) newTx.id = 'tx_' + Date.now();
     list.unshift(newTx);
     saveAll(list);
 
     var uid = _currentUid();
-    if (uid && _firebaseReady()) {
-      FTFirebase.addTransaction(uid, newTx).catch(function (e) {
-        console.warn('[FTTransactions] Firestore add failed', e);
-      });
-    }
+    if (uid) _syncTx(uid, newTx, 'add');
+
+    return getAll();
+  }
+
+  function update(id, patch) {
+    var list = migrateDropIncome(loadRaw() || []);
+    var found = false;
+    var updated = null;
+    list = list.map(function (t) {
+      if (t.id !== id) return t;
+      found = true;
+      updated = ensureTransaction(Object.assign({}, t, patch, { id: t.id }));
+      return updated;
+    });
+    if (!found) return getAll();
+    saveAll(list);
+
+    var uid = _currentUid();
+    if (uid && updated) _syncTx(uid, updated, 'update');
 
     return getAll();
   }
@@ -270,7 +342,7 @@
     saveAll(list);
 
     var uid = _currentUid();
-    if (uid && _firebaseReady()) {
+    if (uid && !SESSION_ONLY && _firebaseReady()) {
       FTFirebase.deleteTransaction(uid, id).catch(function (e) {
         console.warn('[FTTransactions] Firestore delete failed', e);
       });
@@ -280,10 +352,18 @@
   }
 
   function syncFromFirestore(uid) {
+    if (SESSION_ONLY) return Promise.resolve(false);
     if (!uid || !_firebaseReady()) return Promise.resolve(false);
     return FTFirebase.loadTransactions(uid).then(function (rows) {
-      if (!Array.isArray(rows) || rows.length === 0) return false;
-      var localList = loadRaw() || [];
+      if (!Array.isArray(rows)) return false;
+      clearDemoSeeds();
+      var localList = migrateDropIncome(loadRaw() || []).filter(function (t) {
+        return !isDemoSeed(t);
+      });
+      if (rows.length === 0) {
+        saveAll(localList);
+        return true;
+      }
       var firestoreIds = {};
       rows.forEach(function (r) { if (r && r.id) firestoreIds[r.id] = true; });
       var localOnly = localList.filter(function (t) { return !firestoreIds[t.id]; });
@@ -298,10 +378,15 @@
   global.FTTransactions = {
     KEY: KEY,
     getAll: getAll,
+    getById: getById,
     add: add,
+    update: update,
     remove: remove,
     syncFromFirestore: syncFromFirestore,
-    seedIfEmpty: seedIfEmpty,
+    clearDemoSeeds: clearDemoSeeds,
+    resetSessionStore: resetSessionStore,
+    beginNewAppSession: beginNewAppSession,
+    isSessionOnly: function () { return SESSION_ONLY; },
     monthExpenseTotalCents: monthExpenseTotalCents,
     filterTransactions: filterTransactions,
     sortByAtDesc: sortByAtDesc,

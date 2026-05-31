@@ -1,9 +1,13 @@
 node_modules/
+.idea/
+assets/js/ft-build.js
 www/
 android/app/build/
 android/build/
 android/.gradle/
 android/captures/
 android/local.properties
+assets/js/deepseek-config.js
+functions/.env
 *.log
 .DS_Store

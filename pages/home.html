@@ -15,7 +15,10 @@
   <link rel="stylesheet" href="../assets/css/styles.css" />
   <link rel="stylesheet" href="../assets/css/home.css" />
   <link rel="stylesheet" href="../assets/css/transactions.css" />
+  <link rel="stylesheet" href="../assets/css/receipt-report.css" />
   <script src="../assets/js/ft-theme.js"></script>
+  <script src="../assets/js/ft-build.js"></script>
+  <script src="../assets/js/ft-storage.js"></script>
 </head>
 <body>
 
@@ -67,50 +70,51 @@
     <div class="home-scroll">
 
       <!-- ── WALLET SECTION ─────────────────────────────────── -->
-      <section class="wallet-section" aria-label="Carteira digital">
+      <section class="wallet-section" aria-label="Resumo de gastos do mês">
 
-        <div class="section-title-row">
-          <h2 class="section-title">Resumo do Mês</h2>
-        </div>
+        <div class="wallet-outer" id="wallet-outer">
+          <div class="wallet-summary">
 
-        <!-- Wallet container -->
-        <div class="wallet-outer" id="wallet-outer" aria-label="Resumo de gastos do mês">
-
-          <!-- Cards stack (rendered by home.js to avoid duplication) -->
-          <div class="cards-stack" id="cards-stack" role="list"></div><!-- /cards-stack -->
-
-          <!-- Wallet body -->
-          <div class="wallet-body" id="wallet-body">
-
-            <!-- Wallet texture & seam -->
-            <div class="wallet-texture" aria-hidden="true">
-              <div class="wallet-seam wallet-seam-top"></div>
-              <div class="wallet-seam wallet-seam-bottom"></div>
-            </div>
-
-            <!-- Wallet controls row -->
-            <div class="wallet-controls">
-              <p class="wallet-panel-title" id="wallet-panel-title" aria-live="polite">Visão Geral - Todas as Despesas</p>
-              <button class="wallet-ctrl-btn" id="wallet-hide-btn" aria-label="Ocultar saldo">
+            <div class="wallet-summary__top">
+              <div class="wallet-summary__main">
+                <div class="wallet-label-row">
+                  <p class="wallet-balance-label">Total gasto no mês</p>
+                  <span class="wallet-pct-pill" id="wallet-pct-badge" aria-live="polite">
+                    <span id="wallet-pct-val">0%</span>
+                  </span>
+                </div>
+                <h2 class="wallet-balance" id="wallet-balance" aria-live="polite">R$ 0,00</h2>
+                <p class="wallet-updated" id="wallet-updated">Atualizado agora</p>
+              </div>
+              <button class="wallet-ctrl-btn" id="wallet-hide-btn" aria-label="Ocultar valor">
                 <svg id="eye-wallet" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
               </button>
             </div>
 
-            <!-- Balance display -->
-            <div class="wallet-balance-area">
-              <p class="wallet-balance-label">Total gasto no mês</p>
-              <h2 class="wallet-balance" id="wallet-balance" aria-live="polite">R$ 0,00</h2>
-              <div class="wallet-trend">
-                <span class="trend-badge negative" id="wallet-pct-badge" aria-live="polite">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
-                  <span id="wallet-pct-val">0%</span>
-                </span>
-                <span class="trend-text" id="wallet-trend-sub">do orçamento mensal</span>
+            <div class="wallet-split-pill" role="group" aria-label="Orçamento e gastos do mês">
+              <div class="wallet-split-col">
+                <div class="wallet-split-head">
+                  <div class="wallet-split-icon wallet-split-icon--budget" aria-hidden="true">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 8 12 16"/><polyline points="8 12 12 16 16 12"/></svg>
+                  </div>
+                  <span class="wallet-split-label">Orçamento</span>
+                </div>
+                <strong class="wallet-split-value" id="wallet-budget-val">R$ 3.000,00</strong>
+              </div>
+              <div class="wallet-split-divider" aria-hidden="true"></div>
+              <div class="wallet-split-col">
+                <div class="wallet-split-head">
+                  <div class="wallet-split-icon wallet-split-icon--expense" aria-hidden="true">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 16 12 8"/><polyline points="8 12 12 8 16 12"/></svg>
+                  </div>
+                  <span class="wallet-split-label">Gastos</span>
+                </div>
+                <strong class="wallet-split-value" id="wallet-expense-val">R$ 0,00</strong>
               </div>
             </div>
 
-          </div><!-- /wallet-body -->
-        </div><!-- /wallet-outer -->
+          </div>
+        </div>
 
       </section>
 
@@ -123,6 +127,8 @@
         </div>
 
         <ul class="tx-list" role="list"></ul>
+        <p class="tx-empty hidden" id="home-tx-empty">Nenhum gasto registrado ainda.</p>
+        <p class="home-tx-hint" id="home-tx-hint">Segure um gasto com nota para abrir o relatório</p>
       </section>
 
       <!-- Bottom spacer for nav bar -->
@@ -228,7 +234,8 @@
             <div id="home-file-wrap" class="entry-wrap entry-wrap--centered">
               <div class="file-drop-mock">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-                <p id="home-file-help" class="entry-help-text">Importe uma NFE em PDF ou Imagem para leitura automática.</p>
+                <img id="home-file-preview" src="" alt="" class="file-preview-img hidden" />
+                <p id="home-file-help" class="entry-help-text">Envie imagem ou PDF da nota. A leitura é automática — o gasto é registrado sem ir para o modo manual.</p>
               </div>
               <input type="file" id="home-file-input" class="file-input-hidden" accept=".pdf,image/*" />
               <button type="button" class="tx-add-btn" id="home-file-picker-btn">Escolher Arquivo</button>
@@ -240,7 +247,7 @@
                 <svg id="home-foto-placeholder" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                 <img id="home-foto-img" src="" alt="Foto capturada" style="display:none;" />
               </div>
-              <input type="file" id="home-foto-input" class="file-input-hidden" accept="image/*" capture="environment" />
+              <input type="file" id="home-foto-input" class="file-input-hidden" accept="image/*" capture />
               <button type="button" class="tx-add-btn" id="home-foto-capture-btn">Tirar Foto</button>
               <button type="button" class="ft-sheet__close" id="home-exp-cancel-foto">Cancelar</button>
             </div>
@@ -252,12 +259,15 @@
   </div><!-- /phone-frame -->
 
   <script src="../assets/js/firebase-config.js"></script>
+  <script src="../assets/js/deepseek-config.js"></script>
   <script src="../assets/js/ft-firebase.bundle.js"></script>
   <script src="../assets/js/ft-mlkit.bundle.js"></script>
   <script src="../assets/js/receipt-parser.js"></script>
+  <script src="../assets/js/deepseek-receipt.js"></script>
   <script src="../assets/js/ft-session.js"></script>
   <script src="../assets/js/ft-cards.js"></script>
   <script src="../assets/js/ft-transactions.js"></script>
+  <script src="../assets/js/ft-receipt-report.js"></script>
   <script src="../assets/js/notification-panel.js"></script>
   <script src="../assets/js/home.js"></script>
 </body>

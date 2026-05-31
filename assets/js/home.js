@@ -67,99 +67,14 @@ $('wallet-hide-btn')?.addEventListener('click', () => {
   balanceVisible = !balanceVisible;
   const balEl = $('wallet-balance');
   balEl?.classList.toggle('hidden', !balanceVisible);
+  ['wallet-expense-val', 'wallet-budget-val'].forEach(function (id) {
+    $(id)?.classList.toggle('hidden', !balanceVisible);
+  });
   if (eyeWallet) eyeWallet.innerHTML = balanceVisible ? eyeOpenSVG : eyeClosedSVG;
   haptic('light');
 });
 
-// ── Card stack (single render source + swipe) ─
-const cards = [
-  {
-    panelTitle: 'Visão Geral - Todas as Despesas',
-    ariaLabel: 'Visão Geral',
-    name: 'Visão Geral',
-    balance: 'Todas as despesas',
-    surface: true,
-  },
-];
-let activeCard = 0;
-
-function renderCardStack() {
-  const stackEl = $('cards-stack');
-  if (!stackEl) return;
-  stackEl.innerHTML = cards
-    .map((card, i) => {
-      const innerClass = card.surface ? 'card-peek-inner card-peek-inner--surface' : 'card-peek-inner';
-      const styleAttr = card.surface ? '' : ` style="--card-color-a:${card.colorA};--card-color-b:${card.colorB};"`;
-      return (
-        `<div class="card-peek" id="peek-${i}" data-index="${i}" role="listitem" tabindex="0" aria-label="${card.ariaLabel}">` +
-        `<div class="${innerClass}"${styleAttr}>` +
-        '<span class="peek-chip" aria-hidden="true"></span>' +
-        `<div class="peek-meta"><span class="peek-name">${card.name}</span><span class="peek-balance">${card.balance}</span></div>` +
-        (card.surface ? '' : '<div class="peek-brand" aria-hidden="true"><svg width="36" height="24" viewBox="0 0 54 36"><circle cx="21" cy="18" r="15" fill="rgba(255,255,255,0.25)"/><circle cx="33" cy="18" r="15" fill="rgba(255,255,255,0.15)"/></svg></div>') +
-        '</div></div>'
-      );
-    })
-    .join('');
-}
-
-function setActiveCard(index, silent) {
-  activeCard = Math.max(0, Math.min(cards.length - 1, index));
-  document.querySelectorAll('.card-peek').forEach((el, i) => {
-    el.classList.toggle('active-card', i === activeCard);
-  });
-  const titleEl = $('wallet-panel-title');
-  if (titleEl && cards[activeCard]) titleEl.textContent = cards[activeCard].panelTitle;
-  if (!silent) haptic('light');
-}
-
-renderCardStack();
-const stack = $('cards-stack');
-stack?.addEventListener('click', (e) => {
-  const peek = e.target.closest('.card-peek');
-  if (!peek) return;
-  setActiveCard(Number(peek.dataset.index));
-});
-stack?.addEventListener('keydown', (e) => {
-  if (e.key !== 'Enter' && e.key !== ' ') return;
-  const peek = e.target.closest('.card-peek');
-  if (!peek || !stack.contains(peek)) return;
-  e.preventDefault();
-  setActiveCard(Number(peek.dataset.index));
-});
-
-setActiveCard(0, true);
-
-(function setupCardSwipe() {
-  const wallet = $('wallet-outer');
-  if (!wallet) return;
-  let sx = 0;
-  let sy = 0;
-  let tracking = false;
-
-  function onStart(e) {
-    const t = e.touches && e.touches[0];
-    if (!t) return;
-    sx = t.clientX;
-    sy = t.clientY;
-    tracking = true;
-  }
-  function onEnd(e) {
-    if (!tracking) return;
-    tracking = false;
-    const t = e.changedTouches && e.changedTouches[0];
-    if (!t) return;
-    const dx = t.clientX - sx;
-    const dy = t.clientY - sy;
-    const threshold = 44;
-    if (Math.abs(dx) < threshold || Math.abs(dx) < Math.abs(dy) * 0.85) return;
-    if (dx < 0 && activeCard < cards.length - 1) setActiveCard(activeCard + 1);
-    else if (dx > 0 && activeCard > 0) setActiveCard(activeCard - 1);
-  }
-  wallet.addEventListener('touchstart', onStart, { passive: true });
-  wallet.addEventListener('touchend', onEnd, { passive: true });
-})();
-
-// ── Dynamic Island pulse on card interaction ──────────────────
+// ── Dynamic Island pulse on nav interaction ───────────────────
 const di = $('dynamic-island');
 function pulseDynamicIsland() {
   if (!di) return;
@@ -216,6 +131,11 @@ function closeExpenseSheet() {
   const placeholder = $('home-foto-placeholder');
   if (img) { img.src = ''; img.style.display = 'none'; }
   if (placeholder) placeholder.style.display = '';
+  const filePreview = $('home-file-preview');
+  const fileHelp = $('home-file-help');
+  if (filePreview) { filePreview.src = ''; filePreview.classList.add('hidden'); }
+  if (fileHelp) fileHelp.textContent = 'Envie imagem ou PDF da nota. A leitura é automática — o gasto é registrado sem ir para o modo manual.';
+  resetFilePickerBtn();
 }
 $('expense-sheet-bg')?.addEventListener('click', closeExpenseSheet);
 $('home-exp-cancel')?.addEventListener('click', closeExpenseSheet);
@@ -273,21 +193,42 @@ $('home-file-input')?.addEventListener('change', (e) => {
   const input = e.target;
   if (!input.files || input.files.length === 0) return;
   const file = input.files[0];
-  const help = $('home-file-help');
-  const prev = help?.textContent || '';
-  if (help) help.textContent = `Processando arquivo: ${file.name}`;
-  haptic('light');
-  setTimeout(() => {
-    if (help) help.textContent = prev;
-    input.value = '';
-    fillExpenseFromSource('Importado do Arquivo', '109,50');
-  }, 1200);
+  input.value = '';
+  processReceiptFile(file, 'arquivo');
 });
 
-// ── Método Foto ───────────────────────────────────────────────
-function setFotoStatus(msg) {
+// ── Nota fiscal: arquivo / foto → DeepSeek + registro automático ──
+function readFileAsDataUrl(file) {
+  return new Promise(function (resolve, reject) {
+    const r = new FileReader();
+    r.onload = function (e) { resolve(e.target.result); };
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+
+function resetFilePickerBtn() {
+  const btn = $('home-file-picker-btn');
+  if (!btn) return;
+  btn.textContent = 'Escolher Arquivo';
+  btn.disabled = false;
+  btn.style.opacity = '1';
+}
+
+function setFilePickerBusy(busy, label) {
+  const btn = $('home-file-picker-btn');
+  if (!btn) return;
+  btn.disabled = !!busy;
+  btn.style.opacity = busy ? '0.75' : '1';
+  if (label) btn.textContent = label;
+}
+
+function setFotoCaptureBusy(busy, label) {
   const btn = $('home-foto-capture-btn');
-  if (btn) btn.textContent = msg;
+  if (!btn) return;
+  btn.disabled = !!busy;
+  btn.style.opacity = busy ? '0.75' : '1';
+  if (label) btn.textContent = label;
 }
 
 function showFotoPreview(dataUrl) {
@@ -297,46 +238,144 @@ function showFotoPreview(dataUrl) {
   if (placeholder) placeholder.style.display = 'none';
 }
 
-async function runOcrOnFile(file) {
-  const dataUrl = await new Promise((res, rej) => {
-    const r = new FileReader();
-    r.onload = (e) => res(e.target.result);
-    r.onerror = rej;
-    r.readAsDataURL(file);
+function showFilePreview(dataUrl, isImage) {
+  const img = $('home-file-preview');
+  const help = $('home-file-help');
+  if (isImage && img) {
+    img.src = dataUrl;
+    img.classList.remove('hidden');
+  } else if (img) {
+    img.src = '';
+    img.classList.add('hidden');
+  }
+  if (help) help.textContent = 'Analisando nota com IA…';
+}
+
+async function uploadReceiptIfPossible(txId, dataUrl) {
+  try {
+    const u = typeof FTSession !== 'undefined' ? FTSession.parseUser() : null;
+    if (!u || !u.uid) return { receiptImageUrl: null, receiptImageData: dataUrl };
+    if (typeof FTFirebase !== 'undefined' && FTFirebase.isReady() && typeof FTFirebase.uploadReceiptImage === 'function') {
+      const url = await FTFirebase.uploadReceiptImage(u.uid, txId, dataUrl);
+      return { receiptImageUrl: url, receiptImageData: dataUrl };
+    }
+  } catch (e) {
+    console.warn('[Receipt upload]', e.message || e);
+  }
+  return { receiptImageUrl: null, receiptImageData: dataUrl };
+}
+
+async function createTransactionFromReceipt(dataUrl, parsed, fallbackName) {
+  if (typeof FTTransactions === 'undefined') return null;
+  const txId = 'tx_' + Date.now();
+  const at = typeof FTDeepSeekReceipt !== 'undefined'
+    ? FTDeepSeekReceipt.buildAtIso(parsed.date, parsed.time)
+    : new Date().toISOString();
+  const images = await uploadReceiptIfPossible(txId, dataUrl);
+  const name = parsed.establishment || fallbackName || 'Gasto registrado por nota';
+  const pay = parsed.paymentMethod || '';
+  const inst = pay === 'credito_parcelado' ? Math.max(2, parsed.installments || 2) : 1;
+
+  FTTransactions.add({
+    id: txId,
+    name,
+    location: name,
+    amountCents: parsed.amountCents || 0,
+    paymentMethod: pay,
+    installments: inst,
+    category: parsed.category || undefined,
+    at,
+    receiptDate: parsed.date || '',
+    receiptTime: parsed.time || '',
+    hasReceiptReport: true,
+    receiptImageUrl: images.receiptImageUrl,
+    receiptImageData: images.receiptImageData,
+    ocrProvider: parsed.provider || 'deepseek',
   });
 
-  showFotoPreview(dataUrl);
-  setFotoStatus('Lendo nota...');
+  return txId;
+}
+
+async function processReceiptFile(file, source) {
+  source = source || 'arquivo';
+  const isImage = file.type.startsWith('image/');
+  const isPdf = file.type === 'application/pdf';
+  if (!isImage && !isPdf) {
+    alert('Envie uma imagem (JPG, PNG) ou PDF da nota fiscal.');
+    return;
+  }
+
+  const fallbackName = source === 'foto' ? 'Gasto registrado por foto' : 'Gasto registrado por arquivo';
+  if (source === 'foto') setFotoCaptureBusy(true, 'Analisando nota...');
+  else setFilePickerBusy(true, 'Analisando nota...');
   haptic('medium');
 
+  let dataUrl;
   try {
-    // Plugin registrado via ft-mlkit.bundle.js → window.FTMlKit
-    const plugin = window.FTMlKit;
-    if (!plugin || typeof plugin.detectText !== 'function') throw new Error('mlkit_unavailable');
+    dataUrl = await readFileAsDataUrl(file);
+  } catch (e) {
+    alert('Não foi possível ler o arquivo.');
+    resetFilePickerBtn();
+    setFotoCaptureBusy(false, 'Tirar Foto');
+    return;
+  }
 
-    const base64 = dataUrl.split(',')[1];
-    const result = await plugin.detectText({ base64Image: base64 });
-    const rawText = (result && result.text) || '';
-    if (!rawText) throw new Error('no_text');
+  if (source === 'foto') showFotoPreview(dataUrl);
+  else showFilePreview(dataUrl, isImage);
 
-    const parsed = typeof FTReceiptParser !== 'undefined'
-      ? FTReceiptParser.parse(rawText)
-      : { name: 'Gasto por foto', amountCents: NaN, category: 'other' };
+  let rawText = isPdf ? 'Documento PDF: ' + (file.name || 'nota') : '';
+  const base64 = isImage ? (dataUrl.split(',')[1] || '') : '';
 
-    setFotoStatus('Tirar Foto');
-    haptic('light');
-    fillExpenseFromSource(
-      parsed.name,
-      Number.isFinite(parsed.amountCents) && parsed.amountCents > 0
-        ? (parsed.amountCents / 100).toFixed(2).replace('.', ',')
-        : ''
-    );
+  if (isImage) {
+    try {
+      const plugin = window.FTMlKit;
+      if (plugin && typeof plugin.detectText === 'function') {
+        const result = await plugin.detectText({ base64Image: base64 });
+        rawText = (result && result.text) || rawText;
+      }
+    } catch (err) {
+      console.warn('[OCR ML Kit]', err.message);
+    }
+  }
 
+  let parsed;
+  try {
+    if (typeof FTDeepSeekReceipt !== 'undefined') {
+      parsed = await FTDeepSeekReceipt.analyze(rawText, base64);
+    } else if (typeof FTReceiptParser !== 'undefined') {
+      const legacy = FTReceiptParser.parse(rawText);
+      parsed = {
+        establishment: legacy.name,
+        date: '',
+        time: '',
+        amountCents: legacy.amountCents,
+        paymentMethod: '',
+        installments: 1,
+        category: legacy.category,
+        provider: 'mlkit',
+      };
+    } else {
+      parsed = { establishment: '', date: '', time: '', amountCents: 0, paymentMethod: '', installments: 1, category: '', provider: 'none' };
+    }
   } catch (err) {
-    console.warn('[Foto OCR]', err.message);
-    setFotoStatus('Tirar Foto');
-    haptic('light');
-    fillExpenseFromSource('Gasto registrado por foto', '');
+    console.warn('[DeepSeek receipt]', err.message);
+    parsed = { establishment: fallbackName, date: '', time: '', amountCents: 0, paymentMethod: '', installments: 1, category: '', provider: 'none' };
+  }
+
+  closeExpenseSheet();
+  resetFilePickerBtn();
+  setFotoCaptureBusy(false, 'Tirar Foto');
+
+  await createTransactionFromReceipt(dataUrl, parsed, fallbackName);
+
+  if (typeof window.__ftSyncHome === 'function') window.__ftSyncHome();
+
+  if (typeof FTReceiptReport !== 'undefined') {
+    FTReceiptReport.showSuccess('Nota registrada com sucesso!', function () {
+      haptic('light');
+    });
+  } else {
+    haptic('medium');
   }
 }
 
@@ -348,10 +387,13 @@ $('home-foto-input')?.addEventListener('change', (e) => {
   const input = e.target;
   if (!input.files || input.files.length === 0) return;
   const file = input.files[0];
-  if (!file.type.startsWith('image/')) return;
-  const f = file;
+  if (!file.type.startsWith('image/')) {
+    alert('Selecione uma imagem da nota fiscal.');
+    input.value = '';
+    return;
+  }
   input.value = '';
-  runOcrOnFile(f);
+  processReceiptFile(file, 'foto');
 });
 
 let selectedPayment = 'pix';
@@ -455,46 +497,91 @@ function clearDeleteMode() {
 
   let pressTimer = null;
   let pressTarget = null;
-
-  function startPress(el) {
-    pressTarget = el;
-    pressTimer = setTimeout(() => {
-      if (!pressTarget) return;
-      const isAlreadyOpen = pressTarget.classList.contains('tx-item--delete-mode');
-      clearDeleteMode();
-      if (!isAlreadyOpen) {
-        pressTarget.classList.add('tx-item--delete-mode');
-        haptic('medium');
-      }
-      pressTimer = null;
-      pressTarget = null;
-    }, 500);
-  }
+  let pressStartX = 0;
+  let pressStartY = 0;
 
   function cancelPress() {
     if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
-    pressTarget = null;
+    if (pressTarget) {
+      pressTarget.classList.remove('tx-item--pressing');
+      pressTarget = null;
+    }
   }
 
-  section.addEventListener('touchstart', (e) => {
+  function startPress(item, x, y) {
+    cancelPress();
+    pressTarget = item;
+    pressStartX = x;
+    pressStartY = y;
+    item.classList.add('tx-item--pressing');
+    pressTimer = setTimeout(function () {
+      pressTimer = null;
+      if (!pressTarget) return;
+      const el = pressTarget;
+      const id = el.dataset.id;
+      el.classList.remove('tx-item--pressing');
+      pressTarget = null;
+      if (!id || typeof FTTransactions === 'undefined') return;
+      const tx = FTTransactions.getById(id);
+      if (tx && tx.hasReceiptReport && typeof FTReceiptReport !== 'undefined') {
+        clearDeleteMode();
+        haptic('medium');
+        FTReceiptReport.open(id);
+        return;
+      }
+      clearDeleteMode();
+      if (!el.classList.contains('tx-item--delete-mode')) {
+        el.classList.add('tx-item--delete-mode');
+        haptic('medium');
+      }
+    }, 500);
+  }
+
+  function onMove(x, y) {
+    if (!pressTimer || !pressTarget) return;
+    if (Math.abs(x - pressStartX) > 12 || Math.abs(y - pressStartY) > 12) cancelPress();
+  }
+
+  section.addEventListener('touchstart', function (e) {
+    if (e.target.closest('.tx-delete-btn')) return;
     const item = e.target.closest('.tx-item');
-    if (!item || e.target.closest('.tx-delete-btn')) return;
-    startPress(item);
+    if (!item) return;
+    const t = e.touches && e.touches[0];
+    if (!t) return;
+    startPress(item, t.clientX, t.clientY);
+  }, { passive: true });
+
+  section.addEventListener('touchmove', function (e) {
+    const t = e.touches && e.touches[0];
+    if (t) onMove(t.clientX, t.clientY);
   }, { passive: true });
 
   section.addEventListener('touchend', cancelPress, { passive: true });
-  section.addEventListener('touchmove', cancelPress, { passive: true });
+  section.addEventListener('touchcancel', cancelPress, { passive: true });
 
-  // Botão excluir
-  section.addEventListener('click', (e) => {
+  section.addEventListener('mousedown', function (e) {
+    if (e.button !== 0 || e.target.closest('.tx-delete-btn')) return;
+    const item = e.target.closest('.tx-item');
+    if (!item) return;
+    startPress(item, e.clientX, e.clientY);
+  });
+
+  section.addEventListener('mousemove', function (e) {
+    onMove(e.clientX, e.clientY);
+  });
+
+  section.addEventListener('mouseup', cancelPress);
+  section.addEventListener('mouseleave', cancelPress);
+
+  section.addEventListener('click', function (e) {
     const delBtn = e.target.closest('.tx-delete-btn');
     if (delBtn) {
       const item = delBtn.closest('.tx-item');
-      const id = item?.dataset.id;
+      const id = item && item.dataset.id;
       if (id && typeof FTTransactions !== 'undefined') {
         haptic('strong');
         item.classList.add('tx-item--removing');
-        setTimeout(() => {
+        setTimeout(function () {
           FTTransactions.remove(id);
           clearDeleteMode();
           if (typeof window.__ftSyncHome === 'function') window.__ftSyncHome();
@@ -502,14 +589,12 @@ function clearDeleteMode() {
       }
       return;
     }
-    // Toque fora de modo delete → fecha
     if (!e.target.closest('.tx-item--delete-mode')) clearDeleteMode();
-    else haptic('light');
   });
 })();
 
-document.querySelector('.stats-section')?.addEventListener('click', (e) => {
-  if (e.target.closest('.stat-card')) haptic('light');
+document.querySelector('.transactions-section')?.addEventListener('click', (e) => {
+  if (e.target.closest('.tx-item')) haptic('light');
 });
 
 const svgGasto = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--tx-stroke)" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M19 9H5a2 2 0 0 0 0 4h14a2 2 0 0 1 0 4H6"/></svg>`;
@@ -528,8 +613,9 @@ window.__ftSyncHome = function syncHomeData() {
   const monthSpend = FTTransactions.monthExpenseTotalCents();
   const wb = $('wallet-balance');
   if (wb) wb.textContent = fmtBRL(monthSpend);
-  const st = $('stat-month-spend');
-  if (st) st.textContent = fmtBRL(monthSpend);
+
+  const expenseVal = $('wallet-expense-val');
+  if (expenseVal) expenseVal.textContent = fmtBRL(monthSpend);
 
   let budgetReais = 3000;
   try {
@@ -537,26 +623,43 @@ window.__ftSyncHome = function syncHomeData() {
     if (u && typeof u.budget === 'number') budgetReais = u.budget;
   } catch (e) {}
   const budgetCents = Math.round(budgetReais * 100);
+  const budgetEl = $('wallet-budget-val');
+  if (budgetEl) budgetEl.textContent = fmtBRL(budgetCents);
+
   const pct = budgetCents > 0 ? Math.min(999, Math.round((monthSpend / budgetCents) * 100)) : 0;
   const pctEl = $('wallet-pct-val');
   if (pctEl) pctEl.textContent = pct + '%';
-  const sb = $('stats-budget-hint');
-  if (sb) sb.textContent = 'Orçamento mensal: ' + fmtBRL(budgetCents);
+  const pctBadge = $('wallet-pct-badge');
+  if (pctBadge) {
+    pctBadge.classList.toggle('wallet-pct-pill--over', pct > 100);
+  }
 
-  const pctStat = $('stat-budget-pct');
-  if (pctStat) pctStat.textContent = pct + '%';
+  const updatedEl = $('wallet-updated');
+  if (updatedEl) {
+    updatedEl.textContent = 'Atualizado em ' + new Date().toLocaleDateString('pt-BR');
+  }
 
   const ul = document.querySelector('.transactions-section ul.tx-list');
+  const emptyEl = $('home-tx-empty');
   if (ul) {
-    const rows = FTTransactions.getAll()
-      .slice(0, 4)
+    const items = FTTransactions.getAll().slice(0, 4);
+    const rows = items
       .map((t) => {
         const wrap = '--tx-color:#6366f124;--tx-stroke:#818cf8;';
         const nameEsc = String(t.name).replace(/&/g, '&amp;').replace(/</g, '&lt;');
-        return `<li class="tx-item" data-id="${t.id}" role="listitem"><div class="tx-icon-wrap" style="${wrap}">${svgGasto}</div><div class="tx-info"><span class="tx-name">${nameEsc}</span><span class="tx-date">${fmtWhen(t.at)}</span></div><span class="tx-amount negative">- ${fmtBRL(t.amountCents)}</span><button class="tx-delete-btn" aria-label="Excluir gasto">${svgTrash}</button></li>`;
+        const receiptCls = t.hasReceiptReport ? ' tx-item--has-receipt' : '';
+        const badge = t.hasReceiptReport ? '<span class="tx-receipt-badge" aria-hidden="true">· nota</span>' : '';
+        return `<li class="tx-item${receiptCls}" data-id="${t.id}" role="listitem"><div class="tx-icon-wrap" style="${wrap}">${svgGasto}</div><div class="tx-info"><span class="tx-name">${nameEsc}${badge}</span><span class="tx-date">${fmtWhen(t.at)}</span></div><span class="tx-amount negative">- ${fmtBRL(t.amountCents)}</span><button class="tx-delete-btn" aria-label="Excluir gasto">${svgTrash}</button></li>`;
       })
       .join('');
     ul.innerHTML = rows;
+    if (emptyEl) emptyEl.classList.toggle('hidden', items.length > 0);
+    ul.classList.toggle('hidden', items.length === 0);
+    const hintEl = $('home-tx-hint');
+    if (hintEl) {
+      const hasReceipt = items.some(function (t) { return t.hasReceiptReport; });
+      hintEl.classList.toggle('hidden', !hasReceipt);
+    }
   }
 };
 window.__ftSyncHome();
@@ -566,34 +669,10 @@ window.__ftSyncHome();
   var u = typeof FTSession !== 'undefined' ? FTSession.parseUser() : null;
   if (!u || !u.uid) return;
   if (typeof FTTransactions === 'undefined' || typeof FTTransactions.syncFromFirestore !== 'function') return;
-  // Limpa seeds locais antes de sincronizar (quando Firebase está disponível)
-  var local = JSON.parse(localStorage.getItem('ft_transactions') || '[]');
-  var hasOnlySeeds = local.length > 0 && local.every(function (t) { return String(t.id).startsWith('tx_seed_'); });
-  if (hasOnlySeeds) localStorage.removeItem('ft_transactions');
-  FTTransactions.syncFromFirestore(u.uid).then(function (synced) {
+  FTTransactions.clearDemoSeeds();
+  FTTransactions.syncFromFirestore(u.uid).then(function () {
     if (typeof window.__ftSyncHome === 'function') window.__ftSyncHome();
   });
 })();
-
-// ── Entrance stagger animation ────────────────────────────────
-// Adds a subtle scale-in on cards after load
-window.addEventListener('load', () => {
-  document.querySelectorAll('.card-peek').forEach((el, i) => {
-    el.style.transitionDelay = `${0.15 + i * 0.07}s`;
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(20px)';
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        el.style.transition = 'opacity 0.5s ease, transform 0.5s cubic-bezier(0.34,1.56,0.64,1)';
-        el.style.opacity = '1';
-        el.style.transform = '';
-        setTimeout(() => {
-          el.style.transition = '';
-          el.style.transitionDelay = '';
-        }, 800);
-      });
-    });
-  });
-});
 
 })();

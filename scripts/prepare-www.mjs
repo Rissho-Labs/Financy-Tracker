@@ -11,6 +11,22 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '..');
 const www = path.join(root, 'www');
 
+function writeBuildStamp() {
+  const pkgPath = path.join(root, 'package.json');
+  let version = '0.0.0';
+  try {
+    version = JSON.parse(fs.readFileSync(pkgPath, 'utf8')).version || version;
+  } catch (e) { /* ignore */ }
+  const stamp = `${version}-${Date.now().toString(36)}`;
+  const out = path.join(root, 'assets', 'js', 'ft-build.js');
+  fs.mkdirSync(path.dirname(out), { recursive: true });
+  fs.writeFileSync(
+    out,
+    `/** Gerado por prepare-www — ${stamp} */\nwindow.__FT_BUILD__=${JSON.stringify(stamp)};\n`,
+    'utf8'
+  );
+}
+
 function rmrf(dir) {
   if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true, force: true });
 }
@@ -99,6 +115,8 @@ if (fs.existsSync(firebaseEntry)) {
 } else {
   console.warn('prepare-www: firebase-entry.mjs em falta — skip ft-firebase.bundle.js');
 }
+
+writeBuildStamp();
 
 rmrf(www);
 fs.mkdirSync(www, { recursive: true });

@@ -450,6 +450,20 @@ html[data-theme="light"] .hist-row {
   display: none;
 }
 
+.tx-empty {
+  text-align: center;
+  padding: 24px 20px 8px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+.tx-empty.hidden {
+  display: none;
+}
+
+.tx-list.hidden {
+  display: none;
+}
+
 .hist-sr-only {
   position: absolute;
   width: 1px;

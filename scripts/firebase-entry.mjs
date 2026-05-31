@@ -37,6 +37,7 @@ import {
   orderBy,
   serverTimestamp,
 } from 'firebase/firestore';
+import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 
 function getCfg() {
@@ -53,6 +54,7 @@ function isConfigured(cfg) {
 let app = null;
 let auth = null;
 let db = null;
+let storage = null;
 let fns = null;
 let ready = false;
 
@@ -72,6 +74,11 @@ function init() {
       auth = getAuth(app);
     }
     db = getFirestore(app);
+    try {
+      storage = getStorage(app);
+    } catch (storageErr) {
+      storage = null;
+    }
     fns = getFunctions(app, 'southamerica-east1');
     ready = true;
     return true;
@@ -683,6 +690,31 @@ async function deleteTransaction(uid, txId) {
   await deleteDoc(doc(db, 'users', String(uid), 'transactions', String(txId)));
 }
 
+async function updateTransaction(uid, tx) {
+  if (!ready || !db) throw new Error('firebase_not_ready');
+  const txId = String(tx.id);
+  const payload = Object.assign({}, tx, { syncedAt: serverTimestamp() });
+  await setDoc(doc(db, 'users', String(uid), 'transactions', txId), payload, { merge: true });
+}
+
+async function uploadReceiptImage(uid, txId, dataUrl) {
+  if (!ready || !storage) throw new Error('storage_not_ready');
+  const path = 'receipts/' + String(uid) + '/' + String(txId) + '.jpg';
+  const storageRef = ref(storage, path);
+  await uploadString(storageRef, dataUrl, 'data_url');
+  return getDownloadURL(storageRef);
+}
+
+async function callAnalyzeReceipt(ocrText, imageBase64) {
+  if (!ready || !fns) throw new Error('firebase_not_ready');
+  const fn = httpsCallable(fns, 'analyzeReceipt');
+  const result = await fn({
+    ocrText: ocrText || '',
+    imageBase64: imageBase64 || '',
+  });
+  return result && result.data ? result.data : null;
+}
+
 function watchAuth(cb) {
   if (!ready || !auth) return function () {};
   return onAuthStateChanged(auth, cb);
@@ -722,8 +754,11 @@ const api = {
   generateOtpCode,
   callApplyPasswordReset,
   addTransaction,
+  updateTransaction,
   loadTransactions,
   deleteTransaction,
+  uploadReceiptImage,
+  callAnalyzeReceipt,
 };
 
 if (typeof window !== 'undefined') {

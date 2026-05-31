@@ -94,7 +94,11 @@
         ? '<span class="hist-install">' + inst + '</span>'
         : '<span class="hist-install hist-install--muted">À vista</span>';
       parts[i] =
-        '<li class="hist-row" role="listitem">' +
+        '<li class="hist-row" role="listitem" data-id="' +
+        esc(t.id) +
+        '" aria-label="' +
+        esc(t.location) +
+        ' — segure para ver relatório">' +
         '<div class="hist-row-icon" style="--hist-stroke:' +
         esc(meta.stroke) +
         '" aria-hidden="true">' +
@@ -119,6 +123,7 @@
         '<span class="hist-amt">' +
         esc(fmtBRL(t.amountCents)) +
         '</span>' +
+        (t.hasReceiptReport ? '<span class="hist-install" style="color:#818cf8">Nota</span>' : '') +
         instHtml +
         '</div>' +
         '</li>';
@@ -128,7 +133,7 @@
 
   function render() {
     if (typeof FTTransactions === 'undefined') return;
-    FTTransactions.seedIfEmpty();
+    FTTransactions.clearDemoSeeds();
     var all = FTTransactions.getAll();
     var opts = filterOptsFromUi();
     var filtered = FTTransactions.filterTransactions(all, opts);
@@ -204,6 +209,105 @@
   $('hist-month-input')?.addEventListener('change', render);
   $('hist-date-from')?.addEventListener('change', render);
   $('hist-date-to')?.addEventListener('change', render);
+
+  (function setupHistLongPress() {
+    var listEl = $('hist-list');
+    if (!listEl) return;
+
+    var pressTimer = null;
+    var pressTarget = null;
+    var pressStartX = 0;
+    var pressStartY = 0;
+
+    function haptic(type) {
+      if (navigator.vibrate) {
+        var p = { light: [8], medium: [18], strong: [30] };
+        navigator.vibrate(p[type] || [8]);
+      }
+    }
+
+    function cancelPress() {
+      if (pressTimer) {
+        clearTimeout(pressTimer);
+        pressTimer = null;
+      }
+      if (pressTarget) {
+        pressTarget.classList.remove('hist-row--pressing');
+        pressTarget = null;
+      }
+    }
+
+    function startPress(row, x, y) {
+      cancelPress();
+      pressTarget = row;
+      pressStartX = x;
+      pressStartY = y;
+      row.classList.add('hist-row--pressing');
+      pressTimer = setTimeout(function () {
+        pressTimer = null;
+        if (!pressTarget) return;
+        var id = pressTarget.getAttribute('data-id');
+        pressTarget.classList.remove('hist-row--pressing');
+        pressTarget = null;
+        if (id && typeof FTReceiptReport !== 'undefined') {
+          var tx = typeof FTTransactions !== 'undefined' ? FTTransactions.getById(id) : null;
+          if (tx && tx.hasReceiptReport) {
+            haptic('medium');
+            FTReceiptReport.open(id);
+          }
+        }
+      }, 500);
+    }
+
+    function onMove(x, y) {
+      if (!pressTimer || !pressTarget) return;
+      var dx = Math.abs(x - pressStartX);
+      var dy = Math.abs(y - pressStartY);
+      if (dx > 12 || dy > 12) cancelPress();
+    }
+
+    listEl.addEventListener('touchstart', function (e) {
+      var row = e.target.closest('.hist-row');
+      if (!row || !listEl.contains(row)) return;
+      var t = e.touches && e.touches[0];
+      if (!t) return;
+      startPress(row, t.clientX, t.clientY);
+    }, { passive: true });
+
+    listEl.addEventListener('touchmove', function (e) {
+      var t = e.touches && e.touches[0];
+      if (t) onMove(t.clientX, t.clientY);
+    }, { passive: true });
+
+    listEl.addEventListener('touchend', cancelPress, { passive: true });
+    listEl.addEventListener('touchcancel', cancelPress, { passive: true });
+
+    listEl.addEventListener('mousedown', function (e) {
+      if (e.button !== 0) return;
+      var row = e.target.closest('.hist-row');
+      if (!row || !listEl.contains(row)) return;
+      startPress(row, e.clientX, e.clientY);
+    });
+
+    listEl.addEventListener('mousemove', function (e) {
+      onMove(e.clientX, e.clientY);
+    });
+
+    listEl.addEventListener('mouseup', cancelPress);
+    listEl.addEventListener('mouseleave', cancelPress);
+  })();
+
+  window.__ftSyncHistory = render;
+
+  (function syncHistoryFromFirestore() {
+    var u = typeof FTSession !== 'undefined' ? FTSession.parseUser() : null;
+    if (!u || !u.uid) return;
+    if (typeof FTTransactions === 'undefined' || typeof FTTransactions.syncFromFirestore !== 'function') return;
+    FTTransactions.clearDemoSeeds();
+    FTTransactions.syncFromFirestore(u.uid).then(function () {
+      render();
+    });
+  })();
 
   render();
 })();

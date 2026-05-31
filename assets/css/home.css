@@ -166,7 +166,7 @@
 
 /* ── WALLET SECTION ─────────────────────────────────────────── */
 .wallet-section {
-  padding: 8px 0 10px;
+  padding: 12px 0 8px;
   animation: fadeSlideUp 0.6s var(--ease-spring) 0.2s both;
 }
 @keyframes fadeSlideUp {
@@ -174,15 +174,272 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Wallet outer ────────────────────────────────────────────── */
+/* ── Wallet summary card (referência: saldo + pill orçamento/gastos) ── */
 .wallet-outer {
   position: relative;
   margin: 0 22px;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
   touch-action: manipulation;
 }
+
+.wallet-summary {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 24px;
+  padding: 20px 16px 16px;
+  box-shadow:
+    0 10px 36px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+html[data-theme="light"] .wallet-summary {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+}
+
+.wallet-summary__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.wallet-summary__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.wallet-label-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.wallet-balance-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.72);
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+html[data-theme="light"] .wallet-balance-label {
+  color: var(--text-secondary);
+}
+
+.wallet-pct-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 22px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: rgba(255, 255, 255, 0.92);
+  color: #1a1f36;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.wallet-pct-pill--over {
+  background: rgba(255, 69, 58, 0.18);
+  color: #ff6b6b;
+  border-color: rgba(255, 69, 58, 0.35);
+}
+
+html[data-theme="light"] .wallet-pct-pill {
+  background: #fff;
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+.wallet-balance {
+  font-size: 34px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -1.2px;
+  line-height: 1.05;
+  margin: 0 0 6px;
+  transition: filter 0.3s, opacity 0.3s;
+}
+
+html[data-theme="light"] .wallet-balance {
+  color: var(--text-primary);
+}
+
+.wallet-balance.hidden {
+  filter: blur(8px);
+  opacity: 0.35;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.wallet-updated {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+html[data-theme="light"] .wallet-updated {
+  color: var(--text-secondary);
+}
+
+.wallet-ctrl-btn {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.65);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--duration), transform 180ms var(--ease-spring);
+  -webkit-tap-highlight-color: transparent;
+}
+.wallet-ctrl-btn:hover { background: rgba(255, 255, 255, 0.14); transform: scale(1.06); }
+.wallet-ctrl-btn:active { transform: scale(0.92); }
+
+/* Pill Orçamento | Gastos */
+.wallet-split-pill {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
+  align-items: stretch;
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: 14px 8px;
+  gap: 0;
+}
+
+html[data-theme="light"] .wallet-split-pill {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+.wallet-split-col {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 0 6px;
+  text-align: center;
+}
+
+.wallet-split-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+}
+
+.wallet-split-divider {
+  width: 1px;
+  align-self: stretch;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 4px 0;
+}
+
+html[data-theme="light"] .wallet-split-divider {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.wallet-split-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.wallet-split-icon--budget {
+  color: #7dd3fc;
+  background: rgba(56, 189, 248, 0.12);
+  border-color: rgba(56, 189, 248, 0.22);
+}
+
+.wallet-split-icon--expense {
+  color: #fca5a5;
+  background: rgba(248, 113, 113, 0.12);
+  border-color: rgba(248, 113, 113, 0.22);
+}
+
+.wallet-split-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.58);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+html[data-theme="light"] .wallet-split-label {
+  color: var(--text-secondary);
+}
+
+.wallet-split-value {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  font-size: clamp(13px, 3.6vw, 16px);
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.4px;
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+html[data-theme="light"] .wallet-split-value {
+  color: var(--text-primary);
+}
+
+.wallet-split-value.hidden {
+  filter: blur(6px);
+  opacity: 0.35;
+}
+
+@media (max-width: 360px) {
+  .wallet-split-pill {
+    padding: 12px 4px;
+  }
+  .wallet-split-col {
+    padding: 0 4px;
+    gap: 6px;
+  }
+  .wallet-split-head {
+    flex-direction: column;
+    gap: 4px;
+  }
+  .wallet-split-value {
+    font-size: clamp(12px, 3.4vw, 14px);
+  }
+}
+
+/* ── Legacy wallet peek (unused on home; kept for other pages if needed) ── */
 
 /* ── Cards stack (peek) ─────────────────────────────────────── */
 .cards-stack {
@@ -753,6 +1010,25 @@ html[data-theme="light"] .stat-trend.neutral {
 
 .home-scroll-spacer {
   height: 90px;
+}
+
+.home-tx-hint {
+  margin: 0 22px 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.35;
+}
+
+.file-preview-img {
+  max-width: 100%;
+  max-height: 160px;
+  border-radius: 12px;
+  object-fit: contain;
+  margin-top: 12px;
+}
+.file-preview-img.hidden {
+  display: none;
 }
 
 .entry-wrap--centered {

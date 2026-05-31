@@ -16,6 +16,10 @@
 
 .cards-display-section {
   margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 0;
 }
 
 .add-card-btn-top {
@@ -40,7 +44,8 @@
   height: 220px;
   position: relative;
   overflow: hidden;
-  padding-left: 22px; /* Active card sits here */
+  padding: 0 22px;
+  box-sizing: border-box;
 }
 
 .cards-track {
@@ -49,17 +54,19 @@
   position: relative;
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .cc-card {
   position: absolute;
-  width: 290px;
+  left: 50%;
+  width: min(290px, calc(100% - 8px));
   height: 180px;
   flex-shrink: 0;
   border-radius: 20px;
   transition: transform 0.4s var(--ease-spring), opacity 0.4s var(--ease-smooth);
   will-change: transform, opacity;
-  transform-origin: left center;
+  transform-origin: center center;
 }
 
 .cc-card-inner {
@@ -84,6 +91,24 @@
 }
 .cc-card--elo .cc-card-inner {
   --card-bg: linear-gradient(135deg, #1F2937, #111827);
+}
+.cc-card--other .cc-card-inner,
+.cc-card--amex .cc-card-inner {
+  --card-bg: linear-gradient(135deg, #6366f1, #4338ca);
+}
+
+/* Cartão placeholder (sem cadastro) */
+.cc-card--placeholder .cc-card-inner {
+  --card-bg: linear-gradient(135deg, rgba(99, 102, 241, 0.35), rgba(67, 56, 202, 0.25));
+  border: 2px dashed rgba(255, 255, 255, 0.22);
+  box-shadow: none;
+}
+.cc-card--placeholder .cc-card-inner::after {
+  display: none;
+}
+.cc-card--placeholder .cc-card-name--muted,
+.cc-card--placeholder .cc-card-number--muted {
+  opacity: 0.55;
 }
 
 /* Subtle gloss effect */
@@ -123,6 +148,27 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
+}
+.cc-card-brand {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  line-height: 0;
+  opacity: 0.95;
+}
+.cc-card-brand svg {
+  display: block;
+  max-height: 24px;
+  width: auto;
+}
+.cc-card-brand--badge svg {
+  max-height: 20px;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.18));
+}
+.cc-card--master .cc-card-brand svg {
+  max-height: 26px;
 }
 .cc-card-number {
   font-size: 16px;
@@ -135,10 +181,13 @@
 /* ── Card Details ───────────────────────────────────────────── */
 .cc-details-container {
   background: var(--bg-card);
-  margin: 0 22px;
+  margin: 20px 22px 0;
   border-radius: var(--radius-xl);
   border: 1px solid var(--border);
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  overflow: hidden;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .cc-details {
@@ -146,6 +195,8 @@
   flex-direction: column;
   padding: 20px;
   width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .cc-label {
@@ -160,7 +211,8 @@
   font-weight: 800;
   color: var(--text-primary);
   letter-spacing: -1px;
-  margin-bottom: 20px;
+  margin: 0 0 20px;
+  line-height: 1.1;
 }
 
 /* Limit Bar */
@@ -198,35 +250,55 @@
 /* Closing/Due Dates */
 .cc-dates {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
 }
 .cc-date-box {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  min-width: 0;
   background: rgba(255,255,255,0.04);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 10px 12px;
+  padding: 8px 10px;
+  box-sizing: border-box;
+  overflow: hidden;
 }
-.cc-date-icon { font-size: 18px; }
+.cc-date-icon {
+  flex-shrink: 0;
+  font-size: 16px;
+  line-height: 1;
+}
 .cc-date-icon--warning { color: var(--danger); }
 .cc-date-box div {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  gap: 1px;
 }
 .cc-date-lbl {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-secondary);
   font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .cc-date-val {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--text-primary);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Installments in transactions */
@@ -261,9 +333,75 @@
 .cards-dots {
   margin-top: 16px;
   margin-bottom: 24px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.card-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.card-dot.active {
+  background: var(--accent, #6c63ff);
+  transform: scale(1.15);
 }
 
 .cards-scroll-spacer {
   height: 100px;
 }
 
+/* ── Estado vazio (CTA abaixo do cartão placeholder) ── */
+.cards-empty-state {
+  text-align: center;
+  padding: 8px 24px 0;
+  margin: 0 0 4px;
+}
+
+.cards-empty-text {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.cards-empty-btn {
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+.cards-empty-state.hidden,
+.cc-details-container.hidden,
+.card-dots.hidden {
+  display: none;
+}
+
+/* Formulário novo cartão — datas da fatura */
+.cc-form-row2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 4px;
+}
+.cc-form-field {
+  min-width: 0;
+}
+.cc-field-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.3;
+}
+@media (max-width: 360px) {
+  .cc-form-row2 {
+    grid-template-columns: 1fr;
+  }
+}

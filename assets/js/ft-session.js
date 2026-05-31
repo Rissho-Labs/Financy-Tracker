@@ -81,10 +81,19 @@
   function clearAll() {
     localStorage.removeItem(KEY_USER);
     localStorage.removeItem(KEY_ONBOARD);
-    localStorage.removeItem('ft_transactions');
     localStorage.removeItem('ft_goals');
     localStorage.removeItem('ft_onboarding_goal_dismissed');
-    localStorage.removeItem('ft_cards');
+    if (global.FTStorage && typeof global.FTStorage.purgeEphemeral === 'function') {
+      global.FTStorage.purgeEphemeral();
+    } else {
+      localStorage.removeItem('ft_transactions');
+      localStorage.removeItem('ft_cards');
+      try {
+        sessionStorage.removeItem('ft_transactions');
+        sessionStorage.removeItem('ft_cards');
+        sessionStorage.removeItem('ft_app_session');
+      } catch (e) { /* ignore */ }
+    }
   }
 
   function logout() {
@@ -148,6 +157,9 @@
     else u.authProvider = 'password';
     if (opts.passwordDemo) u.passwordDemo = opts.passwordDemo;
     saveUser(u);
+    if (global.FTStorage && typeof global.FTStorage.purgeEphemeral === 'function') {
+      global.FTStorage.purgeEphemeral();
+    }
     if (global.FTAuth && FTAuth.recordLastLogin) {
       FTAuth.recordLastLogin(trimmed);
     }

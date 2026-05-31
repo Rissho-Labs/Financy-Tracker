@@ -1,0 +1,429 @@
+/* ── Relatório de nota (Exibir) + overlay de sucesso ── */
+
+.ft-success-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.35s ease, visibility 0.35s ease;
+  cursor: pointer;
+  padding: 24px;
+}
+
+.ft-success-overlay.ft-success-overlay--open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.ft-success-card {
+  text-align: center;
+  transform: scale(0.85);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+}
+
+.ft-success-overlay--open .ft-success-card {
+  transform: scale(1);
+}
+
+.ft-success-check {
+  width: 88px;
+  height: 88px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  background: rgba(48, 209, 88, 0.18);
+  border: 2px solid rgba(48, 209, 88, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #30d158;
+  animation: ftSuccessPop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+}
+
+.ft-success-check svg {
+  width: 44px;
+  height: 44px;
+  stroke-dasharray: 60;
+  stroke-dashoffset: 60;
+  animation: ftSuccessDraw 0.45s ease 0.35s forwards;
+}
+
+@keyframes ftSuccessPop {
+  from { transform: scale(0.4); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes ftSuccessDraw {
+  to { stroke-dashoffset: 0; }
+}
+
+.ft-success-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 8px;
+  letter-spacing: -0.3px;
+}
+
+.ft-success-hint {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.55);
+  margin: 0;
+}
+
+/* ── Modal Relatório (compacto + scroll interno) ── */
+.receipt-report-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(12px, env(safe-area-inset-top)) 14px max(12px, env(safe-area-inset-bottom));
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.28s ease, visibility 0.28s ease;
+}
+
+.receipt-report-modal--open {
+  pointer-events: auto;
+  visibility: visible;
+  opacity: 1;
+}
+
+body.receipt-report-open {
+  overflow: hidden;
+}
+
+.receipt-report-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.receipt-report-dialog {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  max-height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  max-height: calc(100vh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-elevated, #14141c);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  transform: scale(0.94) translateY(8px);
+  transition: transform 0.32s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+
+.receipt-report-modal--open .receipt-report-dialog {
+  transform: scale(1) translateY(0);
+}
+
+.receipt-report-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.receipt-report-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--text-primary, #fff);
+}
+
+.receipt-report-close-x {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary, #fff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.receipt-report-close-x:active {
+  transform: scale(0.92);
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.receipt-report-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.receipt-report-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px 16px 18px;
+}
+
+.receipt-attachment-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.receipt-attachment-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.receipt-photo-wrap {
+  width: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  max-height: 200px;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.receipt-photo-wrap img {
+  width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.receipt-photo-wrap--empty {
+  cursor: default;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 13px;
+}
+
+.receipt-photo-zoom-hint {
+  position: absolute;
+  bottom: 8px;
+  right: 10px;
+  font-size: 11px;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 4px 8px;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.8);
+  pointer-events: none;
+}
+
+.receipt-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.receipt-field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.receipt-field input,
+.receipt-field select {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary, #fff);
+  font-size: 15px;
+  font-family: inherit;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.receipt-field input:disabled,
+.receipt-field select:disabled {
+  opacity: 1;
+  cursor: default;
+  -webkit-text-fill-color: var(--text-primary, #fff);
+}
+
+.receipt-field input.receipt-input--filled,
+.receipt-field select.receipt-input--filled {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.receipt-field input:not(:disabled):focus,
+.receipt-field select:not(:disabled):focus {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(108, 99, 255, 0.5);
+  outline: none;
+}
+
+.receipt-field input.receipt-input--empty:not(:focus),
+.receipt-field select.receipt-input--empty:not(:focus) {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.receipt-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.receipt-actions .tx-add-btn {
+  flex: 1;
+}
+
+.receipt-btn-edit {
+  flex: 1;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary, #fff);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.receipt-btn-edit:active {
+  transform: scale(0.98);
+}
+
+.receipt-installments-row.hidden {
+  display: none;
+}
+
+/* Lightbox foto */
+.receipt-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+  cursor: zoom-out;
+}
+
+.receipt-lightbox--open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.receipt-lightbox img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.tx-item.tx-item--has-receipt {
+  cursor: pointer;
+}
+
+.tx-item .tx-receipt-badge {
+  font-size: 10px;
+  color: rgba(129, 140, 248, 0.9);
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+.hist-row {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.hist-row.hist-row--pressing {
+  background: rgba(255, 255, 255, 0.06);
+  transform: scale(0.985);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.tx-item.tx-item--pressing {
+  background: rgba(255, 255, 255, 0.07);
+  transform: scale(0.985);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.home-tx-hint.hidden {
+  display: none;
+}
+
+.hist-hold-hint {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.28);
+  text-align: center;
+  margin: -8px 0 12px;
+  padding: 0 16px;
+}
+
+html[data-theme="light"] .receipt-report-dialog {
+  background: #fff;
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+html[data-theme="light"] .receipt-report-header {
+  border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+
+html[data-theme="light"] .receipt-report-close-x {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+html[data-theme="light"] .receipt-attachment-section {
+  border-top-color: rgba(0, 0, 0, 0.06);
+}
+
+html[data-theme="light"] .receipt-field input,
+html[data-theme="light"] .receipt-field select {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+html[data-theme="light"] .receipt-field input.receipt-input--filled,
+html[data-theme="light"] .receipt-field select.receipt-input--filled {
+  background: rgba(0, 0, 0, 0.07);
+}
+
+html[data-theme="light"] .receipt-field input.receipt-input--empty:not(:focus),
+html[data-theme="light"] .receipt-field select.receipt-input--empty:not(:focus) {
+  background: rgba(0, 0, 0, 0.03);
+}
