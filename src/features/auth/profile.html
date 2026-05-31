@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="/shared/css/ft-sheet-layout.css" />
   <link rel="stylesheet" href="/features/transactions/home.css" />
   <link rel="stylesheet" href="/features/auth/profile.css" />
+  <link rel="stylesheet" href="/features/auth/profile-friends.css" />
   <link rel="stylesheet" href="/features/goals/goals.css" />
   <script src="/core/ft-theme.js"></script>
   <script src="/core/ft-build.js"></script>
@@ -86,12 +87,16 @@
           </div>
         </div>
 
-        <div class="profile-actions">
-          <button class="p-action-btn" id="share-link-btn">
+        <div class="profile-actions profile-actions--three">
+          <button type="button" class="p-action-btn" id="share-link-btn">
             <div class="p-action-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></div>
             <span>Compartilhar</span>
           </button>
-          <button class="p-action-btn qr-btn" id="show-qr-btn">
+          <button type="button" class="p-action-btn" id="friends-btn">
+            <div class="p-action-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+            <span>Amigos</span>
+          </button>
+          <button type="button" class="p-action-btn qr-btn" id="show-qr-btn">
             <div class="p-action-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
             <span>QR Code</span>
           </button>
@@ -188,6 +193,48 @@
       </button>
     </nav>
 
+    <!-- Amigos: lista -->
+    <div id="friends-modal" class="ft-sheet friends-sheet" aria-hidden="true">
+      <div class="ft-sheet__backdrop" data-close="friends-modal" aria-hidden="true"></div>
+      <div class="ft-sheet__panel ft-form-sheet friends-sheet__panel" role="dialog" aria-labelledby="friends-modal-title">
+        <div class="ft-sheet__handle" aria-hidden="true"></div>
+        <div class="friends-sheet__head">
+          <h2 id="friends-modal-title" class="ft-sheet__title">Amigos</h2>
+          <span id="friends-count" class="friends-count" aria-live="polite">0</span>
+        </div>
+        <div class="friends-toolbar">
+          <input type="search" id="friends-filter" class="friends-search" placeholder="Buscar amigos…" autocomplete="off" aria-label="Buscar na lista de amigos" />
+          <button type="button" class="friends-add-btn" id="friends-add-btn" aria-label="Adicionar amigo">+</button>
+        </div>
+        <p id="friends-empty" class="friends-empty">Você ainda não tem amigos aqui</p>
+        <ul id="friends-list" class="friends-list" hidden aria-label="Lista de amigos"></ul>
+      </div>
+    </div>
+
+    <!-- Buscar usuários para adicionar -->
+    <div id="friend-search-modal" class="ft-sheet friend-search-sheet" aria-hidden="true">
+      <div class="ft-sheet__backdrop" data-close="friend-search-modal" aria-hidden="true"></div>
+      <div class="ft-sheet__panel ft-form-sheet friend-search-sheet__panel" role="dialog" aria-labelledby="friend-search-title">
+        <div class="ft-sheet__handle" aria-hidden="true"></div>
+        <h2 id="friend-search-title" class="ft-sheet__title">Adicionar amigo</h2>
+        <input type="search" id="friend-search-query" class="friends-search" placeholder="Nome, @usuário ou #id" autocomplete="off" aria-label="Buscar usuários" />
+        <p id="friend-search-empty" class="friend-search-empty">Digite um nome, @usuário ou #id para buscar.</p>
+        <ul id="friend-search-results" class="friend-search-results" aria-label="Resultados da busca"></ul>
+        <button type="button" class="ft-sheet__close friend-profile-close" id="friend-search-close">Fechar</button>
+      </div>
+    </div>
+
+    <!-- Resumo do perfil do amigo -->
+    <div id="friend-profile-modal" class="ft-sheet friend-profile-sheet" aria-hidden="true">
+      <div class="ft-sheet__backdrop" data-close="friend-profile-modal" aria-hidden="true"></div>
+      <div class="ft-sheet__panel ft-form-sheet friend-profile-sheet__panel" role="dialog" aria-labelledby="friend-profile-title">
+        <div class="ft-sheet__handle" aria-hidden="true"></div>
+        <h2 id="friend-profile-title" class="ft-sheet__title">Perfil</h2>
+        <div id="friend-profile-body"></div>
+        <button type="button" class="ft-sheet__close friend-profile-close" id="friend-profile-close">Fechar</button>
+      </div>
+    </div>
+
     <div id="pw-modal" class="ft-sheet" aria-hidden="true">
       <div class="ft-sheet__backdrop"></div>
       <div class="ft-sheet__panel ft-form-sheet" role="dialog" aria-labelledby="pw-modal-title">
@@ -214,6 +261,8 @@
   <script src="/core/ft-session.js"></script>
   <script src="/shared/js/notification-panel.js"></script>
   <script src="/shared/js/ft-bottom-nav.js"></script>
+  <script src="/features/auth/ft-friends.js"></script>
+  <script src="/features/auth/profile-friends.js"></script>
   <script src="/features/auth/profile.js"></script>
 </body>
 </html>

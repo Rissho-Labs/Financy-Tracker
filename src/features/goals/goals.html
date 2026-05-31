@@ -35,9 +35,9 @@
     </div>
     <div class="dynamic-island" aria-hidden="true"></div>
 
-    <header class="home-header" style="border-bottom:none;background:transparent;">
+    <header class="home-header goals-page-header" style="border-bottom:none;background:transparent;">
       <div class="header-left">
-        <h1 class="user-name" style="font-size:26px;">Metas</h1>
+        <h1 class="user-name">Metas</h1>
       </div>
       <div class="header-right">
         <button type="button" class="notification-btn" id="notification-btn" aria-label="Avisos">
@@ -52,12 +52,24 @@
 
       <section class="goal-new-card" aria-label="Nova meta">
         <h3>Nova meta</h3>
-        <form id="goal-add-form">
-          <div class="tx-field"><label for="g-name">Nome</label><input id="g-name" required maxlength="80" placeholder="Ex.: Reserva de emergência" /></div>
-          <div class="tx-field"><label for="g-val">Valor alvo (R$)</label><input id="g-val" inputmode="decimal" required placeholder="0,00" class="goal-input-value" /></div>
+        <form id="goal-add-form" class="goal-add-form">
+          <div class="tx-field">
+            <label for="g-name">Nome</label>
+            <input id="g-name" required maxlength="80" placeholder="Ex.: Reserva de emergência" autocomplete="off" />
+          </div>
+          <div class="tx-field">
+            <label for="g-val">Valor alvo (R$)</label>
+            <input id="g-val" class="goal-input-value" inputmode="decimal" required placeholder="0,00" autocomplete="off" />
+          </div>
           <div class="goal-row2 goal-date-row">
-            <div class="tx-field"><label for="g-start">Início</label><input id="g-start" type="date" required class="goal-input-date" /></div>
-            <div class="tx-field"><label for="g-end">Conclusão</label><input id="g-end" type="date" required class="goal-input-date" /></div>
+            <div class="tx-field">
+              <label for="g-start">Início</label>
+              <input id="g-start" class="goal-input-date" type="date" required />
+            </div>
+            <div class="tx-field">
+              <label for="g-end">Conclusão</label>
+              <input id="g-end" class="goal-input-date" type="date" required />
+            </div>
           </div>
           <button type="submit" class="goal-submit">Incluir meta</button>
         </form>
@@ -65,7 +77,7 @@
 
       <section id="goals-list-section" aria-label="Suas metas"></section>
 
-      <div style="height:90px" aria-hidden="true"></div>
+      <div class="goal-scroll-spacer" aria-hidden="true"></div>
     </div>
 
     <nav class="bottom-nav" aria-label="Navegação principal">

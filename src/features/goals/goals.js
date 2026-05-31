@@ -48,7 +48,7 @@
     const goals = FTGoals.getAll();
     if (!goals.length) {
       host.innerHTML =
-        '<p class="goals-intro" style="padding-top:8px;">Nenhuma meta ainda — use o formulário acima.</p>';
+        '<p class="goals-intro goals-intro--empty">Nenhuma meta ainda — use o formulário acima.</p>';
       return;
     }
     host.innerHTML = goals
@@ -108,22 +108,21 @@
     const startVal = g.start && g.start.length >= 10 ? g.start.slice(0, 10) : '';
     const endVal = g.end && g.end.length >= 10 ? g.end.slice(0, 10) : '';
     root.innerHTML =
-      '<div class="goal-edit-backdrop open" id="ged-bk"><div class="goal-edit-modal" role="dialog">' +
-      '<h2 style="margin:0 0 12px;font-size:18px;">Editar meta</h2>' +
-      '<div class="tx-field"><label>Nome</label><input id="ged-name" value="' +
+      '<div class="goal-edit-backdrop open" id="ged-bk"><div class="goal-edit-modal" role="dialog" aria-labelledby="ged-title">' +
+      '<h2 class="goal-edit-modal__title" id="ged-title">Editar meta</h2>' +
+      '<div class="tx-field"><label for="ged-name">Nome</label><input id="ged-name" value="' +
       String(g.name).replace(/"/g, '&quot;') +
-      '" /></div>' +
-      '<div class="tx-field"><label>Valor alvo (R$)</label><input id="ged-val" value="' +
+      '" autocomplete="off" /></div>' +
+      '<div class="tx-field"><label for="ged-val">Valor alvo (R$)</label><input id="ged-val" class="goal-input-value" value="' +
       (g.targetCents / 100).toFixed(2).replace('.', ',') +
-      '" inputmode="decimal" /></div>' +
-      '<div class="goal-row2"><div class="tx-field"><label>Início</label><input id="ged-start" type="date" value="' +
+      '" inputmode="decimal" autocomplete="off" /></div>' +
+      '<div class="goal-row2 goal-date-row"><div class="tx-field"><label for="ged-start">Início</label><input id="ged-start" class="goal-input-date" type="date" value="' +
       startVal +
-      '" /></div>' +
-      '<div class="tx-field"><label>Conclusão</label><input id="ged-end" type="date" value="' +
+      '" /></div><div class="tx-field"><label for="ged-end">Conclusão</label><input id="ged-end" class="goal-input-date" type="date" value="' +
       endVal +
       '" /></div></div>' +
       '<button type="button" class="goal-submit" id="ged-save">Salvar</button>' +
-      '<button type="button" class="ft-sheet__close" style="margin-top:10px" id="ged-cancel">Cancelar</button>' +
+      '<button type="button" class="ft-sheet__close" id="ged-cancel">Cancelar</button>' +
       '</div></div>';
     const close = () => {
       root.innerHTML = '';

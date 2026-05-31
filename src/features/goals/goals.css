@@ -1,166 +1,316 @@
-.goals-intro {
-  padding: 0 20px 16px;
-  font-size: 14px;
-  color: var(--text-secondary);
-  line-height: 1.45;
+/**
+ * Metas — espaçamento e formulários
+ * @author Rickson.Hirata
+ */
+
+/* ── Página ─────────────────────────────────────────────────── */
+.goals-page-header .user-name {
+  font-size: 26px;
 }
 
-.goal-card {
-  margin: 0 20px 12px;
-  padding: 16px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+.goals-intro {
+  margin: 0;
+  padding: var(--space-sm) 20px var(--space-md);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-secondary);
 }
+
+#goals-list-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding-bottom: var(--space-sm);
+}
+
+.goals-intro--empty {
+  padding-top: var(--space-sm);
+  text-align: center;
+}
+
+.goal-scroll-spacer {
+  height: 96px;
+  flex-shrink: 0;
+}
+
+/* ── Campos (padrão tx-field + tokens) ────────────────────────── */
+.goal-new-card .tx-field,
+.goal-edit-modal .tx-field,
+#goal-edit-root .tx-field {
+  margin: 0;
+}
+
+.goal-new-card .tx-field + .tx-field,
+.goal-edit-modal .tx-field + .tx-field,
+#goal-edit-root .tx-field + .tx-field {
+  margin-top: var(--space-md);
+}
+
+/* Campos lado a lado: sem margem extra no 2º (evita desalinhar Início/Conclusão) */
+.goal-row2 .tx-field + .tx-field {
+  margin-top: 0;
+}
+
+.goal-new-card .tx-field label,
+.goal-edit-modal .tx-field label,
+#goal-edit-root .tx-field label {
+  display: block;
+  margin: 0 0 var(--space-sm);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+  color: var(--text-secondary);
+}
+
+.goal-new-card .tx-field input,
+.goal-edit-modal .tx-field input,
+#goal-edit-root .tx-field input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.22);
+  color: var(--text-primary);
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.35;
+  transition:
+    border-color var(--duration) var(--ease-smooth),
+    box-shadow var(--duration) var(--ease-smooth);
+}
+
+.goal-new-card .tx-field input:focus,
+.goal-edit-modal .tx-field input:focus,
+#goal-edit-root .tx-field input:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--neon-blue-dim);
+}
+
+html[data-theme="light"] .goal-new-card .tx-field input,
+html[data-theme="light"] .goal-edit-modal .tx-field input,
+html[data-theme="light"] #goal-edit-root .tx-field input {
+  background: #fff;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.goal-new-card input.goal-input-value,
+.goal-edit-modal input#ged-val {
+  min-height: 48px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.goal-new-card input.goal-input-date,
+.goal-edit-modal input[type="date"],
+#goal-edit-root input[type="date"] {
+  min-height: 44px;
+  font-size: 15px;
+  color-scheme: dark;
+}
+
+html[data-theme="light"] .goal-new-card input.goal-input-date,
+html[data-theme="light"] .goal-edit-modal input[type="date"],
+html[data-theme="light"] #goal-edit-root input[type="date"] {
+  color-scheme: light;
+}
+
+.goal-new-card input.goal-input-date::-webkit-calendar-picker-indicator,
+.goal-edit-modal input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+/* ── Card: nova meta ─────────────────────────────────────────── */
+.goal-new-card {
+  margin: 0 20px var(--space-lg);
+  padding: var(--space-md) var(--space-md) var(--space-lg);
+  border-radius: var(--radius-md);
+  border: 1px dashed rgba(0, 240, 255, 0.35);
+  background: var(--neon-blue-dim);
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.goal-new-card h3 {
+  margin: 0 0 var(--space-md);
+  padding: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text-primary);
+}
+
+#goal-add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.goal-row2,
+.goal-edit-modal .goal-row2,
+#goal-edit-root .goal-row2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: var(--space-md);
+  width: 100%;
+  margin-top: var(--space-md);
+  box-sizing: border-box;
+}
+
+.goal-date-row .tx-field {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+}
+
+/* Mesma altura de rótulo → inputs na mesma linha (Conclusão pode quebrar em telas estreitas) */
+.goal-date-row .tx-field label {
+  display: flex;
+  align-items: flex-end;
+  min-height: 2.6em;
+  margin-bottom: var(--space-sm);
+}
+
+.goal-submit {
+  width: 100%;
+  margin-top: var(--space-lg);
+  padding: 14px var(--space-md);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 700;
+  font-family: var(--font);
+  line-height: 1.2;
+  cursor: pointer;
+  color: #0a0a0f;
+  background: linear-gradient(135deg, var(--neon-green), var(--neon-blue));
+  box-shadow: var(--shadow-btn);
+  transition: transform var(--duration) var(--ease-spring);
+}
+
+.goal-submit:active {
+  transform: scale(0.98);
+}
+
+/* ── Cards da lista ─────────────────────────────────────────── */
+.goal-card {
+  margin: 0 20px;
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-sizing: border-box;
+}
+
 html[data-theme="light"] .goal-card {
   background: #fff;
   border-color: rgba(0, 0, 0, 0.08);
 }
+
 .goal-card__top {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 12px;
+  gap: var(--space-md);
 }
+
+.goal-card__top > div:first-child {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.goal-card__badge {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  color: var(--text-placeholder);
+}
+
 .goal-card__title {
+  margin: 0;
   font-size: 16px;
   font-weight: 700;
-  margin: 0 0 4px;
+  line-height: 1.35;
+  color: var(--text-primary);
 }
+
 .goal-card__meta {
+  margin: 0;
   font-size: 12px;
+  line-height: 1.45;
   color: var(--text-secondary);
 }
+
 .goal-card__amt {
+  flex-shrink: 0;
+  margin: 0;
+  padding-top: 2px;
   font-size: 15px;
   font-weight: 700;
-  color: var(--accent);
+  line-height: 1.3;
+  text-align: right;
+  color: var(--neon-green);
 }
+
 .goal-card__actions {
   display: flex;
-  gap: 8px;
-  margin-top: 12px;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border);
 }
+
 .goal-card__actions button {
   flex: 1;
-  padding: 10px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  margin: 0;
+  padding: 10px var(--space-sm);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.06);
   color: var(--text-primary);
   font-size: 13px;
   font-weight: 600;
-  font-family: inherit;
+  font-family: var(--font);
+  line-height: 1.2;
   cursor: pointer;
-}
-.goal-card__badge {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-placeholder);
+  transition: background var(--duration) var(--ease-smooth);
 }
 
-.goal-new-card {
-  margin: 0 20px 24px;
-  padding: 16px;
-  border-radius: 16px;
-  border: 1px dashed rgba(108, 99, 255, 0.35);
-  background: rgba(108, 99, 255, 0.06);
-  min-width: 0;
-  max-width: 100%;
-  box-sizing: border-box;
-}
-.goal-new-card h3 {
-  margin: 0 0 12px;
-  font-size: 15px;
-}
-.goal-new-card .tx-field {
-  margin-bottom: 10px;
-}
-.goal-new-card input {
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(0, 0, 0, 0.2);
-  color: var(--text-primary);
-  font-family: inherit;
-}
-.goal-new-card input.goal-input-value {
-  min-height: 48px;
-  padding: 14px 12px;
-  font-size: 16px;
-}
-.goal-new-card input.goal-input-date {
-  min-height: 44px;
-  padding: 12px 10px;
-  font-size: 16px;
-  color-scheme: dark;
-}
-html[data-theme="light"] .goal-new-card input.goal-input-date {
-  color-scheme: light;
-}
-.goal-new-card input.goal-input-date::-webkit-calendar-picker-indicator {
-  cursor: pointer;
-  opacity: 0.75;
-}
-html[data-theme="light"] .goal-new-card input {
-  background: #fff;
-  border-color: rgba(0, 0, 0, 0.1);
-}
-.goal-new-card .goal-row2,
-.goal-edit-modal .goal-row2 {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-}
-.goal-date-row .tx-field {
-  min-width: 0;
-  max-width: 100%;
-}
-@media (max-width: 360px) {
-  .goal-date-row {
-    grid-template-columns: 1fr;
-  }
-  .goal-edit-modal .goal-row2 {
-    grid-template-columns: 1fr;
-  }
-  .goal-new-card {
-    margin-left: 12px;
-    margin-right: 12px;
-  }
-}
-.goal-submit {
-  width: 100%;
-  margin-top: 12px;
-  padding: 14px;
-  border: none;
-  border-radius: 14px;
-  font-weight: 700;
-  font-family: inherit;
-  cursor: pointer;
-  color: #fff;
-  background: linear-gradient(135deg, #6c63ff, #3b82f6);
+.goal-card__actions button:active {
+  background: rgba(255, 255, 255, 0.12);
 }
 
-/* Same sizing model as .ft-sheet__panel: max-height + overflow; centered 90% like mobile dialog */
+html[data-theme="light"] .goal-card__actions button {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* ── Modal editar ─────────────────────────────────────────────── */
 .goal-edit-backdrop {
   position: absolute;
   inset: 0;
   z-index: 9990;
-  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: max(12px, env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px))
     max(12px, env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px));
   box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.55);
   visibility: hidden;
   opacity: 0;
   pointer-events: none;
@@ -168,66 +318,69 @@ html[data-theme="light"] .goal-new-card input {
     opacity 0.22s var(--ease-smooth),
     visibility 0s linear 0.23s;
 }
+
 .goal-edit-backdrop.open {
   visibility: visible;
   opacity: 1;
   pointer-events: auto;
   transition-delay: 0s;
 }
+
 .goal-edit-modal {
-  width: 90%;
-  max-width: min(100vw, 100%);
-  margin: auto;
+  width: min(100%, 340px);
   max-height: min(78vh, calc(100dvh - 32px));
+  margin: auto;
+  padding: var(--space-lg) var(--space-md);
+  padding-bottom: calc(var(--space-lg) + env(safe-area-inset-bottom, 0px));
   overflow: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  background: rgba(18, 18, 28, 0.98);
-  border-radius: 20px;
-  padding: 20px;
-  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0));
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-sizing: border-box;
-  min-width: 0;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
+  gap: 0;
+  box-sizing: border-box;
+  background: rgba(18, 18, 28, 0.98);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
 }
+
 html[data-theme="light"] .goal-edit-modal {
   background: #fff;
 }
 
-.goal-edit-modal .tx-field {
-  margin-bottom: 10px;
-}
-.goal-edit-modal input {
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(0, 0, 0, 0.2);
+.goal-edit-modal__title {
+  margin: 0 0 var(--space-md);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
   color: var(--text-primary);
-  font-family: inherit;
 }
-.goal-edit-modal input#ged-val {
-  min-height: 48px;
-  padding: 14px 12px;
-  font-size: 16px;
+
+.goal-edit-modal .goal-submit {
+  margin-top: var(--space-lg);
 }
-.goal-edit-modal input[type="date"] {
-  min-height: 44px;
-  padding: 12px 10px;
-  font-size: 16px;
-  color-scheme: dark;
+
+.goal-edit-modal .ft-sheet__close {
+  margin-top: var(--space-sm);
 }
-html[data-theme="light"] .goal-edit-modal input[type="date"] {
-  color-scheme: light;
-}
-html[data-theme="light"] .goal-edit-modal input {
-  background: #fff;
-  border-color: rgba(0, 0, 0, 0.1);
+
+/* ── Responsivo ───────────────────────────────────────────────── */
+@media (max-width: 360px) {
+  .goal-row2,
+  .goal-edit-modal .goal-row2 {
+    grid-template-columns: 1fr;
+  }
+
+  .goal-new-card,
+  .goal-card {
+    margin-left: 12px;
+    margin-right: 12px;
+  }
+
+  .goals-intro {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
 }

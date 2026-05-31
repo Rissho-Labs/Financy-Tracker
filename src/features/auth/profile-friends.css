@@ -1,0 +1,394 @@
+/* ── Amigos: botão + modais ─────────────────────────────────── */
+
+.profile-actions--three .p-action-btn {
+  padding: 12px 8px;
+  font-size: 12px;
+}
+
+.profile-actions--three .p-action-icon {
+  width: 36px;
+  height: 36px;
+}
+
+/* Lista de amigos (sheet) */
+.friends-sheet__panel {
+  display: flex;
+  flex-direction: column;
+  max-height: min(82vh, 640px);
+}
+
+.friends-sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.friends-sheet__head .ft-sheet__title {
+  margin: 0;
+  flex: 1;
+}
+
+.friends-count {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--neon-blue);
+  background: var(--neon-blue-dim);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+}
+
+.friends-toolbar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.friends-search {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.22);
+  color: var(--text-primary);
+  font-family: var(--font);
+  font-size: 15px;
+}
+
+html[data-theme="light"] .friends-search {
+  background: #fff;
+}
+
+.friends-search::placeholder {
+  color: var(--text-placeholder);
+}
+
+.friends-search:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--neon-blue-dim);
+}
+
+.friends-add-btn {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--neon-green), var(--neon-blue));
+  color: #0a0a0f;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: var(--shadow-btn);
+  transition: transform var(--duration) var(--ease-spring);
+}
+
+.friends-add-btn:active {
+  transform: scale(0.94);
+}
+
+.friends-empty {
+  margin: 24px 0 8px;
+  padding: 20px 12px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.friends-empty[hidden],
+.friends-list[hidden] {
+  display: none !important;
+}
+
+.friends-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.friend-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+html[data-theme="light"] .friend-row {
+  background: #fff;
+}
+
+.friend-row__avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+}
+
+.friend-row__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.friend-row__name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.friend-row__tag {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.friend-row__disc {
+  font-weight: 600;
+  margin-left: 2px;
+}
+
+.friend-row__view {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--duration), transform 180ms var(--ease-spring);
+}
+
+.friend-row__view:active {
+  transform: scale(0.92);
+}
+
+/* Buscar usuários */
+.friend-search-sheet__panel .friends-search {
+  margin-bottom: 12px;
+}
+
+.friend-search-results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.friend-search-empty {
+  margin: 16px 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.friend-search-empty[hidden] {
+  display: none !important;
+}
+
+.friend-search-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.friend-search-row__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.friend-search-add {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font);
+  cursor: pointer;
+  color: #0a0a0f;
+  background: var(--neon-green);
+}
+
+.friend-search-add:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Perfil do amigo */
+#friend-profile-modal {
+  z-index: 10070;
+}
+
+#friend-search-modal {
+  z-index: 10060;
+}
+
+#friends-modal {
+  z-index: 10050;
+}
+
+.friend-profile-sheet__panel {
+  max-height: min(85vh, 680px);
+}
+
+.friend-profile-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 8px 0 16px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+
+.friend-profile-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.friend-profile-name {
+  margin: 0 0 6px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.friend-profile-handle {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.friend-profile-since {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: var(--text-placeholder);
+}
+
+.friend-profile-bio {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  max-width: 280px;
+}
+
+.friend-profile-section-title {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+}
+
+.friend-splits-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.friend-split-card {
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.friend-split-card__title {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.friend-split-card__meta {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.friend-split-card__amount {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--neon-green);
+}
+
+.friend-split-card__people {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-placeholder);
+}
+
+.friend-split-card__people strong {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.friend-splits-empty {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.friend-profile-close {
+  margin-top: 16px;
+}
