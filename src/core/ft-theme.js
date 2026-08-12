@@ -1,6 +1,14 @@
 (function () {
   'use strict';
 
+  /* Troca de aba: evita re-animar o phone-frame (efeito de “pulo” no desktop) */
+  try {
+    if (sessionStorage.getItem('ft-tab-nav')) {
+      document.documentElement.classList.add('ft-instant-enter');
+      sessionStorage.removeItem('ft-tab-nav');
+    }
+  } catch (e) { /* ignore */ }
+
   var KEY = 'ft_theme';
 
   function get() {
@@ -17,7 +25,12 @@
     var m = get();
     document.documentElement.setAttribute('data-theme', m);
     var meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', m === 'light' ? '#f4f4f8' : '#0a0a0f');
+    if (meta) {
+      var ios = document.documentElement.classList.contains('ft-ios');
+      var dark = ios ? '#0c0c0e' : '#0e0e14';
+      var light = ios ? '#f2f2f7' : '#e8e8ee';
+      meta.setAttribute('content', m === 'light' ? light : dark);
+    }
   }
 
   function syncToggle() {

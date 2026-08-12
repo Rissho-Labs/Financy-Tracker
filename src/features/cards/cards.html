@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="ft-cards ft-ios">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#0a0a0f" />
+  <meta name="theme-color" content="#0c0c0e" />
   <meta name="description" content="Finance Tracker — Cartões de Crédito." />
   <title>Finance Tracker — Cartões</title>
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/styles/tokens.css" />
   <link rel="stylesheet" href="/styles/reset.css" />
   <link rel="stylesheet" href="/styles/global.css" />
@@ -76,38 +76,40 @@
           <button type="button" class="tx-add-btn cards-empty-btn" id="cc-add-first-btn">Cadastrar primeiro cartão</button>
         </div>
 
-        <!-- Card details body -->
-        <div class="cc-details-container" id="cc-details-wrap">
-          <div class="cc-details">
-            <p class="cc-label">Fatura Atual</p>
-            <h2 class="cc-amount" id="cc-invoice-amount">R$ 0,00</h2>
-            
-            <!-- Available Limit Bar -->
-            <div class="cc-limit-wrap">
-              <div class="cc-limit-text">
-                <span>Limite disponível</span>
-                <span class="cc-limit-val" id="cc-limit-available">—</span>
-              </div>
-              <div class="cc-limit-bar-bg">
-                <div class="cc-limit-bar-fill" id="cc-limit-fill"></div>
+        <div class="cc-bento" id="cc-details-wrap">
+          <div class="cc-details-container">
+            <div class="cc-details">
+              <p class="cc-label">Fatura atual</p>
+              <h2 class="cc-amount" id="cc-invoice-amount">R$ 0,00</h2>
+              <div class="cc-limit-wrap">
+                <div class="cc-limit-text">
+                  <span>Limite disponível</span>
+                  <span class="cc-limit-val" id="cc-limit-available">—</span>
+                </div>
+                <div class="cc-limit-bar-bg">
+                  <div class="cc-limit-bar-fill" id="cc-limit-fill"></div>
+                </div>
               </div>
             </div>
+          </div>
 
-            <!-- Dates -->
-            <div class="cc-dates">
-              <div class="cc-date-box">
-                <span class="cc-date-icon">📅</span>
-                <div>
-                  <span class="cc-date-lbl">Fechamento</span>
-                  <span class="cc-date-val" id="cc-close-date-val">—</span>
-                </div>
+          <div class="cc-dates" role="group" aria-label="Datas da fatura">
+            <div class="cc-date-box">
+              <span class="cc-date-icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              </span>
+              <div>
+                <span class="cc-date-lbl">Fechamento</span>
+                <span class="cc-date-val" id="cc-close-date-val">—</span>
               </div>
-              <div class="cc-date-box">
-                <span class="cc-date-icon cc-date-icon--warning">⚠️</span>
-                <div>
-                  <span class="cc-date-lbl">Vencimento</span>
-                  <span class="cc-date-val" id="cc-due-date-val">—</span>
-                </div>
+            </div>
+            <div class="cc-date-box">
+              <span class="cc-date-icon cc-date-icon--warning" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </span>
+              <div>
+                <span class="cc-date-lbl">Vencimento</span>
+                <span class="cc-date-val" id="cc-due-date-val">—</span>
               </div>
             </div>
           </div>

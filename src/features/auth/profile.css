@@ -38,11 +38,11 @@
   width: 90px;
   height: 90px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  background: var(--accent-metal);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 24px rgba(108, 99, 255, 0.3);
+  box-shadow: var(--shadow-btn);
   border: 3px solid var(--bg-card);
 }
 
@@ -85,8 +85,8 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--sheen), linear-gradient(165deg, rgba(68, 68, 76, 0.32) 0%, rgba(28, 28, 34, 0.68) 100%);
+  border: 1px solid var(--border-bright);
   padding: 6px 14px;
   border-radius: 20px;
   cursor: pointer;
@@ -97,7 +97,7 @@
 
 .profile-tag-wrap:active {
   transform: scale(0.96);
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--sheen), var(--surface-hover);
 }
 
 .profile-username {
@@ -134,8 +134,8 @@
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  background: var(--sheen), var(--surface);
+  border: 1px solid var(--border-bright);
   border-radius: var(--radius-lg);
   padding: 14px;
   color: var(--text-primary);
@@ -143,6 +143,7 @@
   font-weight: 600;
   font-size: 13px;
   cursor: pointer;
+  box-shadow: var(--shadow-metal);
   transition: background var(--duration), transform 180ms var(--ease-spring);
   -webkit-tap-highlight-color: transparent;
 }
@@ -174,9 +175,10 @@
 
 .menu-list {
   list-style: none;
-  background: var(--bg-card);
+  background: var(--sheen), var(--surface);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-bright);
+  box-shadow: var(--shadow-metal);
   overflow: hidden;
 }
 
@@ -284,7 +286,7 @@
 }
 
 .profile-scroll-spacer {
-  height: 100px;
+  height: 104px;
 }
 .toggle-switch input:checked + .toggle-slider { background-color: #30D158; }
 .toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); }

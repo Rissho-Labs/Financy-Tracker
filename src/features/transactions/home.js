@@ -23,8 +23,16 @@
       let initials = '?';
       if (parts.length > 1) initials = (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
       else if (parts[0]) initials = parts[0][0].toUpperCase();
-      const av = document.querySelector('.avatar-initials');
+      const av = document.getElementById('header-avatar-initials');
       if (av) av.textContent = initials;
+      const photoUrl = __u.photoURL || __u.photoUrl || '';
+      const imgEl = document.getElementById('header-avatar-img');
+      if (imgEl && photoUrl) {
+        imgEl.src = photoUrl;
+        imgEl.alt = __u.name;
+        imgEl.classList.remove('hidden');
+        if (av) av.style.display = 'none';
+      }
     }
   }
 
@@ -86,29 +94,9 @@ function pulseDynamicIsland() {
   }, 600);
 }
 
-// ── Bottom nav: ft-bottom-nav.js (visual feedback only) ───────
-document.querySelector('.bottom-nav')?.addEventListener('click', (e) => {
-  const item = e.target.closest('.nav-item');
-  if (!item) return;
-  document.querySelectorAll('.bottom-nav .nav-item').forEach((b) => {
-    b.classList.remove('active');
-    b.removeAttribute('aria-current');
-  });
-  item.classList.add('active');
-  item.setAttribute('aria-current', 'page');
-  haptic('light');
-  pulseDynamicIsland();
-}, true);
-
 if (window.FTNotifications) {
   FTNotifications.bind('#notification-btn');
 }
-
-// ── Avatar button ─────────────────────────────────────────────
-$('avatar-btn')?.addEventListener('click', () => {
-  haptic('light');
-  window.location.href = FTRoutes.profile;
-});
 
 function openExpenseSheet() {
   const sh = $('expense-sheet');
@@ -116,6 +104,7 @@ function openExpenseSheet() {
   haptic('medium');
   sh.classList.add('ft-sheet--open');
   sh.setAttribute('aria-hidden', 'false');
+  $('nav-fab')?.classList.add('is-hidden');
   document.querySelector('.entry-method-btn[data-method="manual"]')?.click();
 }
 function closeExpenseSheet() {
@@ -126,6 +115,7 @@ function closeExpenseSheet() {
   }
   sh.classList.remove('ft-sheet--open');
   sh.setAttribute('aria-hidden', 'true');
+  $('nav-fab')?.classList.remove('is-hidden');
   const filePreview = $('home-file-preview');
   const fileHelp = $('home-file-help');
   if (filePreview) { filePreview.src = ''; filePreview.classList.add('hidden'); }
@@ -287,15 +277,11 @@ homePayBtns.forEach((btn) => {
     homePayBtns.forEach((b) => b.classList.remove('active'));
     btn.classList.add('active');
     selectedPayment = btn.getAttribute('data-pay') || 'pix';
-    if (selectedPayment === 'credito' || selectedPayment === 'credito_parcelado') {
-      homeCardWrap?.classList.remove('hidden');
-    } else {
-      homeCardWrap?.classList.add('hidden');
-    }
-    if (selectedPayment === 'credito_parcelado') {
-      homeInstallmentsWrap?.classList.remove('hidden');
-    } else {
-      homeInstallmentsWrap?.classList.add('hidden');
+    var isCredit = selectedPayment === 'credito';
+    homeCardWrap?.classList.toggle('hidden', !isCredit);
+    homeInstallmentsWrap?.classList.toggle('hidden', !isCredit);
+    if (isCredit && $('home-exp-installments') && !$('home-exp-installments').value) {
+      $('home-exp-installments').value = '1';
     }
   });
 });
@@ -305,30 +291,36 @@ $('home-expense-form')?.addEventListener('submit', (e) => {
   const name = $('home-exp-name')?.value?.trim();
   const raw = $('home-exp-amt')?.value;
   const cardId = homeCardSelect?.value || '';
-  const installments = Number($('home-exp-installments')?.value || 1);
+  const installments = Math.max(1, Number($('home-exp-installments')?.value || 1));
   const n = parseFloat(String(raw).replace(/\./g, '').replace(',', '.'));
   const cents = Number.isFinite(n) && n > 0 ? Math.round(n * 100) : NaN;
   if (!name || !Number.isFinite(cents)) {
     haptic('strong');
     return;
   }
-  if ((selectedPayment === 'credito' || selectedPayment === 'credito_parcelado') && !cardId) {
+  if (selectedPayment === 'credito' && !cardId) {
     alert('Selecione um cartão para lançamentos no crédito.');
     haptic('strong');
     return;
+  }
+  var payMethod = selectedPayment;
+  var payInstallments = 1;
+  if (selectedPayment === 'credito') {
+    payMethod = installments > 1 ? 'credito_parcelado' : 'credito';
+    payInstallments = installments > 1 ? installments : 1;
   }
   if (typeof FTTransactions !== 'undefined') {
     FTTransactions.add({
       name,
       amountCents: cents,
-      paymentMethod: selectedPayment,
+      paymentMethod: payMethod,
       cardId,
-      installments: selectedPayment === 'credito_parcelado' ? installments : 1,
+      installments: payInstallments,
     });
   }
   $('home-exp-name').value = '';
   $('home-exp-amt').value = '';
-  if ($('home-exp-installments')) $('home-exp-installments').value = 2;
+  if ($('home-exp-installments')) $('home-exp-installments').value = '1';
   if (homeCardSelect) homeCardSelect.value = '';
   selectedPayment = 'pix';
   homePayBtns.forEach((b) => b.classList.remove('active'));

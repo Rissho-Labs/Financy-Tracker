@@ -92,6 +92,11 @@ if (fs.existsSync(pdfWorkerSrc)) {
 
 // Entrada na raiz de www/
 copyRecursive(path.join(src, 'app', 'index.html'), path.join(www, 'index.html'));
+const faviconSrc = path.join(src, 'app', 'favicon.ico');
+const faviconWww = path.join(www, 'favicon.ico');
+if (fs.existsSync(faviconSrc)) {
+  fs.copyFileSync(faviconSrc, faviconWww);
+}
 
 const appDir = path.join(src, 'app');
 if (fs.existsSync(appDir)) {

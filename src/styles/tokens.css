@@ -1,38 +1,71 @@
 /**
  * Design tokens — Finance Tracker
- * Dark mode nativo · acentos neon verde/azul
+ * Dark mode · acabamento metálico (iOS-style)
  * @author Rickson.Hirata
  */
 :root {
-  /* Fundos dark */
-  --bg:            #0a0a0f;
-  --surface:       rgba(18, 18, 28, 0.78);
-  --surface-hover: rgba(30, 30, 48, 0.88);
-  --border:        rgba(255, 255, 255, 0.09);
+  /* ── Fundos metálicos ─────────────────────────────────────── */
+  --bg:              #08080c;
+  --bg-gradient:     linear-gradient(180deg, #1a1a22 0%, #0e0e14 42%, #060608 100%);
+  --bg-card:         #16161c;
 
-  /* Neon — interativos e conversão */
-  --neon-green:      #39ff14;
-  --neon-green-dim:  rgba(57, 255, 20, 0.18);
-  --neon-green-glow: rgba(57, 255, 20, 0.42);
-  --neon-blue:       #00f0ff;
-  --neon-blue-dim:   rgba(0, 240, 255, 0.16);
-  --neon-blue-glow:  rgba(0, 240, 255, 0.38);
+  --metal-top:       rgba(255, 255, 255, 0.14);
+  --metal-mid:       rgba(255, 255, 255, 0.05);
+  --metal-edge:      rgba(0, 0, 0, 0.32);
+
+  --surface:         linear-gradient(
+                       165deg,
+                       rgba(118, 118, 128, 0.28) 0%,
+                       rgba(44, 44, 52, 0.72) 42%,
+                       rgba(22, 22, 28, 0.94) 100%
+                     );
+  --surface-solid:   #1c1c24;
+  --surface-hover:   linear-gradient(
+                       165deg,
+                       rgba(130, 130, 140, 0.32) 0%,
+                       rgba(52, 52, 60, 0.78) 42%,
+                       rgba(28, 28, 34, 0.96) 100%
+                     );
+  --sheen:           linear-gradient(
+                       180deg,
+                       rgba(255, 255, 255, 0.13) 0%,
+                       rgba(255, 255, 255, 0.04) 36%,
+                       transparent 58%
+                     );
+  --border:          rgba(255, 255, 255, 0.11);
+  --border-bright:   rgba(255, 255, 255, 0.18);
+
+  /* ── Acentos metálicos (vivid + polido) ───────────────────── */
+  --neon-green:        #4ade80;
+  --neon-green-bright: #86efac;
+  --neon-green-dim:    rgba(74, 222, 128, 0.16);
+  --neon-green-glow:   rgba(74, 222, 128, 0.38);
+  --neon-green-metal:  linear-gradient(145deg, #bbf7d0 0%, #4ade80 42%, #16a34a 100%);
+
+  --neon-blue:         #22d3ee;
+  --neon-blue-bright:  #67e8f9;
+  --neon-blue-dim:     rgba(34, 211, 238, 0.14);
+  --neon-blue-glow:    rgba(34, 211, 238, 0.34);
+  --neon-blue-metal:   linear-gradient(145deg, #a5f3fc 0%, #22d3ee 42%, #0891b2 100%);
+
+  --accent-metal:      linear-gradient(145deg, #bbf7d0 0%, #4ade80 38%, #22d3ee 100%);
+  --accent-purple-metal: linear-gradient(145deg, #c4b5fd 0%, #8b5cf6 45%, #6d28d9 100%);
 
   --accent:       var(--neon-green);
   --accent-2:     var(--neon-blue);
   --accent-glow:  var(--neon-green-glow);
-  --border-focus: rgba(0, 240, 255, 0.65);
+  --border-focus: rgba(34, 211, 238, 0.55);
 
-  /* Texto */
-  --text-primary:     #f0f0f5;
-  --text-secondary:   rgba(240, 240, 245, 0.55);
-  --text-placeholder: rgba(240, 240, 245, 0.35);
+  /* ── Texto ────────────────────────────────────────────────── */
+  --text-primary:     #f4f4f8;
+  --text-secondary:   rgba(244, 244, 248, 0.58);
+  --text-placeholder: rgba(244, 244, 248, 0.34);
 
-  /* Semânticas */
+  /* ── Semânticas ───────────────────────────────────────────── */
   --danger:  #ff453a;
   --success: #30d158;
 
-  /* Espaçamento / raio */
+  /* ── Espaçamento / raio ───────────────────────────────────── */
   --space-xs: 4px;
   --space-sm: 8px;
   --space-md: 16px;
@@ -44,11 +77,24 @@
   --radius-lg:   24px;
   --radius-pill: 100px;
 
-  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-regular:   400;
+  --font-medium:    500;
+  --font-semibold:  600;
+  --font-bold:      700;
 
-  --shadow-card:  0 40px 80px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.06);
-  --shadow-btn:   0 4px 24px var(--neon-green-glow);
-  --shadow-field: 0 2px 8px rgba(0, 0, 0, 0.3);
+  /* ── Sombras metálicas ────────────────────────────────────── */
+  --shadow-card:  0 28px 56px rgba(0, 0, 0, 0.52),
+                  0 0 0 0.5px rgba(255, 255, 255, 0.1),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                  inset 0 -1px 0 rgba(0, 0, 0, 0.22);
+  --shadow-metal: 0 12px 36px rgba(0, 0, 0, 0.44),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.12),
+                  inset 0 -0.5px 0 rgba(0, 0, 0, 0.28);
+  --shadow-btn:   0 6px 24px var(--neon-green-glow),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  --shadow-field: 0 2px 10px rgba(0, 0, 0, 0.32),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.06);
 
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
