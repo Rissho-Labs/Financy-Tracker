@@ -208,6 +208,7 @@
   /**
    * Um passe O(n). Lista já normalizada (getAll).
    * opts: { fromMs?, toMs?, paymentMethod? } — paymentMethod 'all' ou chave PAYMENT_LABELS.
+   * 'credito' inclui credito + credito_parcelado (igual ao form Novo gasto).
    */
   function filterTransactions(list, opts) {
     opts = opts || {};
@@ -223,7 +224,15 @@
       var ms = atToMs(t.at);
       if (fromMs != null && ms < fromMs) continue;
       if (toMs != null && ms > toMs) continue;
-      if (pay !== 'all' && (t.paymentMethod || 'pix') !== pay) continue;
+      if (pay !== 'all') {
+        var tPay = t.paymentMethod || 'pix';
+        // Mesma regra do form Novo gasto: "Crédito" inclui à vista e parcelado.
+        if (pay === 'credito') {
+          if (tPay !== 'credito' && tPay !== 'credito_parcelado') continue;
+        } else if (tPay !== pay) {
+          continue;
+        }
+      }
       out.push(t);
     }
     return out;

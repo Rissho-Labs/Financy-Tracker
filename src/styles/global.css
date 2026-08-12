@@ -743,6 +743,12 @@ html[data-theme="light"] .ft-sheet__panel {
   padding: 11px 12px;
   font-size: 16px;
 }
+#expense-sheet .tx-add-btn + .ft-sheet__close,
+#expense-sheet #home-exp-cancel,
+#expense-sheet #home-exp-cancel-qr,
+#expense-sheet #home-exp-cancel-file {
+  margin-top: 16px;
+}
 .ft-sheet__handle {
   width: 36px;
   height: 4px;
