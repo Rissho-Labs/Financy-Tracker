@@ -1238,7 +1238,8 @@ html[data-theme="light"] .foto-preview-box {
     rgba(109, 40, 217, 0.9) 100%
   );
   color: #ffffff;
-  flex: 1.35 1 0;
+  flex: 1.55 1 auto;
+  min-width: fit-content;
   gap: 8px;
   padding: 10px 18px 10px 14px;
   box-shadow:
@@ -1249,9 +1250,10 @@ html[data-theme="light"] .foto-preview-box {
 }
 
 .nav-item.active > span {
-  max-width: 110px;
+  max-width: 12em;
   opacity: 1;
   margin-left: 0;
+  flex-shrink: 0;
 }
 
 .nav-item.active svg {
@@ -1785,7 +1787,8 @@ html.ft-ios .nav-item.active {
 }
 
 html.ft-ios .nav-item.active > span {
-  max-width: 110px;
+  max-width: 12em;
+  flex-shrink: 0;
 }
 
 html.ft-home .home-fab {
