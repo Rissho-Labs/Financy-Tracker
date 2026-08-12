@@ -369,3 +369,274 @@
 #pw-modal .goal-edit-modal > * {
   min-width: 0;
 }
+
+/* ══════════════════════════════════════════════════════════════
+   Perfil v2 — Apple settings (scoped: html.ft-profile)
+   ══════════════════════════════════════════════════════════════ */
+html.ft-profile .profile-header {
+  padding: 8px var(--home-pad) 20px;
+}
+
+html.ft-profile .profile-avatar {
+  background: var(--home-tile-2);
+  border: 1px solid var(--home-hairline);
+  box-shadow: var(--home-shadow);
+}
+
+html.ft-profile .avatar-initials {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+html.ft-profile .edit-avatar-btn {
+  background: var(--home-tile);
+  border: 1px solid var(--home-hairline);
+  box-shadow: none;
+}
+
+html.ft-profile .profile-name {
+  font-size: 24px;
+  letter-spacing: -0.6px;
+}
+
+html.ft-profile .profile-tag-wrap {
+  background: var(--home-tile);
+  border: 1px solid var(--home-hairline);
+  box-shadow: none;
+}
+
+html.ft-profile .profile-tag-wrap:active {
+  background: var(--home-tile-2);
+}
+
+html.ft-profile .p-action-btn {
+  background: var(--home-tile);
+  border: 1px solid var(--home-hairline);
+  box-shadow: var(--home-shadow);
+  border-radius: 18px;
+}
+
+html.ft-profile .p-action-icon {
+  background: rgba(48, 209, 88, 0.14);
+  color: var(--home-accent);
+  border-radius: 12px;
+}
+
+html.ft-profile .menu-section {
+  padding: 0 var(--home-pad);
+}
+
+html.ft-profile .menu-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--home-label);
+  padding-left: 4px;
+}
+
+html.ft-profile .menu-list {
+  background: var(--home-tile);
+  border: 1px solid var(--home-hairline);
+  box-shadow: var(--home-shadow);
+  border-radius: var(--home-radius);
+}
+
+html.ft-profile .menu-item {
+  border-bottom-color: var(--home-hairline);
+}
+
+html.ft-profile .menu-icon {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 9px;
+}
+
+html.ft-profile .account-block--compact {
+  padding: 16px;
+  background: var(--home-tile);
+  border: 1px solid var(--home-hairline);
+  border-radius: var(--home-radius);
+  box-shadow: var(--home-shadow);
+}
+
+html.ft-profile .account-reset-link {
+  color: var(--home-accent);
+}
+
+html.ft-profile .logout-btn {
+  width: calc(100% - 2 * var(--home-pad));
+  margin: 0 var(--home-pad) 20px;
+  background: rgba(255, 69, 58, 0.1);
+  border: 1px solid rgba(255, 69, 58, 0.18);
+  border-radius: var(--home-radius);
+  box-shadow: none;
+}
+
+html.ft-profile .logout-btn.account-change-btn {
+  width: 100%;
+  margin: 0 0 10px;
+  background: var(--home-tile-2);
+  border: 1px solid var(--home-hairline);
+  color: var(--text-primary);
+}
+
+html.ft-profile .req-subtitle {
+  color: var(--home-label);
+}
+
+html.ft-profile .profile-scroll-spacer {
+  height: 118px;
+}
+
+html.ft-profile[data-theme="light"] .profile-avatar {
+  background: #e8e8ed;
+}
+
+html.ft-profile[data-theme="light"] .p-action-icon {
+  background: rgba(48, 209, 88, 0.14);
+  color: #248a3d;
+}
+
+html.ft-profile[data-theme="light"] .menu-icon {
+  background: rgba(60, 60, 67, 0.08);
+}
+
+html.ft-profile[data-theme="light"] .logout-btn.account-change-btn {
+  background: #f2f2f7;
+  color: var(--text-primary);
+}
+
+html.ft-profile .profile-tag-wrap:hover .tag-copy-icon {
+  color: var(--home-accent);
+}
+
+html.ft-profile .ft-sheet__panel {
+  background: var(--home-tile);
+  border-color: var(--home-hairline);
+  box-shadow: var(--home-shadow);
+}
+
+html.ft-profile .friends-count {
+  color: var(--home-accent);
+  background: rgba(48, 209, 88, 0.14);
+  border: none;
+}
+
+html.ft-profile .friends-search {
+  background: var(--home-tile-2);
+  border: 1px solid var(--home-hairline);
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+html.ft-profile .friends-search:focus {
+  border-color: rgba(48, 209, 88, 0.45);
+  box-shadow: 0 0 0 3px rgba(48, 209, 88, 0.14);
+}
+
+html.ft-profile .friends-add-btn {
+  background: var(--home-accent);
+  color: #00330f;
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+html.ft-profile .friends-scan-btn {
+  background: var(--home-tile-2);
+  border: 1px solid var(--home-hairline);
+  color: var(--text-primary);
+  border-radius: 12px;
+}
+
+html.ft-profile .friends-empty {
+  border: 1px solid var(--home-hairline);
+  background: var(--home-tile-2);
+  border-style: solid;
+  color: var(--home-label);
+}
+
+html.ft-profile .friend-row,
+html.ft-profile .friend-search-row,
+html.ft-profile .friend-split-card {
+  background: var(--home-tile-2);
+  border: 1px solid var(--home-hairline);
+  box-shadow: none;
+  border-radius: 14px;
+}
+
+html.ft-profile .friend-row__avatar,
+html.ft-profile .friend-profile-avatar {
+  background: var(--home-tile);
+  color: var(--text-primary);
+  border: 1px solid var(--home-hairline);
+}
+
+html.ft-profile .friend-row__view {
+  background: var(--home-tile);
+  border: 1px solid var(--home-hairline);
+  color: var(--home-accent);
+}
+
+html.ft-profile .friend-search-add {
+  background: var(--home-accent);
+  color: #00330f;
+  border-radius: 10px;
+}
+
+html.ft-profile .friend-split-card__amount {
+  color: var(--home-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+html.ft-profile .friend-profile-hero {
+  border-bottom-color: var(--home-hairline);
+}
+
+html.ft-profile .friend-profile-section-title {
+  text-transform: none;
+  letter-spacing: -0.01em;
+  color: var(--home-label);
+}
+
+html.ft-profile .profile-qr-handle {
+  color: var(--home-label);
+}
+
+html.ft-profile .qr-scan-frame::before {
+  border-color: var(--home-accent);
+  box-shadow:
+    0 0 0 9999px rgba(0, 0, 0, 0.45),
+    0 0 20px rgba(48, 209, 88, 0.2);
+}
+
+html.ft-profile .qr-scan-status {
+  color: var(--home-accent);
+}
+
+html.ft-profile #pw-modal .goal-submit,
+html.ft-profile #pw-modal .ft-form-sheet .goal-submit {
+  background: var(--home-accent);
+  color: #00330f;
+  border: none;
+  box-shadow: 0 8px 24px rgba(48, 209, 88, 0.28);
+}
+
+html.ft-profile #pw-modal .ft-form-input {
+  background: var(--home-tile-2);
+  border: 1px solid var(--home-hairline);
+  color: var(--text-primary);
+}
+
+html.ft-profile[data-theme="light"] .friends-search,
+html.ft-profile[data-theme="light"] #pw-modal .ft-form-input {
+  background: #f2f2f7;
+}
+
+html.ft-profile[data-theme="light"] .friend-row,
+html.ft-profile[data-theme="light"] .friend-search-row {
+  background: #f2f2f7;
+}
+
+html.ft-profile[data-theme="light"] .ft-sheet__panel {
+  background: #fff;
+}
