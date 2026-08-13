@@ -1434,6 +1434,11 @@ html.ft-ios .user-name {
   font-weight: 700;
   letter-spacing: -0.72px;
   line-height: 1.1;
+  min-height: 1.1em;
+}
+
+html.ft-ios .greeting-label {
+  min-height: 1.2em;
 }
 
 html.ft-ios .header-avatar {
@@ -1751,6 +1756,13 @@ html.ft-ios .tx-empty {
   border-radius: var(--home-radius);
   color: var(--home-label);
   font-size: 14px;
+  /* reserva altura do empty card — evita colapso se o hydrate atrasar 1 frame */
+  min-height: 76px;
+  box-sizing: border-box;
+}
+
+html.ft-ios .tx-empty.hidden {
+  display: none;
 }
 
 html.ft-ios .home-tx-hint {

@@ -93,7 +93,7 @@
         </div>
 
         <script>
-          /* Hidrata identidade antes do resto do body — evita flash Ricardo/#0000 → dados reais */
+          /* Hidrata identidade + #tag estável antes do paint */
           (function () {
             try {
               var raw = localStorage.getItem('ft_user');
@@ -113,8 +113,19 @@
                   : parts[0]
                     ? parts[0].charAt(0).toUpperCase()
                     : '?';
-              var uname = String(u.username || '').trim().toLowerCase() || 'utilizador';
+              var uname = String(u.username || '').trim().toLowerCase();
+              if (!uname && u.email) {
+                uname = String(u.email).split('@')[0].toLowerCase().replace(/[^a-z0-9._]/g, '') || 'utilizador';
+              }
+              if (!uname) uname = 'utilizador';
               var tag = u.tag ? String(u.tag) : '';
+              if (!tag) {
+                tag = String(Math.floor(1000 + Math.random() * 9000));
+                u.tag = tag;
+                try {
+                  localStorage.setItem('ft_user', JSON.stringify(u));
+                } catch (eSave) { /* ignore */ }
+              }
               var nameEl = document.getElementById('profile-name');
               var initEl = document.getElementById('profile-initials');
               var userEl = document.getElementById('profile-username');
@@ -123,7 +134,7 @@
               if (nameEl) nameEl.textContent = name;
               if (initEl) initEl.textContent = initials;
               if (userEl) userEl.textContent = '@' + uname;
-              if (tagEl) tagEl.textContent = tag ? '#' + tag : '';
+              if (tagEl) tagEl.textContent = '#' + tag;
               var photo = u.photoURL || u.photoUrl || '';
               if (imgEl && photo) {
                 imgEl.src = photo;

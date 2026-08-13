@@ -395,6 +395,15 @@ html.ft-profile .profile-tag-wrap {
   border: 1px solid var(--home-hairline);
   box-shadow: none;
   min-height: 32px;
+  min-width: 12ch;
+}
+
+html.ft-profile .profile-username {
+  min-width: 5ch;
+}
+
+html.ft-profile .profile-discriminator {
+  min-width: 5ch;
 }
 
 html.ft-profile .profile-avatar {

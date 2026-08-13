@@ -17,18 +17,18 @@
     }
     const __u = FTSession.parseUser();
     if (__u && __u.name) {
-      const nameEl = document.querySelector('.user-name');
-      if (nameEl) nameEl.textContent = __u.name;
+      const nameEl = document.getElementById('home-user-name') || document.querySelector('.user-name');
+      if (nameEl && nameEl.textContent !== __u.name) nameEl.textContent = __u.name;
       const parts = String(__u.name).trim().split(/\s+/);
       let initials = '?';
       if (parts.length > 1) initials = (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
       else if (parts[0]) initials = parts[0][0].toUpperCase();
       const av = document.getElementById('header-avatar-initials');
-      if (av) av.textContent = initials;
+      if (av && av.textContent !== initials) av.textContent = initials;
       const photoUrl = __u.photoURL || __u.photoUrl || '';
       const imgEl = document.getElementById('header-avatar-img');
       if (imgEl && photoUrl) {
-        imgEl.src = photoUrl;
+        if (imgEl.src !== photoUrl) imgEl.src = photoUrl;
         imgEl.alt = __u.name;
         imgEl.classList.remove('hidden');
         if (av) av.style.display = 'none';
@@ -495,16 +495,25 @@ window.__ftSyncHome = function syncHomeData() {
   const emptyEl = $('home-tx-empty');
   if (ul) {
     const items = FTTransactions.getAll().slice(0, 4);
+    const sig = items
+      .map(function (t) {
+        return String(t.id) + ':' + String(t.amountCents) + ':' + String(t.name || '') + ':' + (t.hasReceiptReport ? '1' : '0');
+      })
+      .join('|');
     const rows = items
       .map((t) => {
         const wrap = '--tx-color:#6366f124;--tx-stroke:#818cf8;';
         const nameEsc = String(t.name).replace(/&/g, '&amp;').replace(/</g, '&lt;');
         const receiptCls = t.hasReceiptReport ? ' tx-item--has-receipt' : '';
         const badge = t.hasReceiptReport ? '<span class="tx-receipt-badge" aria-hidden="true">· nota</span>' : '';
-        return `<li class="tx-item${receiptCls}" data-id="${t.id}" role="listitem"><div class="tx-icon-wrap" style="${wrap}">${svgGasto}</div><div class="tx-info"><span class="tx-name">${nameEsc}${badge}</span><span class="tx-date">${fmtWhen(t.at)}</span></div><span class="tx-amount negative">- ${fmtBRL(t.amountCents)}</span><button class="tx-delete-btn" aria-label="Excluir gasto">${svgTrash}</button></li>`;
+        return `<li class="tx-item${receiptCls}" data-id="${t.id}" role="listitem"><div class="tx-icon-wrap" style="${wrap}">${svgGasto}</div><div class="tx-info"><span class="tx-name">${nameEsc}${badge}</span><span class="tx-date">${fmtWhen(t.at)}</span></div><span class="tx-amount negative">- ${fmtBRL(t.amountCents)}</span><button class="tx-delete-btn" aria-label="Excluir gasto" type="button">${svgTrash}</button></li>`;
       })
       .join('');
-    ul.innerHTML = rows;
+    /* Evita reflow se o hydrate inline já pintou o mesmo snapshot */
+    if (ul.getAttribute('data-tx-sig') !== sig) {
+      ul.innerHTML = rows;
+      ul.setAttribute('data-tx-sig', sig);
+    }
     if (emptyEl) emptyEl.classList.toggle('hidden', items.length > 0);
     ul.classList.toggle('hidden', items.length === 0);
     const hintEl = $('home-tx-hint');

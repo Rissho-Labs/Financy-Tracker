@@ -55,16 +55,16 @@
     <div class="dynamic-island" id="dynamic-island" aria-hidden="true"></div>
 
     <!-- ── TOP HEADER (fixed, always visible) ─── -->
-    <header class="home-header">
+    <header class="home-header" id="home-identity">
       <div class="header-left">
         <div class="header-avatar" id="header-avatar" aria-hidden="true">
           <img class="header-avatar__img hidden" id="header-avatar-img" alt="" />
-          <span class="header-avatar__initials" id="header-avatar-initials">R</span>
+          <span class="header-avatar__initials" id="header-avatar-initials"></span>
           <span class="avatar-ring" aria-hidden="true"></span>
         </div>
         <div class="header-greeting">
-          <p class="greeting-label" id="greeting-label">Bom dia 👋</p>
-          <h1 class="user-name">Ricardo</h1>
+          <p class="greeting-label" id="greeting-label"></p>
+          <h1 class="user-name" id="home-user-name">&nbsp;</h1>
         </div>
       </div>
       <div class="header-right">
@@ -76,6 +76,65 @@
           <span class="notif-badge" aria-label="3 notificações">3</span>
         </button>
       </div>
+      <script>
+        /* Identidade no 1º paint — sem flash "Ricardo" → nome real */
+        (function () {
+          try {
+            var h = new Date().getHours();
+            var greet =
+              h < 12 ? 'Bom dia 👋' : h < 18 ? 'Boa tarde 👋' : 'Boa noite 👋';
+            var greetEl = document.getElementById('greeting-label');
+            if (greetEl) greetEl.textContent = greet;
+
+            var raw = localStorage.getItem('ft_user');
+            if (!raw) return;
+            var u = JSON.parse(raw);
+            if (!u || typeof u !== 'object') return;
+
+            var name = String(u.name || '').trim();
+            if (!name && u.email) {
+              var local = String(u.email).split('@')[0] || '';
+              name = local.charAt(0).toUpperCase() + local.slice(1);
+            }
+            if (!name) name = 'Utilizador';
+
+            var parts = name.split(/\s+/).filter(Boolean);
+            var initials =
+              parts.length > 1
+                ? (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase()
+                : parts[0]
+                  ? parts[0].charAt(0).toUpperCase()
+                  : '?';
+
+            var nameEl = document.getElementById('home-user-name');
+            var initEl = document.getElementById('header-avatar-initials');
+            var imgEl = document.getElementById('header-avatar-img');
+            if (nameEl) nameEl.textContent = name;
+            if (initEl) initEl.textContent = initials;
+
+            var photo = u.photoURL || u.photoUrl || '';
+            if (imgEl && photo) {
+              imgEl.src = photo;
+              imgEl.alt = name;
+              imgEl.classList.remove('hidden');
+              if (initEl) initEl.style.display = 'none';
+            }
+
+            var budgetEl = document.getElementById('wallet-budget-val');
+            if (budgetEl && typeof u.budget === 'number') {
+              try {
+                budgetEl.textContent = new Intl.NumberFormat('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL',
+                }).format(u.budget);
+              } catch (e2) { /* ignore */ }
+            }
+
+            var root = document.getElementById('home-identity');
+            if (root) root.setAttribute('data-hydrated', '1');
+          } catch (e) { /* ignore */ }
+        })();
+      </script>
     </header>
 
     <!-- Scrollable content -->
@@ -137,9 +196,141 @@
           <button class="see-all-btn" id="see-all-btn" aria-label="Ver histórico completo de gastos">Ver tudo</button>
         </div>
 
-        <ul class="tx-list" role="list"></ul>
+        <ul class="tx-list" id="home-tx-list" role="list"></ul>
         <p class="tx-empty hidden" id="home-tx-empty">Nenhum gasto registrado ainda.</p>
-        <p class="home-tx-hint" id="home-tx-hint">Segure um gasto com nota para abrir o relatório</p>
+        <p class="home-tx-hint hidden" id="home-tx-hint">Segure um gasto com nota para abrir o relatório</p>
+        <script>
+          /* Hidrata lista/empty antes do paint — evita pulo ao voltar de outras abas */
+          (function () {
+            var KEY = 'ft_transactions';
+            var ul = document.getElementById('home-tx-list');
+            var emptyEl = document.getElementById('home-tx-empty');
+            var hintEl = document.getElementById('home-tx-hint');
+            if (!ul || !emptyEl) return;
+
+            function loadItems() {
+              try {
+                var raw = sessionStorage.getItem(KEY) || localStorage.getItem(KEY);
+                if (!raw) return [];
+                var arr = JSON.parse(raw);
+                if (!Array.isArray(arr)) return [];
+                return arr
+                  .filter(function (t) {
+                    return t && t.type !== 'income';
+                  })
+                  .slice(0, 4);
+              } catch (e) {
+                return [];
+              }
+            }
+
+            function esc(s) {
+              return String(s == null ? '' : s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/"/g, '&quot;');
+            }
+
+            function fmtBRL(cents) {
+              var n = Number(cents) || 0;
+              try {
+                return new Intl.NumberFormat('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL',
+                }).format(n / 100);
+              } catch (e2) {
+                return 'R$ ' + (n / 100).toFixed(2).replace('.', ',');
+              }
+            }
+
+            function fmtWhen(iso) {
+              var d = new Date(iso);
+              if (Number.isNaN(d.getTime())) return '—';
+              try {
+                return d.toLocaleString('pt-BR', {
+                  day: '2-digit',
+                  month: 'short',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                });
+              } catch (e3) {
+                return '—';
+              }
+            }
+
+            var svgGasto =
+              '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--tx-stroke)" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M19 9H5a2 2 0 0 0 0 4h14a2 2 0 0 1 0 4H6"/></svg>';
+            var svgTrash =
+              '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
+
+            var items = loadItems();
+            if (items.length === 0) {
+              ul.innerHTML = '';
+              ul.classList.add('hidden');
+              emptyEl.classList.remove('hidden');
+              if (hintEl) hintEl.classList.add('hidden');
+            } else {
+              emptyEl.classList.add('hidden');
+              ul.classList.remove('hidden');
+              ul.innerHTML = items
+                .map(function (t) {
+                  var wrap = '--tx-color:#6366f124;--tx-stroke:#818cf8;';
+                  var receiptCls = t.hasReceiptReport ? ' tx-item--has-receipt' : '';
+                  var badge = t.hasReceiptReport
+                    ? '<span class="tx-receipt-badge" aria-hidden="true">· nota</span>'
+                    : '';
+                  return (
+                    '<li class="tx-item' +
+                    receiptCls +
+                    '" data-id="' +
+                    esc(t.id) +
+                    '" role="listitem">' +
+                    '<div class="tx-icon-wrap" style="' +
+                    wrap +
+                    '">' +
+                    svgGasto +
+                    '</div>' +
+                    '<div class="tx-info"><span class="tx-name">' +
+                    esc(t.name) +
+                    badge +
+                    '</span><span class="tx-date">' +
+                    esc(fmtWhen(t.at)) +
+                    '</span></div>' +
+                    '<span class="tx-amount negative">- ' +
+                    esc(fmtBRL(t.amountCents)) +
+                    '</span>' +
+                    '<button class="tx-delete-btn" aria-label="Excluir gasto" type="button">' +
+                    svgTrash +
+                    '</button></li>'
+                  );
+                })
+                .join('');
+              if (hintEl) {
+                var hasReceipt = items.some(function (t) {
+                  return !!t.hasReceiptReport;
+                });
+                hintEl.classList.toggle('hidden', !hasReceipt);
+              }
+            }
+            emptyEl.setAttribute('data-hydrated', '1');
+            ul.setAttribute(
+              'data-tx-sig',
+              items
+                .map(function (t) {
+                  return (
+                    String(t.id) +
+                    ':' +
+                    String(t.amountCents) +
+                    ':' +
+                    String(t.name || '') +
+                    ':' +
+                    (t.hasReceiptReport ? '1' : '0')
+                  );
+                })
+                .join('|')
+            );
+          })();
+        </script>
       </section>
 
       <!-- Bottom spacer for nav bar -->

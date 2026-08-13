@@ -59,7 +59,7 @@
     const displayName = user.name || 'Utilizador';
     const nameParts = displayName.split(' ').filter(Boolean);
     const nameEl = $('profile-name');
-    if (nameEl) nameEl.textContent = displayName;
+    if (nameEl && nameEl.textContent !== displayName) nameEl.textContent = displayName;
 
     const initials =
       nameParts.length > 1
@@ -68,11 +68,19 @@
           ? nameParts[0][0]
           : '?';
     const initEl = $('profile-initials');
-    if (initEl) initEl.textContent = initials.toUpperCase();
+    const initialsUp = initials.toUpperCase();
+    if (initEl && initEl.textContent !== initialsUp) initEl.textContent = initialsUp;
 
-    const username = user.username ? user.username.toLowerCase() : 'utilizador';
+    let username = user.username ? user.username.toLowerCase() : '';
+    if (!username && user.email && FTSession.defaultUsername) {
+      username = FTSession.defaultUsername(user.email);
+      user.username = username;
+      FTSession.saveUser(user);
+    }
+    if (!username) username = 'utilizador';
     const userEl = $('profile-username');
-    if (userEl) userEl.textContent = '@' + username;
+    const userText = '@' + username;
+    if (userEl && userEl.textContent !== userText) userEl.textContent = userText;
 
     let tag = user.tag;
     if (!tag) {
@@ -81,7 +89,8 @@
       FTSession.saveUser(user);
     }
     const tagEl = $('profile-discriminator');
-    if (tagEl) tagEl.textContent = '#' + tag;
+    const tagText = '#' + tag;
+    if (tagEl && tagEl.textContent !== tagText) tagEl.textContent = tagText;
 
     const photoUrl = user.photoURL || user.photoUrl || '';
     const imgEl = $('profile-avatar-img');
