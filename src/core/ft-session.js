@@ -22,20 +22,66 @@
     }
   }
 
+  function sanitizeUser(u) {
+    if (!u || typeof u !== 'object') return u;
+    // Nunca persistir senha em texto puro no cache local.
+    if (Object.prototype.hasOwnProperty.call(u, 'passwordDemo')) {
+      delete u.passwordDemo;
+    }
+    if (Object.prototype.hasOwnProperty.call(u, 'password')) {
+      delete u.password;
+    }
+    return u;
+  }
+
   function parseUser() {
     try {
       var raw = localStorage.getItem(KEY_USER);
       if (!raw) return null;
       var u = JSON.parse(raw);
       if (!u || typeof u !== 'object' || !u.email) return null;
-      return u;
+      var cleaned = sanitizeUser(u);
+      // Migração: remove senha antiga gravada em claro.
+      if (raw.indexOf('passwordDemo') >= 0 || raw.indexOf('"password"') >= 0) {
+        try {
+          localStorage.setItem(KEY_USER, JSON.stringify(cleaned));
+        } catch (e) { /* ignore */ }
+      }
+      return cleaned;
     } catch (e) {
       return null;
     }
   }
 
   function saveUser(u) {
-    localStorage.setItem(KEY_USER, JSON.stringify(u));
+    localStorage.setItem(KEY_USER, JSON.stringify(sanitizeUser(Object.assign({}, u || {}))));
+  }
+
+  /** Hash one-way para modo demo offline (não substitui Firebase Auth). */
+  function hashDemoSecret(value) {
+    var s = 'ft-demo-v1|' + String(value || '');
+    var h = 2166136261;
+    var i;
+    for (i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return ('00000000' + (h >>> 0).toString(16)).slice(-8);
+  }
+
+  async function hashDemoSecretStrong(value) {
+    try {
+      if (global.crypto && crypto.subtle && typeof TextEncoder !== 'undefined') {
+        var data = new TextEncoder().encode('ft-demo-v1|' + String(value || ''));
+        var buf = await crypto.subtle.digest('SHA-256', data);
+        return Array.from(new Uint8Array(buf))
+          .map(function (b) {
+            return ('0' + b.toString(16)).slice(-2);
+          })
+          .join('');
+      }
+    } catch (e) { /* fallback */ }
+    return hashDemoSecret(value);
   }
 
   function isLoggedIn() {
@@ -155,7 +201,8 @@
     });
     if (opts.google) u.authProvider = 'google';
     else u.authProvider = 'password';
-    if (opts.passwordDemo) u.passwordDemo = opts.passwordDemo;
+    // Nunca gravar senha em claro — mesmo no fluxo demo offline.
+    if (opts.passwordDemoHash) u.passwordDemoHash = opts.passwordDemoHash;
     saveUser(u);
     if (global.FTStorage && typeof global.FTStorage.purgeEphemeral === 'function') {
       global.FTStorage.purgeEphemeral();
@@ -338,6 +385,7 @@
     defaultDisplayName: defaultDisplayName,
     defaultUsername: defaultUsername,
     getGoogleClientId: getGoogleClientId,
-    requestGoogleAccessTokenThenEmail: requestGoogleAccessTokenThenEmail
+    requestGoogleAccessTokenThenEmail: requestGoogleAccessTokenThenEmail,
+    hashDemoSecretStrong: hashDemoSecretStrong,
   };
 })(typeof window !== 'undefined' ? window : globalThis);

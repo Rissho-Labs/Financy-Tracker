@@ -23,6 +23,7 @@
   <link rel="stylesheet" href="/styles/reset.css" />
   <link rel="stylesheet" href="/styles/global.css" />
   <link rel="stylesheet" href="/app/login.css" />
+  <script src="/core/ft-secure-console.js"></script>
   <script src="/core/ft-theme.js"></script>
   <script src="/core/ft-build.js"></script>
   <script src="/core/ft-storage.js"></script>
@@ -294,7 +295,7 @@
           </svg>
         </div>
         <h2 class="fp-title" id="fp-title">Recuperar senha</h2>
-        <p class="fp-desc">Digite seu e-mail e enviaremos um código de 6 dígitos.</p>
+        <p class="fp-desc">Enviaremos um código ou link por e-mail para criar uma nova senha.</p>
 
         <div class="fp-field-group">
           <label class="field-label" for="fp-email">E-mail</label>
@@ -308,7 +309,7 @@
         </div>
 
         <button id="fp-btn-send" class="btn btn-primary fp-btn" type="button">
-          <span class="btn-text">Enviar código</span>
+          <span class="btn-text">Enviar</span>
           <div class="btn-spinner" aria-hidden="true"></div>
         </button>
         <button id="fp-btn-cancel" class="fp-btn-cancel" type="button">Cancelar</button>
@@ -386,16 +387,16 @@
         <button id="fp-btn-back2" class="fp-btn-cancel" type="button">Voltar</button>
       </div>
 
-      <!-- Passo 4: sucesso -->
+      <!-- Passo 4: sucesso (e-mail enviado ou senha alterada) -->
       <div id="fp-step-done" class="fp-step fp-step--hidden">
         <div class="fp-success-icon" aria-hidden="true">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
           </svg>
         </div>
-        <h2 class="fp-title">Senha atualizada!</h2>
-        <p class="fp-desc">Sua senha foi alterada com sucesso. Faça login com a nova senha.</p>
-        <button id="fp-btn-ok" class="btn btn-primary fp-btn" type="button">Ok, entrar agora</button>
+        <h2 class="fp-title" id="fp-done-title">E-mail enviado!</h2>
+        <p class="fp-desc" id="fp-done-desc">Se existir uma conta com esse e-mail, você receberá um link para redefinir a senha. Verifique também a pasta de spam.</p>
+        <button id="fp-btn-ok" class="btn btn-primary fp-btn" type="button">Ok, entendi</button>
       </div>
     </div>
   </div>

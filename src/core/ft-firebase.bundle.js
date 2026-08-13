@@ -23531,15 +23531,36 @@ ${this.customData.serverResponse}`;
       newPassword: String(newPassword)
     });
   }
+  async function callSendBrandedPasswordReset(email) {
+    if (!ready || !fns) throw new Error("firebase_not_ready");
+    const fn = httpsCallable(fns, "sendBrandedPasswordReset");
+    const res = await fn({ email: String(email).trim().toLowerCase() });
+    return res && res.data || { ok: true };
+  }
+  async function callSendPasswordResetOtp(email) {
+    if (!ready || !fns) throw new Error("firebase_not_ready");
+    const fn = httpsCallable(fns, "sendPasswordResetOtp");
+    const res = await fn({ email: String(email).trim().toLowerCase() });
+    return res && res.data || { ok: true };
+  }
   async function sendResetEmail(email) {
     if (!ready || !auth) throw new Error("firebase_not_ready");
-    const mail = String(email || "").trim();
+    const mail = String(email || "").trim().toLowerCase();
     if (!mail) throw new Error("missing_email");
     const actionCodeSettings = {
-      url: `https://financy-4d5f7.web.app/features/auth/reset-password.html`,
+      url: "https://financy-4d5f7.web.app/features/auth/reset-password.html",
       handleCodeInApp: false
     };
-    await sendPasswordResetEmail(auth, mail, actionCodeSettings);
+    try {
+      await sendPasswordResetEmail(auth, mail, actionCodeSettings);
+    } catch (err) {
+      const code = err && err.code ? String(err.code) : "";
+      if (code === "auth/unauthorized-continue-uri" || code === "auth/invalid-continue-uri" || code === "auth/missing-continue-uri") {
+        await sendPasswordResetEmail(auth, mail);
+        return;
+      }
+      throw err;
+    }
   }
   async function verifyResetCode(oobCode) {
     if (!ready || !auth) throw new Error("firebase_not_ready");
@@ -23627,6 +23648,8 @@ ${this.customData.serverResponse}`;
     applyNewPassword,
     generateOtpCode,
     callApplyPasswordReset,
+    callSendBrandedPasswordReset,
+    callSendPasswordResetOtp,
     addTransaction,
     updateTransaction,
     loadTransactions,

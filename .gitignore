@@ -10,6 +10,7 @@ android/local.properties
 src/core/deepseek-config.js
 functions/.env
 *.log
+.tmp/
 .DS_Store
 /assets/
 /pages/

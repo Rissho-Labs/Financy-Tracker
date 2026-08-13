@@ -418,9 +418,20 @@ $('register-form').addEventListener('submit', async (e) => {
       }
     } else {
       await new Promise((r) => setTimeout(r, 1500));
+      const demoHash =
+        typeof FTSession.hashDemoSecretStrong === 'function'
+          ? await FTSession.hashDemoSecretStrong(pw)
+          : undefined;
       localStorage.setItem(
         'ft_user',
-        JSON.stringify({ name, username: user, email, firstLogin: true, passwordDemo: pw, authProvider: 'password' })
+        JSON.stringify({
+          name,
+          username: user,
+          email,
+          firstLogin: true,
+          passwordDemoHash: demoHash,
+          authProvider: 'password',
+        })
       );
     }
     var next =

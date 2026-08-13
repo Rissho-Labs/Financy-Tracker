@@ -137,6 +137,147 @@ exports.analyzeReceipt = onCall(
   }
 );
 
+/** Credenciais EmailJS (já públicas no cliente) — e-mail branded, não o noreply do Firebase. */
+const EMAILJS = {
+  serviceId: 'service_3qhxn9s',
+  templateId: 'template_xwhxiuw',
+  publicKey: 'A3HBL2otv1HGPSwZS',
+};
+
+const RESET_CONTINUE_URL =
+  'https://financy-4d5f7.web.app/features/auth/reset-password.html';
+
+async function sendEmailJs(templateParams) {
+  const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      service_id: EMAILJS.serviceId,
+      template_id: EMAILJS.templateId,
+      user_id: EMAILJS.publicKey,
+      template_params: templateParams,
+    }),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error('emailjs_http_' + res.status + ': ' + String(text).slice(0, 200));
+  }
+}
+
+/**
+ * Redefinição branded: gera link Firebase (Admin) e envia pelo EmailJS
+ * (remetente do serviço EmailJS — bem menos spam que noreply@firebase).
+ * Template EmailJS deve incluir {{reset_link}} e/ou {{message}} + {{to_email}}.
+ */
+exports.sendBrandedPasswordReset = onCall(
+  { region: 'southamerica-east1' },
+  async (request) => {
+    const mail = String((request.data && request.data.email) || '')
+      .trim()
+      .toLowerCase();
+    if (!mail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) {
+      throw new HttpsError('invalid-argument', 'invalid_email');
+    }
+
+    let resetLink;
+    try {
+      resetLink = await getAuth().generatePasswordResetLink(mail, {
+        url: RESET_CONTINUE_URL,
+        handleCodeInApp: false,
+      });
+    } catch (e) {
+      // Não revelar se a conta existe
+      if (e && e.code === 'auth/user-not-found') {
+        return { ok: true, sent: false };
+      }
+      console.error('[sendBrandedPasswordReset] link', e);
+      throw new HttpsError('internal', 'link_failed');
+    }
+
+    try {
+      await sendEmailJs({
+        to_email: mail,
+        email: mail,
+        user_email: mail,
+        app_name: 'Finance Tracker',
+        reset_link: resetLink,
+        link: resetLink,
+        action_url: resetLink,
+        message:
+          'Recebemos um pedido para redefinir a senha da sua conta Finance Tracker. ' +
+          'Abra o link abaixo (válido por tempo limitado):\n\n' +
+          resetLink,
+        // Compatível com template antigo de OTP
+        code: 'LINK',
+        expiry: '1 hora',
+      });
+    } catch (e) {
+      console.error('[sendBrandedPasswordReset] emailjs', e.message || e);
+      throw new HttpsError('internal', 'emailjs_failed');
+    }
+
+    return { ok: true, sent: true };
+  }
+);
+
+/**
+ * OTP branded via EmailJS (código nunca volta ao cliente).
+ * Template: {{to_email}}, {{code}}, {{app_name}}, {{expiry}}.
+ */
+exports.sendPasswordResetOtp = onCall(
+  { region: 'southamerica-east1' },
+  async (request) => {
+    const mail = String((request.data && request.data.email) || '')
+      .trim()
+      .toLowerCase();
+    if (!mail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) {
+      throw new HttpsError('invalid-argument', 'invalid_email');
+    }
+
+    try {
+      await getAuth().getUserByEmail(mail);
+    } catch (e) {
+      if (e && e.code === 'auth/user-not-found') {
+        return { ok: true, sent: false };
+      }
+      throw new HttpsError('internal', 'lookup_failed');
+    }
+
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    const key = emailKey(mail);
+    const db = getFirestore();
+    await db.doc(`passwordResetCodes/${key}`).set({
+      email: mail,
+      code,
+      expiresAt: Date.now() + 10 * 60 * 1000,
+      used: false,
+      createdAt: new Date(),
+    });
+
+    try {
+      await sendEmailJs({
+        to_email: mail,
+        email: mail,
+        user_email: mail,
+        app_name: 'Finance Tracker',
+        code,
+        passcode: code,
+        reset_code: code,
+        expiry: '10 minutos',
+        message:
+          'O seu código Finance Tracker para redefinir a senha é: ' +
+          code +
+          ' (válido por 10 minutos).',
+      });
+    } catch (e) {
+      console.error('[sendPasswordResetOtp] emailjs', e.message || e);
+      throw new HttpsError('internal', 'emailjs_failed');
+    }
+
+    return { ok: true, sent: true };
+  }
+);
+
 exports.applyPasswordReset = onCall({ region: 'southamerica-east1' }, async (request) => {
   const { email, code, newPassword } = request.data || {};
 

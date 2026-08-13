@@ -646,16 +646,49 @@ async function callApplyPasswordReset(email, code, newPassword) {
   });
 }
 
+/**
+ * Preferir: e-mail branded (EmailJS) com link de reset gerado no servidor.
+ * Requer deploy de sendBrandedPasswordReset.
+ */
+async function callSendBrandedPasswordReset(email) {
+  if (!ready || !fns) throw new Error('firebase_not_ready');
+  const fn = httpsCallable(fns, 'sendBrandedPasswordReset');
+  const res = await fn({ email: String(email).trim().toLowerCase() });
+  return (res && res.data) || { ok: true };
+}
+
+/** OTP branded via Cloud Function (código não volta ao cliente). */
+async function callSendPasswordResetOtp(email) {
+  if (!ready || !fns) throw new Error('firebase_not_ready');
+  const fn = httpsCallable(fns, 'sendPasswordResetOtp');
+  const res = await fn({ email: String(email).trim().toLowerCase() });
+  return (res && res.data) || { ok: true };
+}
+
 // ── Redefinição por link (legacy / fallback) ──────────────────
 async function sendResetEmail(email) {
   if (!ready || !auth) throw new Error('firebase_not_ready');
-  const mail = String(email || '').trim();
+  const mail = String(email || '').trim().toLowerCase();
   if (!mail) throw new Error('missing_email');
   const actionCodeSettings = {
-    url: `https://financy-4d5f7.web.app/features/auth/reset-password.html`,
+    url: 'https://financy-4d5f7.web.app/features/auth/reset-password.html',
     handleCodeInApp: false,
   };
-  await sendPasswordResetEmail(auth, mail, actionCodeSettings);
+  try {
+    await sendPasswordResetEmail(auth, mail, actionCodeSettings);
+  } catch (err) {
+    const code = err && err.code ? String(err.code) : '';
+    // Domínio/continue URL inválido no Console → e-mail padrão do Firebase ainda funciona
+    if (
+      code === 'auth/unauthorized-continue-uri' ||
+      code === 'auth/invalid-continue-uri' ||
+      code === 'auth/missing-continue-uri'
+    ) {
+      await sendPasswordResetEmail(auth, mail);
+      return;
+    }
+    throw err;
+  }
 }
 
 async function verifyResetCode(oobCode) {
@@ -753,6 +786,8 @@ const api = {
   applyNewPassword,
   generateOtpCode,
   callApplyPasswordReset,
+  callSendBrandedPasswordReset,
+  callSendPasswordResetOtp,
   addTransaction,
   updateTransaction,
   loadTransactions,

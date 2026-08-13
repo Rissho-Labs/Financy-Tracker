@@ -338,13 +338,17 @@ $('login-form').addEventListener('submit', async (e) => {
       }
     } else {
       const prev = typeof FTSession !== 'undefined' ? FTSession.parseUser() : null;
-      if (prev && prev.email === email && prev.passwordDemo && password !== prev.passwordDemo) {
+      const demoHash =
+        typeof FTSession.hashDemoSecretStrong === 'function'
+          ? await FTSession.hashDemoSecretStrong(password)
+          : null;
+      if (prev && prev.email === email && prev.passwordDemoHash && demoHash !== prev.passwordDemoHash) {
         showError('password', 'password-error', 'Senha incorreta.');
         haptic('error');
         return;
       }
       await new Promise((res) => setTimeout(res, 900));
-      dest = FTSession.completeLogin(email, { passwordDemo: password });
+      dest = FTSession.completeLogin(email, { passwordDemoHash: demoHash });
     }
 
     btn.querySelector('.btn-text').textContent = 'Bem-vindo! ✓';
@@ -567,33 +571,80 @@ $('btn-google').addEventListener('click', async () => {
     return otpDigits.map(d => d.value.trim()).join('');
   }
 
-  // ── EmailJS (envia código por e-mail) ────────────────────
+  // ── Envio: branded CF → EmailJS OTP local → Firebase link ──
+
+  function showEmailSentDone(mail, viaFirebase) {
+    const title = $('fp-done-title');
+    const desc = $('fp-done-desc');
+    if (title) title.textContent = 'E-mail enviado!';
+    if (desc) {
+      desc.textContent = viaFirebase
+        ? ('Enviamos um link do Firebase para ' + mail +
+           '. Pode cair em spam — abra o e-mail e marque como “Não é spam” se precisar.')
+        : ('Enviamos instruções para ' + mail +
+           '. Se não aparecer na caixa de entrada, verifique o spam.');
+    }
+    const ok = $('fp-btn-ok');
+    if (ok) {
+      const txt = ok.querySelector('.btn-text');
+      if (txt) txt.textContent = 'Ok, entendi';
+      else ok.textContent = 'Ok, entendi';
+    }
+    showStep('done');
+  }
+
+  function showOtpStep(mail) {
+    currentEmail = mail;
+    if (fpCodeDest) fpCodeDest.textContent = mail;
+    otpDigits.forEach((d) => {
+      d.value = '';
+      d.classList.remove('filled');
+    });
+    clearError(null, fpCodeErr);
+    showStep('code');
+    setTimeout(() => otpDigits[0] && otpDigits[0].focus(), 300);
+  }
+
+  function isCallableMissing(err) {
+    const code = err && err.code ? String(err.code) : '';
+    const msg = err && err.message ? String(err.message) : '';
+    return (
+      code === 'functions/not-found' ||
+      code === 'functions/unimplemented' ||
+      code === 'functions/unavailable' ||
+      msg.includes('NOT_FOUND') ||
+      msg === 'firebase_not_ready'
+    );
+  }
 
   async function sendCodeEmail(email, code) {
     const cfg = window.FTFIREBASE_CONFIG || {};
     const { emailjsServiceId, emailjsTemplateId, emailjsPublicKey } = cfg;
 
     if (!emailjsServiceId || !emailjsTemplateId || !emailjsPublicKey) {
-      // Modo dev: código no console para testar sem EmailJS
-      console.info(
-        `[FP-DEV] Código para ${email}: %c${code}`,
-        'font-size:22px;font-weight:bold;color:#6C63FF'
-      );
-      return;
+      throw new Error('emailjs_not_configured');
     }
 
     const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        service_id:      emailjsServiceId,
-        template_id:     emailjsTemplateId,
-        user_id:         emailjsPublicKey,
+        service_id: emailjsServiceId,
+        template_id: emailjsTemplateId,
+        user_id: emailjsPublicKey,
         template_params: {
           to_email: email,
+          email,
+          user_email: email,
           code,
+          passcode: code,
+          reset_code: code,
           app_name: 'Finance Tracker',
-          expiry:   '10 minutos',
+          expiry: '10 minutos',
+          message:
+            'O seu código Finance Tracker para redefinir a senha é: ' +
+            code +
+            ' (válido por 10 minutos).',
         },
       }),
     });
@@ -605,10 +656,52 @@ $('btn-google').addEventListener('click', async () => {
     }
   }
 
-  // ── Passo 1: enviar código ───────────────────────────────
+  async function tryBrandedLink(mail) {
+    if (!FTFirebase.callSendBrandedPasswordReset) return false;
+    try {
+      await FTFirebase.callSendBrandedPasswordReset(mail);
+      showEmailSentDone(mail, false);
+      return true;
+    } catch (err) {
+      if (isCallableMissing(err)) return false;
+      // emailjs_failed / link_failed → tenta próximo canal
+      console.warn('[FP] branded reset failed', err && err.code, err && err.message);
+      return false;
+    }
+  }
+
+  async function tryServerOtp(mail) {
+    if (!FTFirebase.callSendPasswordResetOtp) return false;
+    try {
+      await FTFirebase.callSendPasswordResetOtp(mail);
+      showOtpStep(mail);
+      return true;
+    } catch (err) {
+      if (isCallableMissing(err)) return false;
+      console.warn('[FP] server OTP failed', err && err.code, err && err.message);
+      return false;
+    }
+  }
+
+  async function tryClientOtp(mail) {
+    if (!FTFirebase.generateOtpCode) return false;
+    const cfg = window.FTFIREBASE_CONFIG || {};
+    if (!cfg.emailjsServiceId || !cfg.emailjsTemplateId || !cfg.emailjsPublicKey) {
+      return false;
+    }
+    try {
+      const code = await FTFirebase.generateOtpCode(mail);
+      await sendCodeEmail(mail, code);
+      showOtpStep(mail);
+      return true;
+    } catch (err) {
+      console.warn('[FP] client OTP failed', err && err.message);
+      return false;
+    }
+  }
 
   async function handleSend() {
-    const mail = fpEmail.value.trim();
+    const mail = fpEmail.value.trim().toLowerCase();
     if (!mail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) {
       showErr(fpEmail, fpEmailErr, 'Digite um e-mail válido.');
       haptic('error');
@@ -619,30 +712,42 @@ $('btn-google').addEventListener('click', async () => {
     haptic('medium');
 
     try {
-      if (typeof FTFirebase === 'undefined' || !FTFirebase.generateOtpCode) {
+      if (typeof FTFirebase === 'undefined') {
         throw new Error('firebase_not_ready');
       }
-      const code = await FTFirebase.generateOtpCode(mail);
-      await sendCodeEmail(mail, code);
 
+      // 1) Link branded (CF + EmailJS) — melhor inbox, precisa de deploy
+      if (await tryBrandedLink(mail)) {
+        haptic('success');
+        return;
+      }
+      // 2) OTP no servidor (CF + EmailJS)
+      if (await tryServerOtp(mail)) {
+        haptic('medium');
+        return;
+      }
+      // 3) OTP no cliente (EmailJS) — funciona sem deploy novo
+      if (await tryClientOtp(mail)) {
+        haptic('medium');
+        return;
+      }
+      // 4) Fallback: e-mail padrão Firebase (pode ir para spam)
+      if (!FTFirebase.sendResetEmail) throw new Error('firebase_not_ready');
+      await FTFirebase.sendResetEmail(mail);
       currentEmail = mail;
-      fpCodeDest.textContent = mail;
-      otpDigits.forEach(d => { d.value = ''; d.classList.remove('filled'); });
-      clearError(null, fpCodeErr);
-      showStep('code');
-      haptic('medium');
-      setTimeout(() => otpDigits[0].focus(), 300);
+      showEmailSentDone(mail, true);
+      haptic('success');
     } catch (err) {
       const code = err && err.code ? String(err.code) : '';
       let msg = 'Não foi possível enviar. Tente novamente.';
       if (code === 'auth/user-not-found' || err.message === 'email_not_found') {
         msg = 'E-mail não encontrado. Verifique e tente de novo.';
+      } else if (code === 'auth/invalid-email') {
+        msg = 'E-mail inválido. Verifique e tente de novo.';
       } else if (code === 'auth/too-many-requests') {
         msg = 'Muitas tentativas. Aguarde alguns minutos.';
       } else if (err.message === 'firebase_not_ready') {
         msg = 'Firebase não iniciado. Reabra o app e tente.';
-      } else if (err.message === 'emailjs_failed') {
-        msg = 'Não foi possível enviar o e-mail. Verifique o EmailJS no firebase-config.js.';
       }
       showErr(fpEmail, fpEmailErr, msg);
       haptic('error');
@@ -725,15 +830,10 @@ $('btn-google').addEventListener('click', async () => {
   }
 
   async function handleFallbackResetLink() {
-    // Sem Cloud Function: envia link de redefinição padrão do Firebase
     try {
       if (FTFirebase.sendResetEmail) await FTFirebase.sendResetEmail(currentEmail);
     } catch (_) { /* ignora — link pode já ter sido enviado antes */ }
-    // Vai para tela de sucesso com mensagem adaptada
-    $('fp-step-done').querySelector('.fp-title').textContent = 'Código confirmado!';
-    $('fp-step-done').querySelector('.fp-desc').textContent =
-      'Enviamos um link para ' + currentEmail + '. Clique nele para criar a nova senha.';
-    showStep('done');
+    showEmailSentDone(currentEmail, true);
     haptic('medium');
     resetBtn(btnSave);
   }

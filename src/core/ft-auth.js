@@ -60,16 +60,19 @@
 
   function stageBiometricSetup(email, secret, provider) {
     try {
-      sessionStorage.setItem(
-        KEY_BIO_PENDING,
-        JSON.stringify({
-          email: String(email || '').trim(),
-          secret: provider === 'google' ? BIOMETRIC_UNLOCK : String(secret || ''),
-          provider: provider === 'google' ? 'google' : 'password',
-        })
-      );
+      var payload = {
+        email: String(email || '').trim(),
+        provider: provider === 'google' ? 'google' : 'password',
+      };
+      // Segredo só em memória de sessão curta; nunca logar este objeto.
+      if (provider !== 'google') {
+        payload.secret = String(secret || '');
+      } else {
+        payload.secret = BIOMETRIC_UNLOCK;
+      }
+      sessionStorage.setItem(KEY_BIO_PENDING, JSON.stringify(payload));
     } catch (e) {
-      console.warn('[FTAuth] stage biometric', e);
+      console.warn('[FTAuth] stage biometric', e && e.message ? e.message : 'error');
     }
   }
 

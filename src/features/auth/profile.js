@@ -154,14 +154,22 @@
   $('pw-modal')?.addEventListener('click', (e) => {
     if (e.target.id === 'pw-modal') closePwModal();
   });
-  $('pw-save')?.addEventListener('click', () => {
+  $('pw-save')?.addEventListener('click', async () => {
     const user = FTSession.parseUser();
     if (!user) return;
     const oldPw = $('pw-old').value;
     const n1 = $('pw-new').value;
     const n2 = $('pw-new2').value;
-    if (user.passwordDemo) {
-      if (oldPw !== user.passwordDemo) {
+
+    if (typeof FTSession !== 'undefined' && FTSession.usesFirebase && FTSession.usesFirebase()) {
+      alert('Por segurança, altere a senha pelo fluxo “Esqueci a senha” (verificação por e-mail).');
+      closePwModal();
+      return;
+    }
+
+    if (user.passwordDemoHash) {
+      const oldHash = await FTSession.hashDemoSecretStrong(oldPw);
+      if (oldHash !== user.passwordDemoHash) {
         alert('Senha atual incorreta.');
         return;
       }
@@ -174,14 +182,15 @@
       alert('Confirmação não coincide.');
       return;
     }
-    user.passwordDemo = n1;
+    user.passwordDemoHash = await FTSession.hashDemoSecretStrong(n1);
+    delete user.passwordDemo;
     FTSession.saveUser(user);
     $('pw-old').value = '';
     $('pw-new').value = '';
     $('pw-new2').value = '';
     closePwModal();
     haptic('medium');
-    alert('Senha atualizada (demonstração local).');
+    alert('Senha atualizada (modo local).');
   });
 
   if (window.FTNotifications) FTNotifications.bind('#notification-btn');

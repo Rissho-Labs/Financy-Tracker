@@ -51,3 +51,28 @@
 
   window.FTTheme = { get: get, set: set, apply: apply };
 })();
+
+/* Probe de ações no device/localhost — logs [FTProbe] no logcat */
+(function () {
+  'use strict';
+  try {
+    if (window.__FT_PROBE_LOADER__) return;
+    window.__FT_PROBE_LOADER__ = true;
+    var host = location.hostname || '';
+    var ua = navigator.userAgent || '';
+    var on =
+      host === 'localhost' ||
+      host === '127.0.0.1' ||
+      /Capacitor/i.test(ua) ||
+      /; wv\)/.test(ua);
+    try {
+      if (sessionStorage.getItem('ft-debug') === '1') on = true;
+      if (sessionStorage.getItem('ft-debug') === '0') on = false;
+    } catch (e) { /* ignore */ }
+    if (!on) return;
+    var s = document.createElement('script');
+    s.src = '/shared/js/ft-debug-probe.js';
+    s.async = true;
+    (document.head || document.documentElement).appendChild(s);
+  } catch (e) { /* ignore */ }
+})();

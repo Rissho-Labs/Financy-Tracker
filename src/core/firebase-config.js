@@ -14,11 +14,11 @@ window.FTFIREBASE_CONFIG = {
   googleWebClientId: '934366617514-lh5b8u1hk22ug9i82q5ssc6j3ivbr96j.apps.googleusercontent.com',
 
   /**
-   * EmailJS — envia o código de redefinição de senha por e-mail.
-   * Configure em https://emailjs.com (conta gratuita, 200 e-mails/mês).
-   * Ver docs/SETUP-PASSWORD-RESET.md para instruções detalhadas.
+   * EmailJS — e-mail branded de redefinição (menos spam que noreply do Firebase).
+   * Template recomendado: variáveis to_email, code (OTP) e/ou reset_link + message.
+   * Serviço deve usar Gmail/Outlook/domínio próprio verificado no painel EmailJS.
    *
-   * Sem EmailJS configurado, o código aparece no console (modo dev).
+   * Sem EmailJS (ou se falhar), a app tenta Cloud Functions e por fim o e-mail Auth do Firebase.
    */
   emailjsServiceId:  'service_3qhxn9s',
   emailjsTemplateId: 'template_xwhxiuw',

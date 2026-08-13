@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="/styles/tokens.css" />
   <link rel="stylesheet" href="/styles/reset.css" />
   <link rel="stylesheet" href="/styles/global.css" />
+  <script src="/core/ft-secure-console.js"></script>
   <script src="/core/ft-theme.js"></script>
   <script src="/core/ft-build.js"></script>
   <script src="/core/ft-storage.js"></script>
@@ -20,28 +21,129 @@
   <div class="phone-frame" style="max-width:400px;margin:24px auto;padding:24px;height:auto;min-height:auto;">
     <h1 style="font-size:22px;margin-bottom:8px;">Recuperar acesso</h1>
     <p style="color:var(--text-secondary);font-size:14px;margin-bottom:20px;line-height:1.45;">
-      Modo demonstração: nenhum e-mail é enviado. Com API, aqui seria o fluxo de “magic link” para redefinir a senha.
+      Digite o e-mail da conta. Enviaremos um código ou link para redefinir a senha.
     </p>
     <label class="field-label" for="re-email" style="display:block;margin-bottom:6px;">E-mail da conta</label>
-    <input id="re-email" type="email" style="width:100%;padding:14px;border-radius:12px;border:1px solid var(--border);background:rgba(0,0,0,.2);color:inherit;margin-bottom:16px;font-size:15px;" placeholder="seu@email.com" />
+    <input id="re-email" type="email" style="width:100%;padding:14px;border-radius:12px;border:1px solid var(--border);background:rgba(0,0,0,.2);color:inherit;margin-bottom:8px;font-size:15px;" placeholder="seu@email.com" autocomplete="email" />
+    <p id="re-err" role="alert" style="margin:0 0 12px;font-size:13px;color:var(--danger,#f87171);min-height:1.2em;"></p>
     <button type="button" id="re-send" style="width:100%;padding:14px;border:none;border-radius:14px;font-weight:700;background:linear-gradient(135deg,#6c63ff,#3b82f6);color:#fff;cursor:pointer;font-family:inherit;">
-      Enviar link de recuperação
+      Enviar
     </button>
     <p id="re-msg" style="margin-top:16px;font-size:14px;color:var(--success);display:none;"></p>
     <p style="margin-top:24px;"><a href="/index.html" style="color:var(--accent);font-weight:600;">← Voltar ao login</a></p>
   </div>
+  <script src="/core/firebase-config.js"></script>
+  <script src="/core/ft-firebase.bundle.js"></script>
   <script>
-    document.getElementById('re-send').addEventListener('click', function () {
-      var em = document.getElementById('re-email').value.trim();
-      if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
-        alert('Informe um e-mail válido.');
-        return;
+    (function () {
+      var emailEl = document.getElementById('re-email');
+      var btn = document.getElementById('re-send');
+      var msg = document.getElementById('re-msg');
+      var err = document.getElementById('re-err');
+
+      function setBusy(yes) {
+        btn.disabled = !!yes;
+        btn.textContent = yes ? 'Enviando…' : 'Enviar';
       }
-      localStorage.setItem('ft_reset_mock_sent', JSON.stringify({ email: em, at: new Date().toISOString() }));
-      var m = document.getElementById('re-msg');
-      m.style.display = 'block';
-      m.textContent = 'Se existir uma conta, enviaremos um link para ' + em + ' (simulação — verifique o backend depois).';
-    });
+
+      function isCallableMissing(e) {
+        var code = e && e.code ? String(e.code) : '';
+        return code === 'functions/not-found' || code === 'functions/unimplemented' ||
+          code === 'functions/unavailable' || (e && e.message === 'firebase_not_ready');
+      }
+
+      async function sendCodeEmail(email, code) {
+        var cfg = window.FTFIREBASE_CONFIG || {};
+        if (!cfg.emailjsServiceId || !cfg.emailjsTemplateId || !cfg.emailjsPublicKey) {
+          throw new Error('emailjs_not_configured');
+        }
+        var res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            service_id: cfg.emailjsServiceId,
+            template_id: cfg.emailjsTemplateId,
+            user_id: cfg.emailjsPublicKey,
+            template_params: {
+              to_email: email,
+              email: email,
+              user_email: email,
+              code: code,
+              passcode: code,
+              app_name: 'Finance Tracker',
+              expiry: '10 minutos',
+              message: 'O seu código Finance Tracker é: ' + code + ' (válido por 10 minutos).'
+            }
+          })
+        });
+        if (!res.ok) throw new Error('emailjs_failed');
+      }
+
+      btn.addEventListener('click', async function () {
+        var em = (emailEl.value || '').trim().toLowerCase();
+        err.textContent = '';
+        msg.style.display = 'none';
+
+        if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
+          err.textContent = 'Informe um e-mail válido.';
+          return;
+        }
+        if (typeof FTFirebase === 'undefined') {
+          err.textContent = 'Firebase não iniciado. Reabra o app e tente.';
+          return;
+        }
+
+        setBusy(true);
+        try {
+          if (FTFirebase.callSendBrandedPasswordReset) {
+            try {
+              await FTFirebase.callSendBrandedPasswordReset(em);
+              msg.style.display = 'block';
+              msg.textContent = 'Enviamos um link para ' + em + '. Verifique a caixa de entrada (e o spam).';
+              return;
+            } catch (e) {
+              if (!isCallableMissing(e)) { /* tenta próximo */ }
+            }
+          }
+
+          var cfg = window.FTFIREBASE_CONFIG || {};
+          if (FTFirebase.generateOtpCode && cfg.emailjsServiceId) {
+            try {
+              var code = await FTFirebase.generateOtpCode(em);
+              await sendCodeEmail(em, code);
+              msg.style.display = 'block';
+              msg.textContent = 'Enviamos um código de 6 dígitos para ' + em +
+                '. Volte ao login e use “Esqueceu a senha?” para digitar o código, ou peça de novo pelo mesmo fluxo.';
+              return;
+            } catch (e2) { /* fallback Firebase */ }
+          }
+
+          if (!FTFirebase.sendResetEmail) throw new Error('firebase_not_ready');
+          await FTFirebase.sendResetEmail(em);
+          msg.style.display = 'block';
+          msg.textContent = 'Enviamos um link do Firebase para ' + em +
+            '. Pode cair em spam — marque como “Não é spam” se precisar.';
+        } catch (e) {
+          var code = e && e.code ? String(e.code) : '';
+          if (code === 'auth/user-not-found') {
+            err.textContent = 'E-mail não encontrado. Verifique e tente de novo.';
+          } else if (code === 'auth/too-many-requests') {
+            err.textContent = 'Muitas tentativas. Aguarde alguns minutos.';
+          } else {
+            err.textContent = 'Não foi possível enviar. Tente novamente.';
+          }
+        } finally {
+          setBusy(false);
+        }
+      });
+
+      emailEl.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          btn.click();
+        }
+      });
+    })();
   </script>
 </body>
 </html>
