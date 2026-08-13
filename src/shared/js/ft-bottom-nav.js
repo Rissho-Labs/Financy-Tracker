@@ -30,6 +30,9 @@
     if (window.location.pathname === dest) return;
 
     e.preventDefault();
+    if (window.FTTabCarousel && typeof FTTabCarousel.goTo === 'function') {
+      if (FTTabCarousel.goTo(key)) return;
+    }
     try {
       sessionStorage.setItem('ft-tab-nav', '1');
     } catch (err) { /* ignore */ }
