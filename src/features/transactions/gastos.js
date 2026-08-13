@@ -53,10 +53,8 @@
       scrollEl.style.overflow = 'hidden';
       scrollEl.style.touchAction = 'none';
     }
-    if (window.matchMedia('(pointer: fine)').matches) {
-      requestAnimationFrame(() => {
-        $('gasto-name')?.focus({ preventScroll: true });
-      });
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+      document.activeElement.blur();
     }
     haptic('light');
   }

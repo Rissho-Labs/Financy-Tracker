@@ -102,6 +102,9 @@ function openExpenseSheet() {
   const sh = $('expense-sheet');
   if (!sh) return;
   haptic('medium');
+  if (document.activeElement && typeof document.activeElement.blur === 'function') {
+    document.activeElement.blur();
+  }
   sh.classList.add('ft-sheet--open');
   sh.setAttribute('aria-hidden', 'false');
   $('nav-fab')?.classList.add('is-hidden');

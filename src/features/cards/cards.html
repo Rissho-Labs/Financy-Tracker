@@ -162,7 +162,7 @@
         <label class="field-label">Nome no cartão</label>
         <input id="cc-add-name" type="text" class="ft-form-input" maxlength="48" />
         <label class="field-label">Final do número (4 dígitos)</label>
-        <input id="cc-add-last4" type="text" class="ft-form-input" inputmode="numeric" maxlength="4" />
+        <input id="cc-add-last4" type="text" class="ft-form-input" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" />
         <label class="field-label">Bandeira</label>
         <select id="cc-add-brand" class="ft-form-input ft-form-select">
           <option value="visa">Visa</option>
@@ -174,12 +174,12 @@
         <div class="cc-form-row2">
           <div class="cc-form-field">
             <label class="field-label" for="cc-add-close-day">Fechamento da fatura</label>
-            <input id="cc-add-close-day" type="number" class="ft-form-input" inputmode="numeric" min="1" max="31" placeholder="Ex: 15" aria-describedby="cc-add-close-hint" />
+            <input id="cc-add-close-day" type="text" class="ft-form-input" inputmode="numeric" pattern="[0-9]*" maxlength="2" placeholder="Ex: 15" aria-describedby="cc-add-close-hint" autocomplete="off" />
             <span class="cc-field-hint" id="cc-add-close-hint">Dia do mês (1–31)</span>
           </div>
           <div class="cc-form-field">
             <label class="field-label" for="cc-add-due-day">Vencimento</label>
-            <input id="cc-add-due-day" type="number" class="ft-form-input" inputmode="numeric" min="1" max="31" placeholder="Ex: 22" aria-describedby="cc-add-due-hint" />
+            <input id="cc-add-due-day" type="text" class="ft-form-input" inputmode="numeric" pattern="[0-9]*" maxlength="2" placeholder="Ex: 22" aria-describedby="cc-add-due-hint" autocomplete="off" />
             <span class="cc-field-hint" id="cc-add-due-hint">Dia do mês (1–31)</span>
           </div>
         </div>

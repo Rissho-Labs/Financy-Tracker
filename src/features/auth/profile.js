@@ -329,21 +329,28 @@
     const modal = $('pw-modal');
     if (!modal) return;
     lastFocusEl = document.activeElement;
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+      document.activeElement.blur();
+    }
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
-    setTimeout(() => {
-      $('pw-old')?.focus();
-    }, 0);
   }
 
   function closePwModal() {
     const modal = $('pw-modal');
     if (!modal) return;
-    if (lastFocusEl && typeof lastFocusEl.focus === 'function') {
-      lastFocusEl.focus();
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+      document.activeElement.blur();
     }
     modal.classList.remove('open');
     modal.setAttribute('aria-hidden', 'true');
+    // Restaura foco só em controlos não-texto (evita reabrir o teclado)
+    if (lastFocusEl && typeof lastFocusEl.focus === 'function') {
+      const tag = String(lastFocusEl.tagName || '').toLowerCase();
+      if (tag !== 'input' && tag !== 'textarea' && tag !== 'select') {
+        lastFocusEl.focus();
+      }
+    }
   }
 
   $('btn-change-password')?.addEventListener('click', () => {

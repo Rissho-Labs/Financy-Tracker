@@ -73,10 +73,16 @@
   function closeSheet(id) {
     const el = $(id);
     if (!el) return;
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+      document.activeElement.blur();
+    }
     el.classList.remove('open');
     el.setAttribute('aria-hidden', 'true');
     if (lastFocusEl && typeof lastFocusEl.focus === 'function') {
-      lastFocusEl.focus();
+      const tag = String(lastFocusEl.tagName || '').toLowerCase();
+      if (tag !== 'input' && tag !== 'textarea' && tag !== 'select') {
+        lastFocusEl.focus();
+      }
     }
   }
 
@@ -304,20 +310,20 @@
     const filter = $('friends-filter');
     if (filter) filter.value = '';
     renderFriendsList();
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+      document.activeElement.blur();
+    }
     openSheet('friends-modal');
-    setTimeout(function () {
-      filter?.focus();
-    }, 320);
   }
 
   function openSearchModal() {
     const q = $('friend-search-query');
     if (q) q.value = '';
     renderSearchResults();
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+      document.activeElement.blur();
+    }
     openSheet('friend-search-modal');
-    setTimeout(function () {
-      q?.focus();
-    }, 320);
   }
 
   $('friends-btn')?.addEventListener('click', function () {

@@ -111,7 +111,7 @@
       '          </select></div>' +
       '        <div class="receipt-field receipt-installments-row hidden" id="rr-installments-wrap">' +
       '          <label for="rr-installments">Parcelas</label>' +
-      '          <input id="rr-installments" type="number" min="2" max="24" disabled value="2" /></div>' +
+      '          <input id="rr-installments" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" disabled value="2" autocomplete="off" /></div>' +
       '        <div class="receipt-actions">' +
       '          <button type="button" class="receipt-btn-edit" id="rr-btn-edit">Editar</button>' +
       '          <button type="button" class="tx-add-btn hidden" id="rr-btn-save">Salvar</button>' +

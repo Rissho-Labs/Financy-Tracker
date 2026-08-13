@@ -123,7 +123,7 @@
 
               <div class="tx-field hidden" id="installments-wrap">
                 <label for="gasto-installments">Número de parcelas</label>
-                <input id="gasto-installments" type="number" min="2" max="24" value="2" />
+                <input id="gasto-installments" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" value="2" autocomplete="off" />
               </div>
 
               <button type="submit" class="tx-add-btn" style="margin-top:12px;">Adicionar gasto</button>

@@ -232,7 +232,6 @@ function goToPasswordStep() {
   markSuccess('email');
   showAuthStep2();
   haptic('medium');
-  setTimeout(() => $('password')?.focus(), 320);
   return true;
 }
 
@@ -243,7 +242,6 @@ $('btn-continue-email')?.addEventListener('click', () => {
 $('btn-back-email')?.addEventListener('click', () => {
   haptic('light');
   showAuthStep1();
-  setTimeout(() => $('email')?.focus(), 280);
 });
 
 const passwordEl = $('password');
@@ -525,7 +523,6 @@ $('btn-google').addEventListener('click', async () => {
     clearError(fpEmail, fpEmailErr);
     overlay.setAttribute('aria-hidden', 'false');
     overlay.classList.add('fp-open');
-    setTimeout(() => fpEmail.focus(), 380);
   }
 
   function closeSheet() {
@@ -602,7 +599,6 @@ $('btn-google').addEventListener('click', async () => {
     });
     clearError(null, fpCodeErr);
     showStep('code');
-    setTimeout(() => otpDigits[0] && otpDigits[0].focus(), 300);
   }
 
   function isCallableMissing(err) {
@@ -773,7 +769,6 @@ $('btn-google').addEventListener('click', async () => {
     clearError(null, fpPwErr);
     showStep('newpw');
     haptic('medium');
-    setTimeout(() => fpNewpw.focus(), 300);
   }
 
   // ── Passo 3: salvar nova senha ───────────────────────────

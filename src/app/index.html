@@ -326,12 +326,12 @@
         <p class="fp-desc">Digite o código de 6 dígitos enviado para <strong id="fp-code-dest"></strong></p>
 
         <div class="fp-otp-row" role="group" aria-label="Código de verificação">
-          <input type="text" inputmode="numeric" maxlength="1" class="fp-otp-digit" autocomplete="one-time-code" />
-          <input type="text" inputmode="numeric" maxlength="1" class="fp-otp-digit" />
-          <input type="text" inputmode="numeric" maxlength="1" class="fp-otp-digit" />
-          <input type="text" inputmode="numeric" maxlength="1" class="fp-otp-digit" />
-          <input type="text" inputmode="numeric" maxlength="1" class="fp-otp-digit" />
-          <input type="text" inputmode="numeric" maxlength="1" class="fp-otp-digit" />
+          <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="fp-otp-digit" autocomplete="one-time-code" />
+          <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="fp-otp-digit" />
+          <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="fp-otp-digit" />
+          <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="fp-otp-digit" />
+          <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="fp-otp-digit" />
+          <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="fp-otp-digit" />
         </div>
         <span class="field-error" id="fp-code-error" role="alert" aria-live="polite"></span>
 

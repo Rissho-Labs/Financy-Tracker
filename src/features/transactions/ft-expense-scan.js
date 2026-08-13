@@ -91,10 +91,16 @@
   function closeSheet() {
     var el = $(MODAL_ID);
     if (!el) return;
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+      document.activeElement.blur();
+    }
     el.classList.remove('open');
     el.setAttribute('aria-hidden', 'true');
     if (lastFocusEl && typeof lastFocusEl.focus === 'function') {
-      lastFocusEl.focus();
+      var tag = String(lastFocusEl.tagName || '').toLowerCase();
+      if (tag !== 'input' && tag !== 'textarea' && tag !== 'select') {
+        lastFocusEl.focus();
+      }
     }
   }
 

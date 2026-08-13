@@ -385,6 +385,9 @@
     const modal = $('add-card-modal');
     if (!modal) return;
     clearAddCardForm();
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+      document.activeElement.blur();
+    }
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
   }
