@@ -113,37 +113,50 @@ html[data-theme='light'] .ft-tab-panel-ph {
   background: var(--home-bg, #f2f2f7);
 }
 
-/* Pill deslizante — menu estável (sem expand/collapse dos itens) */
+/* Pill — destaque settled via ::before (1º paint, sem JS).
+   Pill flutuante só durante gesto (evita pop no ícone ao carregar Perfil). */
 .bottom-nav.ft-nav-thumb-mode,
 html[data-ft-tabs] .bottom-nav {
   isolation: isolate;
   position: relative;
+  --ft-nav-pill-size: 44px;
+  --ft-nav-pill-bg: rgba(255, 255, 255, 0.14);
+  --ft-nav-pill-shadow: none;
 }
 
-.ft-nav-thumb {
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: 0;
-  box-sizing: border-box;
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-pill, 999px);
-  pointer-events: none;
-  will-change: transform;
-  transform: translate3d(0, 0, 0);
-  background: rgba(255, 255, 255, 0.14);
-  box-shadow: none;
+html.ft-ios[data-theme='light'] .bottom-nav.ft-nav-thumb-mode,
+html[data-theme='light'] .bottom-nav.ft-nav-thumb-mode,
+html.ft-ios[data-theme='light'][data-ft-tabs] .bottom-nav,
+html[data-theme='light'][data-ft-tabs] .bottom-nav {
+  --ft-nav-pill-bg: rgba(0, 0, 0, 0.08);
 }
 
-.ft-nav-thumb.is-moving {
-  transition: transform 0.34s cubic-bezier(0.32, 0.72, 0, 1);
+html:not(.ft-ios) .bottom-nav.ft-nav-thumb-mode,
+html:not(.ft-ios)[data-ft-tabs] .bottom-nav {
+  --ft-nav-pill-bg: linear-gradient(
+    145deg,
+    rgba(196, 181, 253, 0.92) 0%,
+    rgba(139, 92, 246, 0.88) 45%,
+    rgba(109, 40, 217, 0.9) 100%
+  );
+  --ft-nav-pill-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 2px 10px rgba(109, 40, 217, 0.28);
+}
+
+html:not(.ft-ios)[data-theme='light'] .bottom-nav.ft-nav-thumb-mode,
+html:not(.ft-ios)[data-theme='light'][data-ft-tabs] .bottom-nav {
+  --ft-nav-pill-bg: var(--accent-purple-metal, #7c3aed);
+  --ft-nav-pill-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 2px 10px rgba(109, 40, 217, 0.28);
 }
 
 html[data-ft-tabs] .bottom-nav .nav-item,
 .bottom-nav.ft-nav-thumb-mode .nav-item {
   position: relative;
   z-index: 1;
+  isolation: isolate;
   flex: 1 1 0 !important;
   gap: 0 !important;
   padding: 10px 6px !important;
@@ -153,13 +166,18 @@ html[data-ft-tabs] .bottom-nav .nav-item,
   box-shadow: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  transition: color 0.2s ease !important;
+  transition: color 0.15s ease !important;
 }
 
 html[data-ft-tabs] .bottom-nav .nav-item > span,
 .bottom-nav.ft-nav-thumb-mode .nav-item > span {
-  /* Ícones only — nome da tela fica no placeholder da transição */
   display: none !important;
+}
+
+html[data-ft-tabs] .bottom-nav .nav-item svg,
+.bottom-nav.ft-nav-thumb-mode .nav-item svg {
+  position: relative;
+  z-index: 1;
 }
 
 html[data-ft-tabs] .bottom-nav .nav-item.active,
@@ -170,13 +188,54 @@ html[data-ft-tabs] .bottom-nav .nav-item.active,
   flex: 1 1 0 !important;
 }
 
-html.ft-ios .ft-nav-thumb {
-  background: rgba(255, 255, 255, 0.14);
+/* Indicador settled — presente no 1º paint (sem esperar carousel.js) */
+html[data-ft-tabs] .bottom-nav .nav-item.active::before,
+.bottom-nav.ft-nav-thumb-mode .nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--ft-nav-pill-size);
+  height: var(--ft-nav-pill-size);
+  margin-left: calc(var(--ft-nav-pill-size) / -2);
+  margin-top: calc(var(--ft-nav-pill-size) / -2);
+  border-radius: 999px;
+  background: var(--ft-nav-pill-bg);
+  box-shadow: var(--ft-nav-pill-shadow);
+  z-index: 0;
+  pointer-events: none;
 }
 
-html.ft-ios[data-theme='light'] .ft-nav-thumb,
-html[data-theme='light'] .ft-nav-thumb {
-  background: rgba(0, 0, 0, 0.08);
+/* Durante o gesto: só o pill flutuante (evita círculo duplo) */
+.bottom-nav.ft-nav-thumb-live .nav-item.active::before {
+  content: none;
+}
+
+.ft-nav-thumb {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 0;
+  box-sizing: border-box;
+  width: var(--ft-nav-pill-size, 44px);
+  height: var(--ft-nav-pill-size, 44px);
+  border-radius: 999px;
+  pointer-events: none;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  background: var(--ft-nav-pill-bg);
+  box-shadow: var(--ft-nav-pill-shadow);
+  opacity: 0;
+  visibility: hidden;
+}
+
+.ft-nav-thumb.is-live {
+  opacity: 1;
+  visibility: visible;
+}
+
+.ft-nav-thumb.is-moving {
+  transition: transform 0.34s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 html.ft-ios[data-theme='light'] .bottom-nav.ft-nav-thumb-mode .nav-item.active,
@@ -186,28 +245,15 @@ html[data-theme='light'][data-ft-tabs] .bottom-nav .nav-item.active {
   color: #111;
 }
 
-html:not(.ft-ios) .ft-nav-thumb {
-  background: linear-gradient(
-    145deg,
-    rgba(196, 181, 253, 0.92) 0%,
-    rgba(139, 92, 246, 0.88) 45%,
-    rgba(109, 40, 217, 0.9) 100%
-  );
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.28),
-    0 2px 10px rgba(109, 40, 217, 0.28);
-}
-
-html:not(.ft-ios)[data-theme='light'] .ft-nav-thumb {
-  background: var(--accent-purple-metal, #7c3aed);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 2px 10px rgba(109, 40, 217, 0.28);
-}
-
 @media (prefers-reduced-motion: reduce) {
   .ft-tab-track.is-animating {
     transition: none;
   }
   .ft-nav-thumb.is-moving {
     transition: none;
+  }
+  html[data-ft-tabs] .bottom-nav .nav-item,
+  .bottom-nav.ft-nav-thumb-mode .nav-item {
+    transition: none !important;
   }
 }

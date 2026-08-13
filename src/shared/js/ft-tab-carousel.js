@@ -176,7 +176,7 @@
     }
   }
 
-  /* ── Pill: só ícones; fundo compacto centrado no slot ── */
+  /* ── Pill: settled = ::before no .active; flutuante só no gesto ── */
 
   function ensureThumb() {
     if (!els.nav || els.thumb) return;
@@ -186,6 +186,18 @@
     thumb.setAttribute('aria-hidden', 'true');
     els.nav.insertBefore(thumb, els.nav.firstChild);
     els.thumb = thumb;
+  }
+
+  function thumbSetLive(on) {
+    if (!els.nav) return;
+    if (on) els.nav.classList.add('ft-nav-thumb-live');
+    else els.nav.classList.remove('ft-nav-thumb-live');
+    if (!els.thumb) return;
+    if (on) els.thumb.classList.add('is-live');
+    else {
+      els.thumb.classList.remove('is-live');
+      els.thumb.classList.remove('is-moving');
+    }
   }
 
   function readSlots() {
@@ -231,16 +243,11 @@
     els.thumb.style.height = PILL_SIZE + 'px';
   }
 
-  function thumbSettle(idx, animate) {
-    ensureThumb();
+  /** Estado parado: só ::before no .active — sem pill flutuante. */
+  function thumbSettle(idx) {
     thumbDrag.active = false;
     setNavActive(idx);
-    var slots = readSlots();
-    var slot = slots[idx];
-    if (!slot || !els.thumb) return;
-    applyPillBox();
-    var pos = thumbPosForSlot(slot);
-    paintThumbXY(pos.x, pos.y, !!animate);
+    thumbSetLive(false);
   }
 
   function thumbBeginSwipe(fromIdx, toIdx) {
@@ -262,7 +269,9 @@
     thumbDrag.toX = to.x;
     thumbDrag.y = from.y;
     thumbDrag.lastP = -1;
+    /* Mostra flutuante no sítio do ativo atual; esconde ::before */
     paintThumbXY(from.x, from.y, false);
+    thumbSetLive(true);
   }
 
   function thumbSetProgress(p) {
@@ -275,27 +284,26 @@
   }
 
   function thumbAnimateTo(idx, onDone) {
-    ensureThumb();
     if (reduceMotion()) {
-      thumbSettle(idx, false);
+      thumbSettle(idx);
       if (onDone) onDone();
       return;
     }
     thumbBeginSwipe(state.index, idx);
     if (!thumbDrag.active) {
-      thumbSettle(idx, false);
+      thumbSettle(idx);
       if (onDone) onDone();
       return;
     }
+    /* Não muda .active a meio — evita o ícone destino “acender” antes do pill */
     requestAnimationFrame(function () {
-      setNavActive(idx);
       paintThumbXY(thumbDrag.toX, thumbDrag.y, true);
     });
     var done = false;
     var finish = function () {
       if (done) return;
       done = true;
-      thumbSettle(idx, false);
+      thumbSettle(idx);
       if (onDone) onDone();
     };
     els.thumb.addEventListener('transitionend', finish, { once: true });
@@ -310,7 +318,7 @@
   }
 
   function clearNavDrag() {
-    thumbSettle(state.index, false);
+    thumbSettle(state.index);
   }
 
   function navigateTo(index) {
@@ -341,6 +349,7 @@
 
     if (destIndex !== state.index) {
       if (thumbDrag.active) thumbSetProgress(1);
+      /* Mantém ft-nav-thumb-live até o unload — sem ::before a saltar no destino */
       setNavActive(destIndex);
       setTrack(target, true);
       var finished = false;
@@ -585,7 +594,7 @@
         if (state.animating || state.dragging) return;
         measure();
         setTrack(baseX(), false);
-        thumbSettle(state.index, false);
+        thumbSettle(state.index);
       },
       { passive: true }
     );
@@ -625,10 +634,9 @@
     if (!pathOf('home')) return;
     if (!buildShell()) return;
     document.documentElement.setAttribute('data-ft-tab-carousel', '1');
-    ensureThumb();
-    requestAnimationFrame(function () {
-      thumbSettle(state.index, false);
-    });
+    if (els.nav) els.nav.classList.add('ft-nav-thumb-mode');
+    setNavActive(state.index);
+    /* Sem pill flutuante no idle — ::before no .active evita pop no Perfil */
     bind();
   }
 
