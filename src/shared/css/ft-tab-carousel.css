@@ -114,11 +114,22 @@ html[data-theme='light'] .ft-tab-panel-ph {
 }
 
 /* Pill — destaque settled via ::before (1º paint, sem JS).
-   Pill flutuante só durante gesto (evita pop no ícone ao carregar Perfil). */
+   Pill flutuante só durante gesto (evita pop no ícone ao carregar Perfil).
+   NÃO usar position:relative no .bottom-nav — tem de permanecer absolute
+   (home.css); relative metia o menu no fluxo flex e o contorno “crescia”. */
 .bottom-nav.ft-nav-thumb-mode,
 html[data-ft-tabs] .bottom-nav {
   isolation: isolate;
-  position: relative;
+  /* geometria fixa: safe-area só em bottom, nunca em padding/height */
+  box-sizing: border-box !important;
+  width: min(350px, calc(100% - 40px)) !important;
+  height: 58px !important;
+  min-height: 58px !important;
+  max-height: 58px !important;
+  padding: 7px 12px !important;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px)) !important;
+  gap: 0 !important;
+  transition: none !important;
   --ft-nav-pill-size: 44px;
   --ft-nav-pill-bg: rgba(255, 255, 255, 0.14);
   --ft-nav-pill-shadow: none;
@@ -159,7 +170,11 @@ html[data-ft-tabs] .bottom-nav .nav-item,
   isolation: isolate;
   flex: 1 1 0 !important;
   gap: 0 !important;
-  padding: 10px 6px !important;
+  width: auto !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
+  padding: 0 !important;
   min-width: 0 !important;
   max-width: none !important;
   background: transparent !important;

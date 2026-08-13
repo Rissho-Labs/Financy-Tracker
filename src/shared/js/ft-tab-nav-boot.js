@@ -1,7 +1,7 @@
 /**
  * Marca abas com data-ft-tabs + CSS crítico ANTES do paint.
- * Evita: .nav-item.active expandir (home.css) e depois colapsar no carousel —
- * o salto visível no ícone Perfil ao chegar na página.
+ * - Evita expand do .nav-item.active (home.css)
+ * - Mantém .bottom-nav absolute com altura fixa (sem safe-area no padding)
  */
 (function () {
   'use strict';
@@ -13,7 +13,12 @@
     var style = document.createElement('style');
     style.id = 'ft-tab-nav-critical';
     style.textContent =
-      'html[data-ft-tabs] .bottom-nav{isolation:isolate;position:relative;' +
+      /* NÃO position:relative — absolute vem do home.css; relative = salto do contorno */
+      'html[data-ft-tabs] .bottom-nav{isolation:isolate;box-sizing:border-box!important;' +
+      'width:min(350px,calc(100% - 40px))!important;height:58px!important;' +
+      'min-height:58px!important;max-height:58px!important;padding:7px 12px!important;' +
+      'bottom:calc(18px + env(safe-area-inset-bottom,0px))!important;gap:0!important;' +
+      'transition:none!important;' +
       '--ft-nav-pill-size:44px;--ft-nav-pill-bg:rgba(255,255,255,.14);--ft-nav-pill-shadow:none}' +
       'html.ft-ios[data-theme=light][data-ft-tabs] .bottom-nav,' +
       'html[data-theme=light][data-ft-tabs] .bottom-nav{' +
@@ -25,7 +30,8 @@
       '--ft-nav-pill-bg:var(--accent-purple-metal,#7c3aed)}' +
       'html[data-ft-tabs] .bottom-nav .nav-item{' +
       'position:relative;z-index:1;isolation:isolate;flex:1 1 0!important;gap:0!important;' +
-      'padding:10px 6px!important;min-width:0!important;max-width:none!important;' +
+      'height:44px!important;min-height:44px!important;max-height:44px!important;padding:0!important;' +
+      'min-width:0!important;max-width:none!important;' +
       'background:transparent!important;box-shadow:none!important;' +
       'backdrop-filter:none!important;-webkit-backdrop-filter:none!important;' +
       'transition:color .15s ease!important}' +
@@ -40,7 +46,6 @@
       'margin-left:calc(var(--ft-nav-pill-size)/-2);margin-top:calc(var(--ft-nav-pill-size)/-2);' +
       'border-radius:999px;background:var(--ft-nav-pill-bg);box-shadow:var(--ft-nav-pill-shadow);' +
       'z-index:0;pointer-events:none}';
-    /* head ainda a abrir: injeta já para ganhar ao home.css no 1º paint */
     (document.head || root).appendChild(style);
   }
 
