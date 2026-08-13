@@ -427,7 +427,7 @@ html.ft-cards .add-card-btn-top:active {
 }
 
 html.ft-cards .cards-display-section {
-  margin-top: 4px;
+  margin-top: var(--home-content-top, 4px);
 }
 
 html.ft-cards .carousel-container {
@@ -649,7 +649,7 @@ html.ft-cards .tx-installments {
 }
 
 html.ft-cards .cards-scroll-spacer {
-  height: 118px;
+  height: var(--home-scroll-spacer, 118px);
 }
 
 html.ft-cards[data-theme="light"] .cc-limit-bar-bg {

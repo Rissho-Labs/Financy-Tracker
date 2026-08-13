@@ -1364,6 +1364,8 @@ html.ft-ios {
   --home-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
   --home-radius: 22px;
   --home-pad: 20px;
+  --home-content-top: 4px;
+  --home-scroll-spacer: 118px;
   --home-accent: #30d158;
   --home-label: rgba(235, 235, 245, 0.56);
 }
@@ -1485,7 +1487,7 @@ html.ft-ios .notif-badge {
 
 /* Bento */
 html.ft-home .wallet-section {
-  padding: 8px 0 4px;
+  padding: var(--home-content-top, 4px) 0 4px;
   animation: none;
 }
 
@@ -1772,7 +1774,7 @@ html.ft-ios .home-tx-hint {
 }
 
 html.ft-ios .home-scroll-spacer {
-  height: 118px;
+  height: var(--home-scroll-spacer, 118px);
 }
 
 /* Nav — shared iOS chrome */

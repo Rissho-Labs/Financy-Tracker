@@ -18,7 +18,7 @@
 }
 
 .profile-scroll {
-  padding-top: 10px;
+  padding-top: 0;
 }
 
 /* ── Profile Header (Avatar & Tag) ─────────────────────────── */
@@ -374,7 +374,7 @@
    Perfil v2 — Apple settings (scoped: html.ft-profile)
    ══════════════════════════════════════════════════════════════ */
 html.ft-profile .profile-header {
-  padding: 8px var(--home-pad) 20px;
+  padding: var(--home-content-top, 4px) var(--home-pad) 20px;
 }
 
 /* Evita “pulo” de entrada do header partilhado com a Home */
@@ -521,7 +521,7 @@ html.ft-profile .req-subtitle {
 }
 
 html.ft-profile .profile-scroll-spacer {
-  height: 118px;
+  height: var(--home-scroll-spacer, 118px);
 }
 
 html.ft-profile[data-theme="light"] .profile-avatar {

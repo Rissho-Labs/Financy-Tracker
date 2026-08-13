@@ -377,13 +377,13 @@ html[data-theme="light"] .goal-edit-modal {
 
   .goal-new-card,
   .goal-card {
-    margin-left: 12px;
-    margin-right: 12px;
+    margin-left: var(--home-pad, 12px);
+    margin-right: var(--home-pad, 12px);
   }
 
   .goals-intro {
-    padding-left: 12px;
-    padding-right: 12px;
+    padding-left: var(--home-pad, 12px);
+    padding-right: var(--home-pad, 12px);
   }
 }
 
@@ -391,7 +391,7 @@ html[data-theme="light"] .goal-edit-modal {
    Metas v2 — Apple bento (scoped: html.ft-goals)
    ══════════════════════════════════════════════════════════════ */
 html.ft-goals .goals-intro {
-  padding: 4px var(--home-pad) 14px;
+  padding: var(--home-content-top, 4px) var(--home-pad) 14px;
   font-size: 14px;
   line-height: 1.45;
   color: var(--home-label);
@@ -501,7 +501,7 @@ html.ft-goals .goals-intro--empty {
 }
 
 html.ft-goals .goal-scroll-spacer {
-  height: 118px;
+  height: var(--home-scroll-spacer, 118px);
 }
 
 html.ft-goals .goal-edit-modal {
