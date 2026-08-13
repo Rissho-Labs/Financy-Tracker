@@ -14,7 +14,7 @@
 }
 
 .profile-title {
-  font-size: 28px;
+  font-size: var(--home-page-title, 28px);
 }
 
 .profile-scroll {
@@ -463,7 +463,7 @@ html.ft-profile .menu-section {
 }
 
 html.ft-profile .menu-section-title {
-  font-size: 13px;
+  font-size: var(--home-label-size, 13px);
   font-weight: 600;
   letter-spacing: -0.01em;
   text-transform: none;

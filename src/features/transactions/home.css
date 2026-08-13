@@ -1368,6 +1368,13 @@ html.ft-ios {
   --home-scroll-spacer: 118px;
   --home-accent: #30d158;
   --home-label: rgba(235, 235, 245, 0.56);
+  /* Tipografia partilhada (Home / Cartões / Metas / Perfil) */
+  --home-page-title: 28px;
+  --home-section-title: 20px;
+  --home-label-size: 13px;
+  --home-body-size: 14px;
+  --home-meta-size: 12px;
+  --home-icon-btn: 38px;
 }
 
 html.ft-ios[data-theme="light"] {
@@ -1425,22 +1432,21 @@ html.ft-ios .home-header {
 }
 
 html.ft-ios .greeting-label {
-  font-size: 13px;
+  font-size: var(--home-label-size);
   font-weight: 500;
   color: var(--home-label);
   letter-spacing: -0.01em;
+  min-height: 1.2em;
 }
 
-html.ft-ios .user-name {
-  font-size: 28px;
+html.ft-ios .user-name,
+html.ft-ios .cards-header-title,
+html.ft-ios .profile-title {
+  font-size: var(--home-page-title);
   font-weight: 700;
   letter-spacing: -0.72px;
   line-height: 1.1;
   min-height: 1.1em;
-}
-
-html.ft-ios .greeting-label {
-  min-height: 1.2em;
 }
 
 html.ft-ios .header-avatar {
@@ -1461,8 +1467,8 @@ html.ft-ios .header-avatar .avatar-ring {
 }
 
 html.ft-ios .notification-btn {
-  width: 38px;
-  height: 38px;
+  width: var(--home-icon-btn);
+  height: var(--home-icon-btn);
   background: var(--home-tile);
   border: 1px solid var(--home-hairline);
   box-shadow: none;
@@ -1470,9 +1476,21 @@ html.ft-ios .notification-btn {
   border-radius: 12px;
 }
 
+html.ft-ios .notification-btn svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 1.8;
+}
+
 html.ft-ios .notification-btn:hover {
   background: var(--home-tile-2);
   transform: none;
+}
+
+/* Home: header é mais alto (saudação + nome). Sem isto o sininho
+   centrava na altura extra e ficava abaixo das outras tabs. */
+html.ft-home .header-right {
+  align-self: flex-start;
 }
 
 html.ft-ios .notif-badge {
@@ -1515,7 +1533,7 @@ html.ft-home .wallet-summary__top {
 }
 
 html.ft-home .wallet-balance-label {
-  font-size: 13px;
+  font-size: var(--home-label-size, 13px);
   font-weight: 500;
   color: var(--home-label);
   letter-spacing: -0.01em;
@@ -1538,7 +1556,7 @@ html.ft-home .wallet-balance {
 }
 
 html.ft-home .wallet-updated {
-  font-size: 12px;
+  font-size: var(--home-meta-size, 12px);
   font-weight: 400;
   color: var(--home-label);
 }
@@ -1550,7 +1568,7 @@ html.ft-home .wallet-pct-pill {
   color: var(--home-accent);
   border: none;
   box-shadow: none;
-  font-size: 12px;
+  font-size: var(--home-meta-size, 12px);
   font-weight: 600;
   letter-spacing: -0.02em;
 }
@@ -1635,7 +1653,7 @@ html.ft-home .wallet-split-icon--expense {
 }
 
 html.ft-home .wallet-split-label {
-  font-size: 12px;
+  font-size: var(--home-meta-size, 12px);
   font-weight: 500;
   color: var(--home-label);
   white-space: nowrap;
@@ -1682,7 +1700,7 @@ html.ft-ios .section-title-row {
 }
 
 html.ft-ios .section-title {
-  font-size: 20px;
+  font-size: var(--home-section-title);
   font-weight: 700;
   letter-spacing: -0.5px;
 }
@@ -1757,7 +1775,7 @@ html.ft-ios .tx-empty {
   border: 1px solid var(--home-hairline);
   border-radius: var(--home-radius);
   color: var(--home-label);
-  font-size: 14px;
+  font-size: var(--home-body-size);
   /* reserva altura do empty card — evita colapso se o hydrate atrasar 1 frame */
   min-height: 76px;
   box-sizing: border-box;

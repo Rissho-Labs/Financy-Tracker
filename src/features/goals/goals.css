@@ -4,8 +4,9 @@
  */
 
 /* ── Página ─────────────────────────────────────────────────── */
-.goals-page-header .user-name {
-  font-size: 26px;
+.goals-page-header {
+  border-bottom: none;
+  background: transparent;
 }
 
 .goals-intro {
@@ -392,7 +393,7 @@ html[data-theme="light"] .goal-edit-modal {
    ══════════════════════════════════════════════════════════════ */
 html.ft-goals .goals-intro {
   padding: var(--home-content-top, 4px) var(--home-pad) 14px;
-  font-size: 14px;
+  font-size: var(--home-body-size, 14px);
   line-height: 1.45;
   color: var(--home-label);
   letter-spacing: -0.01em;
@@ -408,7 +409,7 @@ html.ft-goals .goal-new-card {
 }
 
 html.ft-goals .goal-new-card h3 {
-  font-size: 20px;
+  font-size: var(--home-section-title, 20px);
   font-weight: 700;
   letter-spacing: -0.5px;
   margin-bottom: 16px;
@@ -511,7 +512,7 @@ html.ft-goals .goal-edit-modal {
 }
 
 html.ft-goals .goal-edit-modal__title {
-  font-size: 20px;
+  font-size: var(--home-section-title, 20px);
   letter-spacing: -0.5px;
 }
 

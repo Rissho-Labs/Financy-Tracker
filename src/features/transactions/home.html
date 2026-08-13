@@ -82,7 +82,7 @@
           try {
             var h = new Date().getHours();
             var greet =
-              h < 12 ? 'Bom dia 👋' : h < 18 ? 'Boa tarde 👋' : 'Boa noite 👋';
+              h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
             var greetEl = document.getElementById('greeting-label');
             if (greetEl) greetEl.textContent = greet;
 

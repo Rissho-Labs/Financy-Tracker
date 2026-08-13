@@ -60,9 +60,9 @@ setInterval(updateClock, 10_000);
   const h = new Date().getHours();
   const greetingEl = $('greeting-label');
   if (!greetingEl) return;
-  if (h < 12) greetingEl.textContent = 'Bom dia 👋';
-  else if (h < 18) greetingEl.textContent = 'Boa tarde 👋';
-  else greetingEl.textContent = 'Boa noite 👋';
+  if (h < 12) greetingEl.textContent = 'Bom dia';
+  else if (h < 18) greetingEl.textContent = 'Boa tarde';
+  else greetingEl.textContent = 'Boa noite';
 })();
 
 // ── Balance hide/show toggle ──────────────────────────────────

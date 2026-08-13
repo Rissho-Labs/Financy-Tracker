@@ -17,6 +17,7 @@ Stabilize Android tab UX (Home / Cards / Goals / Profile): kill menu/content jum
 | Identity FOUC | Early hydrate username/`@user`/`#tag`; stable expenses empty/list min-heights | home/profile scripts + CSS · `57aa75f` |
 | Share profile | Native `navigator.share` (+ clipboard fallback); invite URL `https://financy-4d5f7.web.app/invite?u=&t=`; landing + `ft-friend://` deep link | `ft-qr.js`, `profile.js`, `invite.html`, `firebase.json`, AndroidManifest · `573deb0` |
 | Spacing | Tokens `--home-content-top: 4px`, `--home-scroll-spacer: 118px` shared across Home/Cards/Goals/Profile; Profile `padding-top: 0` on `.profile-scroll` | `home.css`, `cards.css`, `goals.css`, `profile.css` · (spacing commit) |
+| Type scale | Shared `--home-page-title` (28), `--home-section-title` (20), `--home-label-size` (13), `--home-body-size` (14), `--home-meta-size` (12), `--home-icon-btn` (38); notif icons 20×20 @ 1.8; greeting without emoji | `home.css` (ft-ios) + tab CSS |
 
 ## Do NOT touch (regression traps)
 
@@ -29,12 +30,14 @@ Stabilize Android tab UX (Home / Cards / Goals / Profile): kill menu/content jum
 ## Device / build
 
 - Device used: Samsung S10e (`SM-G970F`)
-- `JAVA_HOME` = Android Studio JBR
+- `JAVA_HOME` = Android Studio JBR (`C:\Program Files\Android\Android Studio\jbr`)
+- `ANDROID_HOME` / adb = `%LOCALAPPDATA%\Android\Sdk`
 - Flow: `npm run cap:sync` → `android/gradlew.bat installDebug`
+- **After every UI/feature implementation in a session:** run the flow above and install on the USB-connected device (do not wait for the user to ask)
 
 ## Still open / next likely tasks
 
-1. **Visual QA**: confirm spacing feels equal across all four tabs after spacing tokens; tweak only if a screen still drifts
+1. **Visual QA on device**: confirm type scale + spacing feel equal on S10e after this pass
 2. **Invite hosting**: public invite links need `firebase deploy --only hosting` (placeholders: Play/App Store URLs)
 3. Push if local `main` is still ahead of `origin/main`
 4. Any new feature work should treat the table above as frozen chrome unless the user asks to change nav/FOUC again
