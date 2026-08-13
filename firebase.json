@@ -14,6 +14,9 @@
         "headers": [{ "key": "Cache-Control", "value": "no-store" }]
       }
     ],
+    "rewrites": [
+      { "source": "/invite", "destination": "/features/auth/invite.html" }
+    ],
     "redirects": [
       { "source": "/pages/home.html", "destination": "/features/transactions/home.html", "type": 301 },
       { "source": "/pages/gastos.html", "destination": "/features/transactions/gastos.html", "type": 301 },

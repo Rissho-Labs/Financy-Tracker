@@ -15,6 +15,7 @@
     onboarding: '/features/auth/onboarding.html',
     register: '/features/auth/register.html',
     profile: '/features/auth/profile.html',
+    invite: '/features/auth/invite.html',
     biometric: '/features/biometrics/biometric-setup.html',
     resetPassword: '/features/auth/reset-password.html',
     resetSenha: '/features/auth/reset-senha.html',

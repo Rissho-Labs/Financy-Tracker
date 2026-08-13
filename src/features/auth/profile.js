@@ -137,8 +137,43 @@
     }
   });
 
-  $('share-link-btn')?.addEventListener('click', () => {
+  $('share-link-btn')?.addEventListener('click', async () => {
     haptic('light');
+    const btn = $('share-link-btn');
+    const user = typeof FTSession !== 'undefined' ? FTSession.parseUser() : null;
+    if (!user) return;
+
+    if (!user.tag) {
+      user.tag = Math.floor(1000 + Math.random() * 9000).toString();
+      FTSession.saveUser(user);
+      const tagEl = $('profile-discriminator');
+      if (tagEl) tagEl.textContent = '#' + user.tag;
+    }
+    if (!user.username && user.email && FTSession.defaultUsername) {
+      user.username = FTSession.defaultUsername(user.email);
+      FTSession.saveUser(user);
+    }
+
+    if (typeof FTQR === 'undefined' || typeof FTQR.shareProfile !== 'function') {
+      return;
+    }
+
+    try {
+      if (btn) btn.disabled = true;
+      const result = await FTQR.shareProfile(user);
+      if (result && result.copied && btn) {
+        const label = btn.querySelector('span');
+        const prev = label ? label.textContent : '';
+        if (label) label.textContent = 'Link copiado';
+        setTimeout(() => {
+          if (label) label.textContent = prev || 'Compartilhar';
+        }, 1600);
+      }
+    } catch (e) {
+      console.log('Share failed', e && e.message);
+    } finally {
+      if (btn) btn.disabled = false;
+    }
   });
   document.querySelectorAll('.req-btn').forEach((btn) => {
     btn.addEventListener('click', function () {

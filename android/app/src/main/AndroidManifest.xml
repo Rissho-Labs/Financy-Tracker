@@ -22,6 +22,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- Deep link de convite / amizade (ft-friend://v1?u=&t=) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="ft-friend" android:host="v1" />
+            </intent-filter>
+
         </activity>
 
         <!-- ML Kit: força modelo de OCR a ser incluído no APK (sem download externo) -->
