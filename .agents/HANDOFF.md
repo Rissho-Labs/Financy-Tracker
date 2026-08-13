@@ -38,10 +38,11 @@ Stabilize Android tab UX (Home / Cards / Goals / Profile): kill menu/content jum
 
 ## Still open / next likely tasks
 
-1. **Visual QA on device**: confirm type scale + spacing feel equal on S10e after this pass
+1. **Visual QA on device**: confirm type scale + spacing + balance-hide persist after tab switches
 2. **Invite hosting**: public invite links need `firebase deploy --only hosting` (placeholders: Play/App Store URLs)
-3. Push if local `main` is still ahead of `origin/main`
-4. Any new feature work should treat the table above as frozen chrome unless the user asks to change nav/FOUC again
+3. **Storage rules**: `firebase login` then `npm run deploy:rules` so avatar upload syncs to cloud
+4. **Avisos modal**: still demo mock — polish when resumed
+5. Any new feature work should treat the frozen chrome table above as intact unless the user asks to change nav/FOUC again
 
 ## How next chat should start
 
