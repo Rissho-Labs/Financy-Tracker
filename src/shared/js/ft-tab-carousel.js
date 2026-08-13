@@ -46,6 +46,9 @@
     thumb: null,
   };
 
+  /** Pill só-ícone: tamanho fixo centrado no slot (sem label = sem overlap). */
+  var PILL_SIZE = 44;
+
   /** Slots medidos UMA vez no início do swipe (só transform depois). */
   var thumbDrag = {
     active: false,
@@ -54,8 +57,8 @@
     fromX: 0,
     toX: 0,
     y: 0,
-    w: 0,
-    h: 0,
+    w: PILL_SIZE,
+    h: PILL_SIZE,
     lastP: -1,
   };
 
@@ -173,7 +176,7 @@
     }
   }
 
-  /* ── Pill: medições só no begin/settle; no move só transform ── */
+  /* ── Pill: só ícones; fundo compacto centrado no slot ── */
 
   function ensureThumb() {
     if (!els.nav || els.thumb) return;
@@ -185,39 +188,36 @@
     els.thumb = thumb;
   }
 
-  function readSlotsEqual() {
+  function readSlots() {
     if (!els.nav || !els.items.length) return [];
-    els.nav.classList.add('ft-tab-nav-dragging');
     var navRect = els.nav.getBoundingClientRect();
     var out = [];
     var i;
     for (i = 0; i < els.items.length; i++) {
       var r = els.items[i].getBoundingClientRect();
       out.push({
-        x: r.left - navRect.left,
-        y: r.top - navRect.top,
-        w: r.width,
-        h: r.height,
+        cx: r.left - navRect.left + r.width / 2,
+        cy: r.top - navRect.top + r.height / 2,
       });
     }
     return out;
   }
 
-  function readActiveSlot(idx) {
-    if (!els.nav || !els.items[idx]) return null;
-    els.nav.classList.remove('ft-tab-nav-dragging');
-    setNavActive(idx);
-    var navRect = els.nav.getBoundingClientRect();
-    var r = els.items[idx].getBoundingClientRect();
+  function clampThumbX(x) {
+    if (!els.nav) return x;
+    var max = Math.max(0, els.nav.clientWidth - PILL_SIZE);
+    if (x < 0) return 0;
+    if (x > max) return max;
+    return x;
+  }
+
+  function thumbPosForSlot(slot) {
     return {
-      x: r.left - navRect.left,
-      y: r.top - navRect.top,
-      w: r.width,
-      h: r.height,
+      x: clampThumbX(slot.cx - PILL_SIZE / 2),
+      y: slot.cy - PILL_SIZE / 2,
     };
   }
 
-  /** Só transform — nunca width/height no caminho quente do dedo. */
   function paintThumbXY(x, y, withTransition) {
     if (!els.thumb) return;
     if (withTransition) els.thumb.classList.add('is-moving');
@@ -225,48 +225,49 @@
     els.thumb.style.transform = 'translate3d(' + x + 'px,' + y + 'px,0)';
   }
 
-  function paintThumbBox(slot, withTransition) {
-    if (!els.thumb || !slot) return;
-    els.thumb.style.width = slot.w + 'px';
-    els.thumb.style.height = slot.h + 'px';
-    paintThumbXY(slot.x, slot.y, withTransition);
+  function applyPillBox() {
+    if (!els.thumb) return;
+    els.thumb.style.width = PILL_SIZE + 'px';
+    els.thumb.style.height = PILL_SIZE + 'px';
   }
 
   function thumbSettle(idx, animate) {
     ensureThumb();
     thumbDrag.active = false;
-    var slot = readActiveSlot(idx);
-    if (slot) paintThumbBox(slot, !!animate);
-    if (els.nav) els.nav.classList.remove('ft-tab-nav-dragging');
+    setNavActive(idx);
+    var slots = readSlots();
+    var slot = slots[idx];
+    if (!slot || !els.thumb) return;
+    applyPillBox();
+    var pos = thumbPosForSlot(slot);
+    paintThumbXY(pos.x, pos.y, !!animate);
   }
 
   function thumbBeginSwipe(fromIdx, toIdx) {
     ensureThumb();
-    var slots = readSlotsEqual();
+    var slots = readSlots();
     var a = slots[fromIdx];
     var b = slots[toIdx];
-    if (!a || !b) {
+    if (!a || !b || !els.thumb) {
       thumbDrag.active = false;
       return;
     }
+    applyPillBox();
+    var from = thumbPosForSlot(a);
+    var to = thumbPosForSlot(b);
     thumbDrag.active = true;
     thumbDrag.fromIdx = fromIdx;
     thumbDrag.toIdx = toIdx;
-    thumbDrag.fromX = a.x;
-    thumbDrag.toX = b.x;
-    thumbDrag.y = a.y;
-    thumbDrag.w = a.w;
-    thumbDrag.h = a.h;
+    thumbDrag.fromX = from.x;
+    thumbDrag.toX = to.x;
+    thumbDrag.y = from.y;
     thumbDrag.lastP = -1;
-    els.thumb.style.width = a.w + 'px';
-    els.thumb.style.height = a.h + 'px';
-    paintThumbXY(a.x, a.y, false);
+    paintThumbXY(from.x, from.y, false);
   }
 
   function thumbSetProgress(p) {
     if (!thumbDrag.active || !els.thumb) return;
     p = p < 0 ? 0 : p > 1 ? 1 : p;
-    /* Evita trabalho se o progresso quase não mudou */
     if (Math.abs(p - thumbDrag.lastP) < 0.008) return;
     thumbDrag.lastP = p;
     var x = thumbDrag.fromX + (thumbDrag.toX - thumbDrag.fromX) * p;
@@ -280,21 +281,15 @@
       if (onDone) onDone();
       return;
     }
-    var slots = readSlotsEqual();
-    var from = slots[state.index];
-    var to = slots[idx];
-    if (!from || !to) {
+    thumbBeginSwipe(state.index, idx);
+    if (!thumbDrag.active) {
       thumbSettle(idx, false);
       if (onDone) onDone();
       return;
     }
-    els.thumb.style.width = from.w + 'px';
-    els.thumb.style.height = from.h + 'px';
-    paintThumbXY(from.x, from.y, false);
-    /* próximo frame: anima só X (tamanho fixo = sem layout) */
     requestAnimationFrame(function () {
       setNavActive(idx);
-      paintThumbXY(to.x, to.y, true);
+      paintThumbXY(thumbDrag.toX, thumbDrag.y, true);
     });
     var done = false;
     var finish = function () {
@@ -315,7 +310,7 @@
   }
 
   function clearNavDrag() {
-    thumbSettle(state.index, true);
+    thumbSettle(state.index, false);
   }
 
   function navigateTo(index) {

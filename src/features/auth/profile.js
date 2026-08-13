@@ -58,16 +58,21 @@
 
     const displayName = user.name || 'Utilizador';
     const nameParts = displayName.split(' ').filter(Boolean);
-    $('profile-name').textContent = displayName;
+    const nameEl = $('profile-name');
+    if (nameEl) nameEl.textContent = displayName;
 
     const initials =
       nameParts.length > 1
         ? nameParts[0][0] + nameParts[nameParts.length - 1][0]
-        : (nameParts[0] ? nameParts[0][0] : '?');
-    $('profile-initials').textContent = initials.toUpperCase();
+        : nameParts[0]
+          ? nameParts[0][0]
+          : '?';
+    const initEl = $('profile-initials');
+    if (initEl) initEl.textContent = initials.toUpperCase();
 
     const username = user.username ? user.username.toLowerCase() : 'utilizador';
-    $('profile-username').textContent = '@' + username;
+    const userEl = $('profile-username');
+    if (userEl) userEl.textContent = '@' + username;
 
     let tag = user.tag;
     if (!tag) {
@@ -75,7 +80,23 @@
       user.tag = tag;
       FTSession.saveUser(user);
     }
-    $('profile-discriminator').textContent = '#' + tag;
+    const tagEl = $('profile-discriminator');
+    if (tagEl) tagEl.textContent = '#' + tag;
+
+    const photoUrl = user.photoURL || user.photoUrl || '';
+    const imgEl = $('profile-avatar-img');
+    if (imgEl) {
+      if (photoUrl) {
+        if (imgEl.src !== photoUrl) imgEl.src = photoUrl;
+        imgEl.alt = displayName;
+        imgEl.classList.remove('hidden');
+        if (initEl) initEl.style.display = 'none';
+      } else {
+        imgEl.removeAttribute('src');
+        imgEl.classList.add('hidden');
+        if (initEl) initEl.style.display = '';
+      }
+    }
   }
   loadProfile();
 

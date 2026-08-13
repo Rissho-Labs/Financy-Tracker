@@ -113,14 +113,11 @@ html[data-theme='light'] .ft-tab-panel-ph {
   background: var(--home-bg, #f2f2f7);
 }
 
-.bottom-nav.ft-tab-nav-dragging .nav-item,
-.bottom-nav.ft-tab-nav-dragging .nav-item > span {
-  transition: none !important;
-}
-
-/* Pill deslizante — fundo ativo acompanha o gesto / salto no menu */
-.bottom-nav.ft-nav-thumb-mode {
+/* Pill deslizante — menu estável (sem expand/collapse dos itens) */
+.bottom-nav.ft-nav-thumb-mode,
+html[data-ft-tabs] .bottom-nav {
   isolation: isolate;
+  position: relative;
 }
 
 .ft-nav-thumb {
@@ -128,11 +125,13 @@ html[data-theme='light'] .ft-tab-panel-ph {
   left: 0;
   top: 0;
   z-index: 0;
+  box-sizing: border-box;
+  width: 44px;
+  height: 44px;
   border-radius: var(--radius-pill, 999px);
   pointer-events: none;
   will-change: transform;
   transform: translate3d(0, 0, 0);
-  /* sem backdrop-filter no pill — caro no WebView durante o gesto */
   background: rgba(255, 255, 255, 0.14);
   box-shadow: none;
 }
@@ -141,32 +140,34 @@ html[data-theme='light'] .ft-tab-panel-ph {
   transition: transform 0.34s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
+html[data-ft-tabs] .bottom-nav .nav-item,
 .bottom-nav.ft-nav-thumb-mode .nav-item {
   position: relative;
   z-index: 1;
-}
-
-.bottom-nav.ft-nav-thumb-mode .nav-item.active {
-  background: transparent !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-
-/* Durante o arrasto: slots iguais, labels escondidas — só o pill viaja */
-.bottom-nav.ft-nav-thumb-mode.ft-tab-nav-dragging .nav-item {
   flex: 1 1 0 !important;
   gap: 0 !important;
   padding: 10px 6px !important;
   min-width: 0 !important;
+  max-width: none !important;
   background: transparent !important;
   box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  transition: color 0.2s ease !important;
 }
 
-.bottom-nav.ft-nav-thumb-mode.ft-tab-nav-dragging .nav-item > span {
-  max-width: 0 !important;
-  opacity: 0 !important;
-  margin-left: 0 !important;
+html[data-ft-tabs] .bottom-nav .nav-item > span,
+.bottom-nav.ft-nav-thumb-mode .nav-item > span {
+  /* Ícones only — nome da tela fica no placeholder da transição */
+  display: none !important;
+}
+
+html[data-ft-tabs] .bottom-nav .nav-item.active,
+.bottom-nav.ft-nav-thumb-mode .nav-item.active {
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #ffffff;
+  flex: 1 1 0 !important;
 }
 
 html.ft-ios .ft-nav-thumb {
@@ -176,6 +177,13 @@ html.ft-ios .ft-nav-thumb {
 html.ft-ios[data-theme='light'] .ft-nav-thumb,
 html[data-theme='light'] .ft-nav-thumb {
   background: rgba(0, 0, 0, 0.08);
+}
+
+html.ft-ios[data-theme='light'] .bottom-nav.ft-nav-thumb-mode .nav-item.active,
+html[data-theme='light'] .bottom-nav.ft-nav-thumb-mode .nav-item.active,
+html.ft-ios[data-theme='light'][data-ft-tabs] .bottom-nav .nav-item.active,
+html[data-theme='light'][data-ft-tabs] .bottom-nav .nav-item.active {
+  color: #111;
 }
 
 html:not(.ft-ios) .ft-nav-thumb {

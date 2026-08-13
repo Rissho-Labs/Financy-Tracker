@@ -377,15 +377,39 @@ html.ft-profile .profile-header {
   padding: 8px var(--home-pad) 20px;
 }
 
+/* Evita “pulo” de entrada do header partilhado com a Home */
+html.ft-profile .home-header {
+  animation: none !important;
+  opacity: 1;
+  transform: none;
+}
+
+html.ft-profile .profile-name {
+  font-size: 24px;
+  letter-spacing: -0.6px;
+  min-height: 1.25em;
+}
+
+html.ft-profile .profile-tag-wrap {
+  background: var(--home-tile);
+  border: 1px solid var(--home-hairline);
+  box-shadow: none;
+  min-height: 32px;
+}
+
 html.ft-profile .profile-avatar {
   background: var(--home-tile-2);
   border: 1px solid var(--home-hairline);
   box-shadow: var(--home-shadow);
+  overflow: hidden;
+  position: relative;
 }
 
 html.ft-profile .avatar-initials {
   color: var(--text-primary);
   font-weight: 600;
+  position: relative;
+  z-index: 1;
 }
 
 html.ft-profile .edit-avatar-btn {
@@ -394,15 +418,18 @@ html.ft-profile .edit-avatar-btn {
   box-shadow: none;
 }
 
-html.ft-profile .profile-name {
-  font-size: 24px;
-  letter-spacing: -0.6px;
+.profile-avatar__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
 }
 
-html.ft-profile .profile-tag-wrap {
-  background: var(--home-tile);
-  border: 1px solid var(--home-hairline);
-  box-shadow: none;
+.profile-avatar__img.hidden {
+  display: none;
 }
 
 html.ft-profile .profile-tag-wrap:active {
