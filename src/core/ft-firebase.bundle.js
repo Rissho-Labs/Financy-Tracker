@@ -23602,6 +23602,21 @@ ${this.customData.serverResponse}`;
     await uploadString(storageRef, dataUrl, "data_url");
     return getDownloadURL(storageRef);
   }
+  async function uploadAvatarPhoto(uid, dataUrl) {
+    if (!ready || !storage) throw new Error("storage_not_ready");
+    const path = "avatars/" + String(uid) + "/profile.jpg";
+    const storageRef = ref(storage, path);
+    await uploadString(storageRef, dataUrl, "data_url", {
+      contentType: "image/jpeg",
+      cacheControl: "public,max-age=3600"
+    });
+    return getDownloadURL(storageRef);
+  }
+  async function updateAuthPhotoURL(photoURL) {
+    if (!ready || !auth || !auth.currentUser) throw new Error("firebase_not_ready");
+    await updateProfile(auth.currentUser, { photoURL: String(photoURL || "") });
+    return auth.currentUser.photoURL || photoURL;
+  }
   async function callAnalyzeReceipt(ocrText, imageBase64) {
     if (!ready || !fns) throw new Error("firebase_not_ready");
     const fn = httpsCallable(fns, "analyzeReceipt");
@@ -23655,6 +23670,8 @@ ${this.customData.serverResponse}`;
     loadTransactions,
     deleteTransaction,
     uploadReceiptImage,
+    uploadAvatarPhoto,
+    updateAuthPhotoURL,
     callAnalyzeReceipt
   };
   if (typeof window !== "undefined") {

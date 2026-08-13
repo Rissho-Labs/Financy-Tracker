@@ -235,6 +235,7 @@
         var registrationDone =
           extra.registrationComplete === true ||
           (profile && profile.registrationComplete === true);
+        var prev = parseUser();
         var u = Object.assign({}, profile || {}, {
           uid: fbUser.uid,
           email: email,
@@ -257,6 +258,12 @@
             })
               ? 'google'
               : 'firebase'),
+          photoURL:
+            extra.photoURL ||
+            (profile && (profile.photoURL || profile.photoUrl)) ||
+            (fbUser.photoURL && String(fbUser.photoURL)) ||
+            (prev && (prev.photoURL || prev.photoUrl)) ||
+            '',
         });
         if (profile && profile.onboardingComplete) setOnboardingDone();
         saveUser(u);

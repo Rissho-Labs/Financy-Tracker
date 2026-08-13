@@ -44,6 +44,25 @@
   justify-content: center;
   box-shadow: var(--shadow-btn);
   border: 3px solid var(--bg-card);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.profile-avatar.is-uploading {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.avatar-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .avatar-initials {
@@ -412,6 +431,7 @@ html.ft-profile .profile-avatar {
   box-shadow: var(--home-shadow);
   overflow: hidden;
   position: relative;
+  cursor: pointer;
 }
 
 html.ft-profile .avatar-initials {
@@ -425,6 +445,7 @@ html.ft-profile .edit-avatar-btn {
   background: var(--home-tile);
   border: 1px solid var(--home-hairline);
   box-shadow: none;
+  z-index: 2;
 }
 
 .profile-avatar__img {

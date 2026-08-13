@@ -109,6 +109,143 @@
   }
   loadProfile();
 
+  function applyAvatarPreview(photoUrl, displayName) {
+    const imgEl = $('profile-avatar-img');
+    const initEl = $('profile-initials');
+    if (!imgEl) return;
+    if (photoUrl) {
+      imgEl.src = photoUrl;
+      imgEl.alt = displayName || 'Foto de perfil';
+      imgEl.classList.remove('hidden');
+      if (initEl) initEl.style.display = 'none';
+    } else {
+      imgEl.removeAttribute('src');
+      imgEl.classList.add('hidden');
+      if (initEl) initEl.style.display = '';
+    }
+  }
+
+  function fileToAvatarDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      if (!file || !String(file.type || '').startsWith('image/')) {
+        reject(new Error('invalid_image'));
+        return;
+      }
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const max = 512;
+          let w = img.naturalWidth || img.width;
+          let h = img.naturalHeight || img.height;
+          if (!w || !h) throw new Error('image_size');
+          if (w > max || h > max) {
+            const scale = Math.min(max / w, max / h);
+            w = Math.round(w * scale);
+            h = Math.round(h * scale);
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) throw new Error('canvas');
+          ctx.drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', 0.85));
+        } catch (err) {
+          reject(err);
+        } finally {
+          URL.revokeObjectURL(url);
+        }
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('image_load'));
+      };
+      img.src = url;
+    });
+  }
+
+  function openAvatarPicker() {
+    haptic('light');
+    const input = $('avatar-file-input');
+    if (!input) return;
+    input.value = '';
+    input.click();
+  }
+
+  async function persistAvatar(dataUrl) {
+    const user = typeof FTSession !== 'undefined' ? FTSession.parseUser() : null;
+    if (!user) return;
+
+    applyAvatarPreview(dataUrl, user.name);
+    user.photoURL = dataUrl;
+    user.photoUrl = dataUrl;
+    FTSession.saveUser(user);
+
+    const avatarEl = $('profile-avatar');
+    if (avatarEl) avatarEl.classList.add('is-uploading');
+
+    try {
+      const uid = user.uid;
+      const fb = typeof FTFirebase !== 'undefined' ? FTFirebase : null;
+      if (uid && fb && typeof fb.uploadAvatarPhoto === 'function' && fb.isReady && fb.isReady()) {
+        const remoteUrl = await fb.uploadAvatarPhoto(uid, dataUrl);
+        if (typeof fb.updateAuthPhotoURL === 'function') {
+          try {
+            await fb.updateAuthPhotoURL(remoteUrl);
+          } catch (authErr) {
+            logUiError('updateAuthPhotoURL', authErr);
+          }
+        }
+        try {
+          await fb.saveUserProfile(uid, { photoURL: remoteUrl });
+        } catch (profileErr) {
+          logUiError('saveUserProfile photo', profileErr);
+        }
+        user.photoURL = remoteUrl;
+        user.photoUrl = remoteUrl;
+        FTSession.saveUser(user);
+        applyAvatarPreview(remoteUrl, user.name);
+      }
+    } catch (err) {
+      logUiError('persistAvatar', err);
+      // Mantém preview local (data URL) se o upload remoto falhar
+    } finally {
+      if (avatarEl) avatarEl.classList.remove('is-uploading');
+    }
+  }
+
+  $('edit-avatar-btn')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openAvatarPicker();
+  });
+
+  $('profile-avatar')?.addEventListener('click', () => openAvatarPicker());
+  $('profile-avatar')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      openAvatarPicker();
+    }
+  });
+
+  $('avatar-file-input')?.addEventListener('change', async (e) => {
+    const input = e.target;
+    const file = input && input.files && input.files[0];
+    if (!file) return;
+    try {
+      const dataUrl = await fileToAvatarDataUrl(file);
+      await persistAvatar(dataUrl);
+      haptic('medium');
+    } catch (err) {
+      logUiError('avatar pick', err);
+      haptic('error');
+      alert('Não foi possível usar esta imagem. Tente outra foto.');
+    } finally {
+      if (input) input.value = '';
+    }
+  });
+
   $('copy-tag-btn')?.addEventListener('click', async () => {
     haptic('medium');
     const tagWrap = $('copy-tag-btn');
