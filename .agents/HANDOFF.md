@@ -17,8 +17,11 @@ Stabilize Android tab UX (Home / Cards / Goals / Profile): kill menu/content jum
 | Identity FOUC | Early hydrate username/`@user`/`#tag`; stable expenses empty/list min-heights | home/profile scripts + CSS · `57aa75f` |
 | Share profile | Native `navigator.share` (+ clipboard fallback); invite URL `https://financy-4d5f7.web.app/invite?u=&t=`; landing + `ft-friend://` deep link | `ft-qr.js`, `profile.js`, `invite.html`, `firebase.json`, AndroidManifest · `573deb0` |
 | Avatar photo | Tap avatar/camera → system image picker; compress JPEG; local `ft_user` + Storage `avatars/{uid}/profile.jpg` + Auth/Firestore when online | `profile.js/html/css`, `firebase-entry.mjs`, `storage.rules` |
-| Spacing | Tokens `--home-content-top: 4px`, `--home-scroll-spacer: 118px` shared across Home/Cards/Goals/Profile; Profile `padding-top: 0` on `.profile-scroll` | `home.css`, `cards.css`, `goals.css`, `profile.css` · (spacing commit) |
+| Spacing | Tokens `--home-content-top: 4px`, `--home-scroll-spacer: 118px` shared across Home/Cards/Goals/Profile; Profile `padding-top: 0` on `.profile-scroll` | `home.css`, `cards.css`, `goals.css`, `profile.css` |
 | Type scale | Shared `--home-page-title` (28), `--home-section-title` (20), `--home-label-size` (13), `--home-body-size` (14), `--home-meta-size` (12), `--home-icon-btn` (38); notif icons 20×20 @ 1.8; greeting without emoji | `home.css` (ft-ios) + tab CSS |
+| Header bell | Home bell `align-self: flex-start`; Cards order `+` then bell (trailing edge) | `home.css`, `cards.html` |
+| Keyboard UX | No autofocus on sheets/modals; integer fields `inputmode="numeric"` + `pattern="[0-9]*"`; money `inputmode="decimal"` | · `5b05831` |
+| Balance hide | Preference `localStorage.ft_balance_visible` (`0`/`1`); early hydrate + persist across tab navigations | `home.html`, `home.js` · `43f5373` |
 
 ## Do NOT touch (regression traps)
 
@@ -36,6 +39,41 @@ Stabilize Android tab UX (Home / Cards / Goals / Profile): kill menu/content jum
 - Flow: `npm run cap:sync` → `android/gradlew.bat installDebug`
 - **After every UI/feature implementation in a session:** run the flow above and install on the USB-connected device (do not wait for the user to ask)
 
+## Workflow — ROTEAMENTO → modelo → AÇÃO
+
+User preference for new work: **do not jump straight into implementation**.
+
+1. **Ideia** (linguagem natural)
+2. Se não houver planner da mudança → criar/atualizar um `.md` de fases (sem implementar)
+3. **ROTEAMENTO** (Auto): classificar a fase e recomendar modelo
+4. Utilizador **seleciona o modelo** no picker
+5. **AÇÃO** só dessa fase (prompt gerado no passo 3)
+6. Repetir 3–5 para as fases seguintes
+
+Auto escolhe **um modelo por mensagem**; não muda a meio da resposta. Por isso fases = prompts separados.
+
+### Prompt canónico de ROTEAMENTO (colar no início da fase)
+
+```text
+Modo: ROTEAMENTO (não executar código, não editar ficheiros).
+
+Lê @.agents/HANDOFF.md e, se existir, o planner desta mudança.
+Interpreta a tarefa abaixo e responde APENAS com:
+
+1) Tipo de tarefa (ex.: image gen / UI CSS / implementação / arquitetura / debug)
+2) Modelo recomendado (entre os que tenho habilitados) + 1 frase do porquê
+3) Alternativa (2º melhor)
+4) Prompt curto pronto para eu colar na FASE DE AÇÃO
+
+Se não existir planner para esta mudança: primeiro propõe o caminho do ficheiro
+e o índice das fases (sem implementar). Só depois recomendas o modelo da Fase 1.
+
+Tarefa / fase:
+<descreve aqui>
+```
+
+Planners de feature (quando existirem): preferir `.agents/plans/<feature>-planner.md`.
+
 ## Still open / next likely tasks
 
 1. **Visual QA on device**: confirm type scale + spacing + balance-hide persist after tab switches
@@ -46,12 +84,11 @@ Stabilize Android tab UX (Home / Cards / Goals / Profile): kill menu/content jum
 
 ## How next chat should start
 
-Paste or attach:
-
 ```text
 Continue from @.agents/HANDOFF.md
 Do not regress tab nav / FOUC fixes listed there.
-Current focus: <what you want next>
+Seguir workflow ROTEAMENTO → modelo → AÇÃO (prompt canónico no handoff).
+Current focus: <ideia ou fase>
 ```
 
 Optional deeper context: ask the agent to search prior conversation / transcript `fe53c0f2-abc3-4f06-85ce-f8b903b080c6` only for specifics — prefer this handoff over dumping the full chat (avoids context wear).
