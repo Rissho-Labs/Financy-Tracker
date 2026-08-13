@@ -65,20 +65,45 @@ setInterval(updateClock, 10_000);
   else greetingEl.textContent = 'Boa noite';
 })();
 
-// ── Balance hide/show toggle ──────────────────────────────────
-let balanceVisible = true;
+// ── Balance hide/show toggle (persiste entre tabs) ────────────
+const BALANCE_VISIBLE_KEY = 'ft_balance_visible';
 const eyeWallet = $('eye-wallet');
 const eyeOpenSVG = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
 const eyeClosedSVG = `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>`;
 
+function readBalanceVisible() {
+  try {
+    return localStorage.getItem(BALANCE_VISIBLE_KEY) !== '0';
+  } catch (e) {
+    return true;
+  }
+}
+
+function writeBalanceVisible(visible) {
+  try {
+    localStorage.setItem(BALANCE_VISIBLE_KEY, visible ? '1' : '0');
+  } catch (e) { /* noop */ }
+}
+
+function applyBalanceVisibility(visible) {
+  const balEl = $('wallet-balance');
+  balEl?.classList.toggle('hidden', !visible);
+  ['wallet-expense-val', 'wallet-budget-val'].forEach(function (id) {
+    $(id)?.classList.toggle('hidden', !visible);
+  });
+  if (eyeWallet) eyeWallet.innerHTML = visible ? eyeOpenSVG : eyeClosedSVG;
+  const btn = $('wallet-hide-btn');
+  if (btn) btn.setAttribute('aria-label', visible ? 'Ocultar valor' : 'Mostrar valor');
+  if (btn) btn.setAttribute('aria-pressed', visible ? 'false' : 'true');
+}
+
+let balanceVisible = readBalanceVisible();
+applyBalanceVisibility(balanceVisible);
+
 $('wallet-hide-btn')?.addEventListener('click', () => {
   balanceVisible = !balanceVisible;
-  const balEl = $('wallet-balance');
-  balEl?.classList.toggle('hidden', !balanceVisible);
-  ['wallet-expense-val', 'wallet-budget-val'].forEach(function (id) {
-    $(id)?.classList.toggle('hidden', !balanceVisible);
-  });
-  if (eyeWallet) eyeWallet.innerHTML = balanceVisible ? eyeOpenSVG : eyeClosedSVG;
+  writeBalanceVisible(balanceVisible);
+  applyBalanceVisibility(balanceVisible);
   haptic('light');
 });
 
