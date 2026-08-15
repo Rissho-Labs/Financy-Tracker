@@ -138,9 +138,9 @@
     '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2" stroke-linecap="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>' +
     '</div>';
 
-  function brandMarkup(brand) {
+  function brandMarkup(brand, brandLabel) {
     if (typeof FTCardBrands !== 'undefined' && FTCardBrands.brandMarkup) {
-      return FTCardBrands.brandMarkup(brand);
+      return FTCardBrands.brandMarkup(brand, undefined, brandLabel);
     }
     return (
       '<div class="cc-card-brand" aria-hidden="true">' +
@@ -186,7 +186,7 @@
       '<div class="cc-card-inner">' +
       CARD_ICONS +
       '<div class="cc-card-middle"><span class="cc-card-name">' + holderEsc + '</span></div>' +
-      '<div class="cc-card-bottom"><span class="cc-card-number">**** **** **** ' + last4 + '</span>' + brandMarkup(card.brand) + '</div>' +
+      '<div class="cc-card-bottom"><span class="cc-card-number">**** **** **** ' + last4 + '</span>' + brandMarkup(card.brand, card.brandLabel) + '</div>' +
       '</div></div>'
     );
   }
@@ -367,13 +367,27 @@
   }
 
   function clearAddCardForm() {
-    ['cc-add-name', 'cc-add-last4', 'cc-add-close-day', 'cc-add-due-day'].forEach(function (id) {
+    ['cc-add-name', 'cc-add-last4', 'cc-add-close-day', 'cc-add-due-day', 'cc-add-brand-other'].forEach(function (id) {
       var el = $(id);
       if (el) el.value = '';
     });
     var brandEl = $('cc-add-brand');
     if (brandEl) brandEl.value = 'visa';
+    updateBrandOtherField();
   }
+
+  function updateBrandOtherField() {
+    var brandEl = $('cc-add-brand');
+    var otherWrap = $('cc-add-brand-other-wrap');
+    var isOther = brandEl && brandEl.value === 'other';
+    if (otherWrap) otherWrap.classList.toggle('hidden', !isOther);
+    if (!isOther) {
+      var otherInput = $('cc-add-brand-other');
+      if (otherInput) otherInput.value = '';
+    }
+  }
+
+  $('cc-add-brand')?.addEventListener('change', updateBrandOtherField);
 
   function parseFormDay(inputId, label) {
     var raw = ($(inputId)?.value || '').trim();
@@ -424,12 +438,21 @@
     const dueDay = parseFormDay('cc-add-due-day', 'vencimento');
     if (dueDay == null) return;
     const brand = $('cc-add-brand')?.value || 'other';
+    let brandLabel = '';
+    if (brand === 'other') {
+      brandLabel = ($('cc-add-brand-other')?.value || '').trim();
+      if (!brandLabel) {
+        alert('Informe o nome da bandeira.');
+        return;
+      }
+    }
     const prevCount = FTCards.getAll().length;
     FTCards.add({
       holderName: name,
       name: name,
       last4: last4,
       brand: brand,
+      brandLabel: brandLabel,
       closingDay: closingDay,
       dueDay: dueDay
     });

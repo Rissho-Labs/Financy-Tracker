@@ -104,12 +104,14 @@
   }
 
   function normalizeCard(card) {
+    var brand = card.brand in GRADIENTS ? card.brand : 'other';
     return {
       id: card.id,
       name: String(card.name || card.holderName || '').trim() || 'Meu cartão',
       holderName: String(card.holderName || card.name || '').trim() || 'Titular',
       last4: String(card.last4 || '').replace(/\D/g, '').slice(-4).padStart(4, '0'),
-      brand: card.brand in GRADIENTS ? card.brand : 'other',
+      brand: brand,
+      brandLabel: brand === 'other' ? String(card.brandLabel || '').trim().slice(0, 20) : '',
       closingDay: normalizeDay(card.closingDay),
       dueDay: normalizeDay(card.dueDay)
     };

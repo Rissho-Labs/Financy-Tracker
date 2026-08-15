@@ -80,7 +80,7 @@ Planners de feature (quando existirem): preferir `.agents/plans/<feature>-planne
 
 Planner concluído: `.agents/plans/launcher-shortcuts-planner.md` — **Fases 1–5 feitas** (atalho launcher «Novo gasto», query `method`, pending cross-redirect, gate biométrico em sessão quente). Vive na branch `feature/launcher-shortcuts-phase3`, ainda não mergeada em `main` (ver secção de colaboração abaixo).
 
-Planner ativo: `.agents/plans/cards-visual-planner.md` (Fase 1 feita — spec; **Fase 2 feita** — simetria do carrossel de Cartões, `cards.js` `setActiveCard`/`touchmove`, commit `9b4d564` na branch `docs/cards-visual-planner`). Próximo: ROTEAMENTO da **Fase 3** (bandeira "Outra" com texto livre).
+Planner ativo: `.agents/plans/cards-visual-planner.md` (Fase 1 feita — spec; Fase 2 feita — simetria do carrossel; **Fase 3 feita** — bandeira "Outra" com texto livre: `#cc-add-brand-other` condicional em `cards.html`, `FTCards.normalizeCard` com `brandLabel`, badge dinâmico via `FTCardBrands.customBrandMarkup`, validado no browser + `cap:sync`/`assembleDebug` OK; ainda sem commit, branch `docs/cards-visual-planner`, sem device USB conectado para `installDebug`). Próximo: ROTEAMENTO da **Fase 4** ("Apelido", placeholder-only, prefixo "Todo dia").
 
 ## Still open / next likely tasks
 
