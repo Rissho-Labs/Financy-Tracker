@@ -45,10 +45,13 @@ User preference for new work: **do not jump straight into implementation**.
 
 1. **Ideia** (linguagem natural)
 2. Se não houver planner da mudança → criar/atualizar um `.md` de fases (sem implementar)
-3. **ROTEAMENTO** (Auto): classificar a fase e recomendar modelo
-4. Utilizador **seleciona o modelo** no picker
-5. **AÇÃO** só dessa fase (prompt gerado no passo 3)
+3. **ROTEAMENTO** (Auto): classificar a fase e recomendar modelo **e effort**
+4. Utilizador **seleciona o modelo** no picker (e effort: low/medium/high)
+5. **AÇÃO** só dessa fase, de preferência em **chat novo** se o contexto da thread estiver alto
 6. Repetir 3–5 para as fases seguintes
+
+Contexto / economia Claude: `@.agents/claude-context.md`  
+(122% = o Cursor já está a cortar contexto; a AÇÃO deve ir para um chat novo. Limite do slider ≤ janela do modelo; Fase 2 XML → effort medium/low.)
 
 Auto escolhe **um modelo por mensagem**; não muda a meio da resposta. Por isso fases = prompts separados.
 
@@ -63,7 +66,8 @@ Interpreta a tarefa abaixo e responde APENAS com:
 1) Tipo de tarefa (ex.: image gen / UI CSS / implementação / arquitetura / debug)
 2) Modelo recomendado (entre os que tenho habilitados) + 1 frase do porquê
 3) Alternativa (2º melhor)
-4) Prompt curto pronto para eu colar na FASE DE AÇÃO
+4) Effort sugerido (low / medium / high) + se deve ser chat novo
+5) Prompt curto pronto para eu colar na FASE DE AÇÃO
 
 Se não existir planner para esta mudança: primeiro propõe o caminho do ficheiro
 e o índice das fases (sem implementar). Só depois recomendas o modelo da Fase 1.
@@ -74,15 +78,20 @@ Tarefa / fase:
 
 Planners de feature (quando existirem): preferir `.agents/plans/<feature>-planner.md`.
 
+Planner ativo: `.agents/plans/launcher-shortcuts-planner.md` (Fase 1 feita — atalho launcher «Novo gasto» + gate biométrico). Próximo: ROTEAMENTO da **Fase 2**.
+
 ## Still open / next likely tasks
 
-1. **Visual QA on device**: confirm type scale + spacing + balance-hide persist after tab switches
-2. **Invite hosting**: public invite links need `firebase deploy --only hosting` (placeholders: Play/App Store URLs)
-3. **Storage rules**: `firebase login` then `npm run deploy:rules` so avatar upload syncs to cloud
-4. **Avisos modal**: still demo mock — polish when resumed
-5. Any new feature work should treat the frozen chrome table above as intact unless the user asks to change nav/FOUC again
+1. **Launcher shortcuts** — Fase 2: `shortcuts.xml` + intent (ver planner)
+2. **Visual QA on device**: confirm type scale + spacing + balance-hide persist after tab switches
+3. **Invite hosting**: public invite links need `firebase deploy --only hosting` (placeholders: Play/App Store URLs)
+4. **Storage rules**: `firebase login` then `npm run deploy:rules` so avatar upload syncs to cloud
+5. **Avisos modal**: still demo mock — polish when resumed
+6. Any new feature work should treat the frozen chrome table above as intact unless the user asks to change nav/FOUC again
 
 ## How next chat should start
+
+Prompts prontos (Fase 2/3/4 launcher): `@.agents/chat-start.md` — **copia o bloco, não faças `@` desse ficheiro no chat de AÇÃO** (evita contexto extra). No chat novo: `@` só HANDOFF + planner.
 
 ```text
 Continue from @.agents/HANDOFF.md

@@ -30,6 +30,11 @@
                 <data android:scheme="ft-friend" android:host="v1" />
             </intent-filter>
 
+            <!-- App Shortcuts estáticos (long-press no ícone do launcher) -->
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+
         </activity>
 
         <!-- ML Kit: força modelo de OCR a ser incluído no APK (sem download externo) -->
