@@ -22,6 +22,7 @@ Stabilize Android tab UX (Home / Cards / Goals / Profile): kill menu/content jum
 | Header bell | Home bell `align-self: flex-start`; Cards order `+` then bell (trailing edge) | `home.css`, `cards.html` |
 | Keyboard UX | No autofocus on sheets/modals; integer fields `inputmode="numeric"` + `pattern="[0-9]*"`; money `inputmode="decimal"` | · `5b05831` |
 | Balance hide | Preference `localStorage.ft_balance_visible` (`0`/`1`); early hydrate + persist across tab navigations | `home.html`, `home.js` · `43f5373` |
+| Launcher shortcut «Novo gasto» | Static Android shortcut (`shortcuts.xml`, `MainActivity` meta-data) → `VIEW` intent `home.html?expense=1[&method=]`; `MainActivity` forwards the intent url to the WebView (Capacitor doesn't do this on its own — confirmed via adb/logcat); pending survives login/onboarding redirects via `sessionStorage.ft_pending_expense`; **warm-session opens require a native `verifyIdentity` prompt** before the sheet shows (`FTAuth.verifyIdentityForShortcut`), same pattern as Mercado Pago's Pix shortcut. Fully QA'd on-device (S10e) branch `feature/launcher-shortcuts-phase3`, planner Fases 1–5 done | `shortcuts.xml`, `MainActivity.java`, `home.js`, `ft-auth.js`, `ft-capacitor-init.mjs`, `home.html` · `15a2b4e`…`3a1ebc0` |
 
 ## Do NOT touch (regression traps)
 
@@ -78,16 +79,27 @@ Tarefa / fase:
 
 Planners de feature (quando existirem): preferir `.agents/plans/<feature>-planner.md`.
 
-Planner ativo: `.agents/plans/launcher-shortcuts-planner.md` (Fase 1 feita — atalho launcher «Novo gasto» + gate biométrico). Próximo: ROTEAMENTO da **Fase 2**.
+Planner concluído: `.agents/plans/launcher-shortcuts-planner.md` — **Fases 1–5 feitas** (atalho launcher «Novo gasto», query `method`, pending cross-redirect, gate biométrico em sessão quente). Vive na branch `feature/launcher-shortcuts-phase3`, ainda não mergeada em `main` (ver secção de colaboração abaixo).
 
 ## Still open / next likely tasks
 
-1. **Launcher shortcuts** — Fase 2: `shortcuts.xml` + intent (ver planner)
+1. **Merge da branch do atalho**: abrir/rever PR `feature/launcher-shortcuts-phase3` → `main` (ver colaboração)
 2. **Visual QA on device**: confirm type scale + spacing + balance-hide persist after tab switches
 3. **Invite hosting**: public invite links need `firebase deploy --only hosting` (placeholders: Play/App Store URLs)
 4. **Storage rules**: `firebase login` then `npm run deploy:rules` so avatar upload syncs to cloud
 5. **Avisos modal**: still demo mock — polish when resumed
 6. Any new feature work should treat the frozen chrome table above as intact unless the user asks to change nav/FOUC again
+
+## Colaboração — mais de uma pessoa a partir de agora
+
+O projeto passou a ter mais gente a trabalhar nele em paralelo (ex.: branch `feature/amigos-e-metas` já existe no remoto, de outro membro). Regras para não pisarmos trabalho uns dos outros:
+
+- **Nunca commitar direto em `main`.** Cada fase/feature vive na sua branch (`feature/<nome>`); abrir PR para `main` antes de merge.
+- **`git fetch` / `git pull` no início de cada sessão** antes de criar branch nova ou continuar uma existente — outro membro pode ter avançado `main` ou a própria feature branch entretanto.
+- **Uma branch por feature/planner**, não por chat. Se retomares um planner numa sessão nova, `git checkout` a branch já existente em vez de criar outra.
+- **Este `HANDOFF.md` é estado partilhado.** Ao terminar uma sessão com progresso relevante, atualiza a tabela "Done" e a secção "Still open" e comita — outro membro (ou chat) pode continuar a partir daqui sem reler o histórico todo.
+- **Push no fim de cada fase concluída**, não só commit local — trabalho que só existe localmente não existe para o resto do grupo.
+- Conflitos prováveis: `home.html`/`home.js` (vários fluxos tocam neles), `AndroidManifest.xml`, `strings.xml`. Avisar antes de tocar em áreas que outra branch também esteja a mexer.
 
 ## How next chat should start
 
