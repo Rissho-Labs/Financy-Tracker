@@ -60,6 +60,14 @@ Três mudanças de UX no mesmo formulário (`#add-card-modal`), sem tocar no des
 
 **Ficheiros:** `cards.html` (estrutura dos campos + CSS de prefixo), `cards.css` (estilo placeholder-only + prefixo "Todo dia"), `cards.js` (se o texto "Apelido" afetar `buildCardHtml`/`buildPlaceholderCardHtml`).
 
+### Reforço da Fase 4 — validação de "dia" conforme regra de calendário
+
+Pedido extra do utilizador: os campos "Todo dia" (fechamento/vencimento) devem respeitar a regra real de dias por mês (fevereiro 28/29 num ano bissexto; abril/junho/setembro/novembro = 30; os restantes = 31) e avisar claramente quando o valor digitado for inválido.
+
+- Hoje: `FTCards.normalizeDay` só garante `1 ≤ dia ≤ 31` (clamp em 31 se maior); o aviso é um `window.alert()` genérico em `cards.js` (`parseFormDay`) — quebra o padrão visual placeholder-only da Fase 4.
+- Estes campos são **recorrentes** ("todo dia X", sem mês associado) — por isso não existe "dia inválido para o mês" no sentido estrito (dia 31 é válido como conceito, mesmo que em fevereiro caia no dia 28/29 naquele ciclo — comportamento já tratado em `fmtNextCycleDate`/`daysInMonth` na exibição da próxima fatura). A regra de validação de entrada continua sendo 1–31, mas o aviso deixa de ser `alert()`: passa a ser uma mensagem inline no próprio campo (ex.: reaproveitar `cc-field-hint` para mostrar erro em vez de dica estática, ou um pequeno texto vermelho abaixo do campo), coerente com o padrão placeholder-only.
+- Opcional (decidir no ROTEAMENTO): aviso informativo (não bloqueante) quando o dia escolhido for > 28, avisando que em meses menores a fatura cai no último dia do mês — já é o comportamento real, só falta deixar isso explícito para o utilizador no momento do cadastro.
+
 ## Fase 5 — Identidade visual real (banco + bandeira + cor)
 
 Maior escopo das 5 ideias — estende o **modelo de dados** do cartão.
@@ -74,6 +82,25 @@ Maior escopo das 5 ideias — estende o **modelo de dados** do cartão.
 
 **Ficheiros:** `ft-cards.js` (modelo + catálogo de bancos), `ft-card-brands.js` (ajuste de composição), `cards.css` (novas classes de skin por banco), `cards.html`/`cards.js` (campo Banco no formulário).
 
+## Fase 6 — Home/Gastos: "Data do pagamento" para lançamentos retroativos (adiada / backlog)
+
+> Cross-feature: não é Cartões — vive em `src/features/transactions/` (Home / sheet de novo gasto). Registada aqui a pedido do utilizador; **sem ROTEAMENTO ainda** — só entra quando ele decidir avançar ("desenvolveremos depois").
+
+**Objetivo:** hoje, ao registar um gasto, a data gravada (`ft-transactions.js` → campo `at`) é sempre "agora" (`nowIso()`). O utilizador quer poder **escolher a data em que o pagamento aconteceu de verdade** — podendo ser no mês atual, em meses/anos anteriores — para manter um histórico fiel de gastos já feitos. Caso de uso citado: apoio à declaração de Imposto de Renda (lançar retroativamente algo que já ocorreu, sem perder o registo por data real).
+
+**Como deve funcionar:**
+
+- Novo campo de data no formulário de novo gasto (`#expense-sheet`, `home.html`/`home.js`, ou no sheet lateral de `gastos.html` — confirmar qual é o formulário "oficial" hoje antes de implementar).
+- Regra de calendário mundial (dia válido dentro do mês/ano escolhido — considerar ano bissexto para fevereiro; aqui já existe mês **e** ano, diferente do campo recorrente "Todo dia" dos cartões).
+- **Limite superior:** não permitir data futura (só passado ou hoje) — a ser confirmado no ROTEAMENTO desta fase.
+- **Limite inferior:** a definir (sem limite / ou até X anos atrás, por causa da relevância de IR — normalmente 5 anos). Decidir quando esta fase for aberta.
+- Se o campo não for preenchido, manter o comportamento atual (data = agora).
+- Não confundir com `receiptDate`/`receiptTime` (já existentes, vindos do OCR do comprovativo escaneado) — são conceitos próximos mas não necessariamente o mesmo campo; decidir no ROTEAMENTO se unificam ou ficam separados.
+
+**Não mexer:** Cartões (Fases 2–5 acima), nav/FOUC, `ft-friend://`, atalho "Novo gasto" (planner `launcher-shortcuts-planner.md`).
+
+**Ficheiros prováveis:** `src/features/transactions/home.js`/`home.html` (ou `gastos.js`/`gastos.html`), `src/features/transactions/ft-transactions.js` (`buildTxFromItem` passa a aceitar `at` explícito e validado).
+
 ## Fases
 
 | Fase | Tipo | O quê | Ficheiros |
@@ -83,6 +110,7 @@ Maior escopo das 5 ideias — estende o **modelo de dados** do cartão.
 | **3** | Implementação UI + dados | Bandeira "Outra" → texto livre | `cards.html`, `cards.js`, `ft-cards.js`, `ft-card-brands.js` |
 | **4** | UX do formulário | "Apelido", placeholder-only, prefixo "Todo dia" | `cards.html`, `cards.css`, `cards.js` |
 | **5** | Modelo de dados + visual | Identidade por banco (skin real) | `ft-cards.js`, `ft-card-brands.js`, `cards.css`, `cards.html`, `cards.js` |
+| **6** | Cross-feature, **adiada** | Home/Gastos: campo "Data do pagamento" retroativo | `home.js`/`home.html` ou `gastos.js`/`gastos.html`, `ft-transactions.js` |
 
 Depois de cada fase: validar no browser (não depende de nativo/Capacitor — Cartões é 100% web/session storage) e, se fizer sentido, `cap:sync` + instalar no USB para conferir em tamanho real.
 
@@ -93,6 +121,8 @@ Depois de cada fase: validar no browser (não depende de nativo/Capacitor — Ca
 3. Formulário de cartão: nenhum `<label>` fixo acima dos campos — cada campo mostra o rótulo como placeholder que desaparece ao digitar; campo antes chamado "Nome no cartão" agora diz "Apelido"; campos de dia mostram "Todo dia" + número.
 4. Cada cartão exibe uma identidade visual reconhecível (cor/estilo por banco escolhido), com o ícone da bandeira correta no rodapé — sem usar logotipos de marca de terceiros (recriação própria, como já feito para bandeiras).
 5. Nenhuma regressão em: fatura/limite/datas do cartão ativo, lista de lançamentos, nav/FOUC, `ft-friend://`, atalho "Novo gasto".
+6. Campos "Todo dia" (fechamento/vencimento) recusam valores fora de 1–31 com aviso inline (não `alert()`), coerente com o padrão placeholder-only.
+7. (Fase 6, quando aberta) Um gasto pode ser registado com data no passado; datas futuras são recusadas com aviso; a fatura/relatórios que dependem de `at` continuam corretos com a nova data.
 
 ## ROTEAMENTO sugerido (próximas fases)
 
@@ -100,5 +130,6 @@ Depois de cada fase: validar no browser (não depende de nativo/Capacitor — Ca
 - **Fase 3:** pequeno campo condicional + 1 novo dado no modelo → Sonnet, **effort medium**.
 - **Fase 4:** só UI/UX (CSS + pequenos ajustes JS/HTML), sem lógica nova → Sonnet, **effort low/medium**.
 - **Fase 5:** maior escopo (novo campo de dados, catálogo de bancos, composição visual) → Sonnet **effort medium/high** ou Opus se o catálogo/design ficar complexo; considerar **chat novo**.
+- **Fase 6 (Home — data retroativa):** **adiada**, sem ROTEAMENTO ainda. Quando o utilizador pedir para avançar: provavelmente Sonnet **effort medium** (novo campo + validação de calendário), mas confirmar primeiro qual formulário é o "oficial" (`home.js` vs `gastos.js`) antes de rotear — pode exigir uma mini-investigação prévia.
 
 Ver `@.agents/claude-context.md`. Não implementar código até o utilizador colar o prompt de **AÇÃO** de cada fase.
