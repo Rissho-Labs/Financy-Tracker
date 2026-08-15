@@ -629,21 +629,36 @@ window.__ftReturnToHomeView = function () {
     }
     if (expenseMethod) {
       sessionStorage.removeItem(PENDING_EXPENSE_KEY);
-      var canGate =
-        needsShortcutGate &&
-        typeof FTAuth !== 'undefined' &&
-        FTAuth.isBiometricEnabled &&
-        FTAuth.isBiometricEnabled() &&
-        typeof FTAuth.verifyIdentityForShortcut === 'function';
-      if (canGate) {
-        FTAuth.verifyIdentityForShortcut().then(function (ok) {
-          if (ok) requestAnimationFrame(function () { openExpenseSheet(expenseMethod); });
-        });
-      } else {
-        requestAnimationFrame(function () { openExpenseSheet(expenseMethod); });
-      }
+      openExpensePendingSheet(expenseMethod, needsShortcutGate);
     }
   } catch (_) {}
 })();
+
+/* ft-auth.js / ft-capacitor-init.mjs (módulo, diferido) só ficam prontos depois
+   do parsing terminar; home.js corre antes disso. Só esperamos por
+   DOMContentLoaded quando o gate é mesmo necessário (sessão quente pelo atalho),
+   para não atrasar o caminho já existente (pending vindo do login). */
+function openExpensePendingSheet(method, needsShortcutGate) {
+  function proceed() {
+    var canGate =
+      needsShortcutGate &&
+      typeof FTAuth !== 'undefined' &&
+      FTAuth.isBiometricEnabled &&
+      FTAuth.isBiometricEnabled() &&
+      typeof FTAuth.verifyIdentityForShortcut === 'function';
+    if (canGate) {
+      FTAuth.verifyIdentityForShortcut().then(function (ok) {
+        if (ok) requestAnimationFrame(function () { openExpenseSheet(method); });
+      });
+    } else {
+      requestAnimationFrame(function () { openExpenseSheet(method); });
+    }
+  }
+  if (needsShortcutGate && document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', proceed, { once: true });
+  } else {
+    proceed();
+  }
+}
 
 })();
