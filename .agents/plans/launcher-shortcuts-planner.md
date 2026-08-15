@@ -127,6 +127,21 @@ Dispositivo de teste: **Samsung SM-G970F (S10e)**. Comportamento deve ser o de *
 6. Atalho não parte o deep link `ft-friend://` nem o fluxo de convite.
 7. Teclado não sobe sozinho ao abrir o sheet.
 
+## Fase 5 — bug: sessão quente pula a biometria (achado em QA manual)
+
+**Sintoma:** com o app já logado (sessão Firebase quente), o atalho «Novo gasto» abre o formulário direto, sem pedir biometria — diferente do padrão esperado (ex.: Pix do Mercado Pago, que sempre pede antes de entrar na área).
+
+**Causa raiz:** a Fase 3 só protegeu o caso *sem sessão* (guarda pending → login → `tryBiometricOnLaunch()`). Com sessão quente, `home.js` vê `FTSession.isLoggedIn() === true` e segue direto para o sheet — nunca passa pelo login, que é onde a bio é hoje acionada. A própria tabela do planner (linha "Sessão Firebase ainda quente + bio ativa") já previa isto e não foi implementado.
+
+**Correção:**
+
+1. `src/core/ft-capacitor-init.mjs` — expor `verifyIdentity` (= `verifyBiometricIdentity` do bundle) em `__FT_NATIVE_BIOMETRIC__`. É um prompt "confirma que és tu" simples, sem depender de credenciais guardadas (evita falso-bloqueio se `tryNativeBiometricLogin` fosse reutilizado).
+2. `src/core/ft-auth.js` — nova função, ex. `verifyIdentityForShortcut()`: se `isNative()` + `isBiometricEnabled()` (mesma flag que já gate o atalho a frio) → chama `verifyIdentity`; resolve `true`/`false` (cancelar/falhar = `false`, sem lançar).
+3. `src/features/transactions/home.js` — no `bootHomeReceiptUi`, antes de `openExpenseSheet(method)`: se havia pending vindo do atalho (query `?expense=1` ou `sessionStorage.ft_pending_expense`) **e** a sessão já estava quente (ou seja, não passou pelo gate do login), chamar `verifyIdentityForShortcut()` primeiro. Só abre o sheet se resolver `true`. Se `false` (cancelou/falhou) ou biometria desligada→ sem gate extra (mantém comportamento atual: sem bio ativa, não há cadeado adicional a pedir).
+4. Sem alterações em nav/FOUC, `ft-friend://`, `shortcuts.xml`, `MainActivity`.
+
+**Critério de aceite extra:** com bio ativa e app já logado, tocar no atalho deve sempre mostrar o prompt nativo antes do formulário — cancelar/falhar não abre o formulário (fica na Home normal, sem sheet).
+
 ## ROTEAMENTO sugerido (próximas fases)
 
 - **Fase 2:** implementação (Android XML/intent) → Claude Sonnet, **effort medium/low**, **chat novo** se a thread de planeamento já estiver pesada. Alternativa: GPT-5.x.

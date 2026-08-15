@@ -8,6 +8,7 @@ import {
   hasStoredCredentials,
   getStoredBiometricEmail,
   isNativeBiometricAvailable,
+  verifyBiometricIdentity,
 } from './ft-biometric.bundle.js';
 import {
   signInWithGoogleNative,
@@ -21,6 +22,7 @@ globalThis.__FT_NATIVE_BIOMETRIC__ = {
   hasStoredCredentials,
   getStoredBiometricEmail,
   isNativeBiometricAvailable,
+  verifyIdentity: verifyBiometricIdentity,
 };
 
 globalThis.__FT_NATIVE_GOOGLE_AUTH__ = {

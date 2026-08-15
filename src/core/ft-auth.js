@@ -567,6 +567,30 @@
     return true;
   }
 
+  /**
+   * Atalho «Novo gasto» com sessão já quente (não passou pelo login):
+   * mesmo assim exige confirmação biométrica antes de abrir o sheet.
+   * Cancelar/falhar resolve false — nunca rejeita.
+   */
+  async function verifyIdentityForShortcut() {
+    if (!isNative()) return false;
+    if (!isBiometricEnabled()) return false;
+    if (!(await hasBiometricCredentials())) return false;
+
+    var api = global.__FT_NATIVE_BIOMETRIC__;
+    if (!api || typeof api.verifyIdentity !== 'function') return false;
+
+    try {
+      await api.verifyIdentity({
+        reason: 'Confirme sua identidade para registrar um gasto',
+        title: 'Novo gasto',
+      });
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   async function tryBiometricOnLaunch() {
     if (!usesFirebase() || !global.FTSession) return false;
     if (global._ftForgotPasswordOpen) return false; // não interrompe fluxo de reset
@@ -647,6 +671,7 @@
     clearPendingGoogleLink: clearPendingGoogleLink,
     lockLoginScreenWithoutBiometric: lockLoginScreenWithoutBiometric,
     tryBiometricOnLaunch: tryBiometricOnLaunch,
+    verifyIdentityForShortcut: verifyIdentityForShortcut,
     trySessionRestore: trySessionRestore,
     startGoogleSignIn: startGoogleSignIn,
     needsRegistration: needsRegistration,

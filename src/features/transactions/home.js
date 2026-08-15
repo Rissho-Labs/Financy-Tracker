@@ -611,8 +611,12 @@ window.__ftReturnToHomeView = function () {
     }
     var sp = new URLSearchParams(window.location.search);
     var expenseMethod = null;
+    /* Query ainda na URL = sessão já estava quente (não passou por login/bio).
+       Pending em sessionStorage = veio de redirect de login, onde a bio já gate. */
+    var needsShortcutGate = false;
     if (sp.get('expense') === '1') {
       expenseMethod = normalizeExpenseMethod(sp.get('method'));
+      needsShortcutGate = true;
       history.replaceState({}, '', window.location.pathname + window.location.hash);
     } else {
       var pendingRaw = sessionStorage.getItem(PENDING_EXPENSE_KEY);
@@ -625,7 +629,19 @@ window.__ftReturnToHomeView = function () {
     }
     if (expenseMethod) {
       sessionStorage.removeItem(PENDING_EXPENSE_KEY);
-      requestAnimationFrame(function () { openExpenseSheet(expenseMethod); });
+      var canGate =
+        needsShortcutGate &&
+        typeof FTAuth !== 'undefined' &&
+        FTAuth.isBiometricEnabled &&
+        FTAuth.isBiometricEnabled() &&
+        typeof FTAuth.verifyIdentityForShortcut === 'function';
+      if (canGate) {
+        FTAuth.verifyIdentityForShortcut().then(function (ok) {
+          if (ok) requestAnimationFrame(function () { openExpenseSheet(expenseMethod); });
+        });
+      } else {
+        requestAnimationFrame(function () { openExpenseSheet(expenseMethod); });
+      }
     }
   } catch (_) {}
 })();
