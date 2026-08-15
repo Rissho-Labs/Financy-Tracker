@@ -1,5 +1,7 @@
 package com.financetracker.app;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.webkit.ConsoleMessage;
 import android.webkit.WebView;
@@ -21,6 +23,35 @@ public class MainActivity extends BridgeActivity {
     Bridge bridge = getBridge();
     if (bridge != null && bridge.getWebView() != null) {
       bridge.getWebView().setWebChromeClient(new SecureChromeClient(bridge));
+    }
+
+    handleShortcutIntent(getIntent());
+  }
+
+  @Override
+  public void onNewIntent(Intent intent) {
+    super.onNewIntent(intent);
+    setIntent(intent);
+    // launchMode=singleTask: app já aberto, o atalho precisa de atualizar a WebView.
+    handleShortcutIntent(intent);
+  }
+
+  /**
+   * App Shortcuts estáticos (long-press no ícone) mandam VIEW com a própria
+   * URL da WebView (https://localhost/...). O Capacitor não aplica isso por
+   * conta própria — só carrega o appUrl configurado — então aplicamos aqui.
+   * Não interfere no esquema ft-friend:// (fora do prefixo verificado).
+   */
+  private void handleShortcutIntent(Intent intent) {
+    if (intent == null || !Intent.ACTION_VIEW.equals(intent.getAction())) return;
+    Uri data = intent.getData();
+    if (data == null) return;
+    String url = data.toString();
+    if (!url.startsWith("https://localhost/")) return;
+
+    Bridge bridge = getBridge();
+    if (bridge != null && bridge.getWebView() != null) {
+      bridge.getWebView().loadUrl(url);
     }
   }
 
