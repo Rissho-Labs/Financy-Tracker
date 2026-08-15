@@ -78,16 +78,30 @@ Tarefa / fase:
 
 Planners de feature (quando existirem): preferir `.agents/plans/<feature>-planner.md`.
 
-Planner ativo: `.agents/plans/launcher-shortcuts-planner.md` (Fase 1 feita — atalho launcher «Novo gasto» + gate biométrico). Próximo: ROTEAMENTO da **Fase 2**.
+Planner concluído: `.agents/plans/launcher-shortcuts-planner.md` — **Fases 1–5 feitas** (atalho launcher «Novo gasto», query `method`, pending cross-redirect, gate biométrico em sessão quente). Vive na branch `feature/launcher-shortcuts-phase3`, ainda não mergeada em `main` (ver secção de colaboração abaixo).
+
+Planner ativo: `.agents/plans/cards-visual-planner.md` (Fase 1 feita — spec). Próximo: ROTEAMENTO da **Fase 2** (simetria do carrossel de Cartões).
 
 ## Still open / next likely tasks
 
-1. **Launcher shortcuts** — Fase 2: `shortcuts.xml` + intent (ver planner)
-2. **Visual QA on device**: confirm type scale + spacing + balance-hide persist after tab switches
-3. **Invite hosting**: public invite links need `firebase deploy --only hosting` (placeholders: Play/App Store URLs)
-4. **Storage rules**: `firebase login` then `npm run deploy:rules` so avatar upload syncs to cloud
-5. **Avisos modal**: still demo mock — polish when resumed
-6. Any new feature work should treat the frozen chrome table above as intact unless the user asks to change nav/FOUC again
+1. **Merge da branch do atalho**: abrir/rever PR `feature/launcher-shortcuts-phase3` → `main` (ver colaboração)
+2. **Cartões — identidade visual + UX do form**: Fases 2–5 do planner ativo (carrossel simétrico, bandeira "Outra" com texto, "Apelido"/placeholder-only/"Todo dia", skins por banco)
+3. **Visual QA on device**: confirm type scale + spacing + balance-hide persist after tab switches
+4. **Invite hosting**: public invite links need `firebase deploy --only hosting` (placeholders: Play/App Store URLs)
+5. **Storage rules**: `firebase login` then `npm run deploy:rules` so avatar upload syncs to cloud
+6. **Avisos modal**: still demo mock — polish when resumed
+7. Any new feature work should treat the frozen chrome table above as intact unless the user asks to change nav/FOUC again
+
+## Colaboração — mais de uma pessoa a partir de agora
+
+O projeto passou a ter mais gente a trabalhar nele em paralelo (ex.: branch `feature/amigos-e-metas` já existe no remoto, de outro membro). Regras para não pisarmos trabalho uns dos outros:
+
+- **Nunca commitar direto em `main`.** Cada fase/feature vive na sua branch (`feature/<nome>`); abrir PR para `main` antes de merge.
+- **`git fetch` / `git pull` no início de cada sessão** antes de criar branch nova ou continuar uma existente — outro membro pode ter avançado `main` ou a própria feature branch entretanto.
+- **Uma branch por feature/planner**, não por chat. Se retomares um planner numa sessão nova, `git checkout` a branch já existente em vez de criar outra.
+- **Este `HANDOFF.md` é estado partilhado.** Ao terminar uma sessão com progresso relevante, atualiza a tabela "Done" e a secção "Still open" e comita — outro membro (ou chat) pode continuar a partir daqui sem reler o histórico todo.
+- **Push no fim de cada fase concluída**, não só commit local — trabalho que só existe localmente não existe para o resto do grupo.
+- Conflitos prováveis: `home.html`/`home.js` (vários fluxos tocam neles), `AndroidManifest.xml`, `strings.xml`. Avisar antes de tocar em áreas que outra branch também esteja a mexer.
 
 ## How next chat should start
 
