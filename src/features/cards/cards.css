@@ -399,13 +399,52 @@
   display: block;
   margin-top: 4px;
   font-size: 11px;
-  color: var(--text-secondary);
   line-height: 1.3;
+}
+.cc-field-hint--error {
+  color: var(--danger, #ff453a);
+}
+.cc-field-hint--error.hidden {
+  display: none;
 }
 @media (max-width: 360px) {
   .cc-form-row2 {
     grid-template-columns: 1fr;
   }
+}
+
+/* "Todo dia" prefixo — fechamento/vencimento */
+.cc-day-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  border-radius: var(--radius-md, 10px);
+  border: 1px solid var(--border);
+  background: var(--surface, rgba(255, 255, 255, 0.04));
+}
+.cc-day-prefix {
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.cc-day-field .cc-day-input {
+  flex: 1;
+  min-width: 0;
+  border: none !important;
+  background: transparent !important;
+  padding: 10px 0 !important;
+  min-height: auto !important;
+}
+.cc-day-field .cc-day-input:focus {
+  outline: none;
+}
+.cc-day-field:has(.cc-day-input:focus) {
+  border-color: var(--home-accent, var(--accent));
 }
 
 /* ══════════════════════════════════════════════════════════════

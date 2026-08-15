@@ -366,6 +366,18 @@
     setActiveCard(idx);
   }
 
+  function setFieldError(hintId, message) {
+    var hint = $(hintId);
+    if (!hint) return;
+    if (message) {
+      hint.textContent = message;
+      hint.classList.remove('hidden');
+    } else {
+      hint.textContent = '';
+      hint.classList.add('hidden');
+    }
+  }
+
   function clearAddCardForm() {
     ['cc-add-name', 'cc-add-last4', 'cc-add-close-day', 'cc-add-due-day', 'cc-add-brand-other'].forEach(function (id) {
       var el = $(id);
@@ -374,6 +386,8 @@
     var brandEl = $('cc-add-brand');
     if (brandEl) brandEl.value = 'visa';
     updateBrandOtherField();
+    setFieldError('cc-add-close-hint', null);
+    setFieldError('cc-add-due-hint', null);
   }
 
   function updateBrandOtherField() {
@@ -389,17 +403,23 @@
 
   $('cc-add-brand')?.addEventListener('change', updateBrandOtherField);
 
-  function parseFormDay(inputId, label) {
+  function parseFormDay(inputId, hintId, label) {
     var raw = ($(inputId)?.value || '').trim();
     var day = typeof FTCards !== 'undefined' && FTCards.normalizeDay
       ? FTCards.normalizeDay(raw)
       : parseInt(raw, 10);
-    if (!day) {
-      alert('Informe o dia de ' + label + ' (1 a 31).');
+    if (!day || day < 1 || day > 31) {
+      setFieldError(hintId, 'Informe o dia de ' + label + ' (1 a 31).');
       return null;
     }
+    setFieldError(hintId, null);
     return day;
   }
+
+  ['cc-add-close-day', 'cc-add-due-day'].forEach(function (id) {
+    var hintId = id === 'cc-add-close-day' ? 'cc-add-close-hint' : 'cc-add-due-hint';
+    $(id)?.addEventListener('input', function () { setFieldError(hintId, null); });
+  });
 
   function openAddCardModal() {
     const modal = $('add-card-modal');
@@ -433,9 +453,9 @@
       alert('Informe os 4 últimos dígitos.');
       return;
     }
-    const closingDay = parseFormDay('cc-add-close-day', 'fechamento');
+    const closingDay = parseFormDay('cc-add-close-day', 'cc-add-close-hint', 'fechamento');
     if (closingDay == null) return;
-    const dueDay = parseFormDay('cc-add-due-day', 'vencimento');
+    const dueDay = parseFormDay('cc-add-due-day', 'cc-add-due-hint', 'vencimento');
     if (dueDay == null) return;
     const brand = $('cc-add-brand')?.value || 'other';
     let brandLabel = '';

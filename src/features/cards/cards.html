@@ -159,12 +159,9 @@
       <div class="ft-sheet__panel ft-form-sheet" role="dialog" aria-labelledby="add-card-title">
         <div class="ft-sheet__handle" aria-hidden="true"></div>
         <h2 id="add-card-title" class="ft-sheet__title">Novo cartão</h2>
-        <label class="field-label">Nome no cartão</label>
-        <input id="cc-add-name" type="text" class="ft-form-input" maxlength="48" />
-        <label class="field-label">Final do número (4 dígitos)</label>
-        <input id="cc-add-last4" type="text" class="ft-form-input" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" />
-        <label class="field-label">Bandeira</label>
-        <select id="cc-add-brand" class="ft-form-input ft-form-select">
+        <input id="cc-add-name" type="text" class="ft-form-input" maxlength="48" placeholder="Apelido" />
+        <input id="cc-add-last4" type="text" class="ft-form-input" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="Final do número (4 dígitos)" autocomplete="off" />
+        <select id="cc-add-brand" class="ft-form-input ft-form-select" aria-label="Bandeira">
           <option value="visa">Visa</option>
           <option value="master">Mastercard</option>
           <option value="elo">Elo</option>
@@ -172,19 +169,22 @@
           <option value="other">Outra</option>
         </select>
         <div id="cc-add-brand-other-wrap" class="cc-form-field hidden">
-          <label class="field-label" for="cc-add-brand-other">Nome da bandeira</label>
-          <input id="cc-add-brand-other" type="text" class="ft-form-input" maxlength="20" placeholder="Ex: Hipercard" autocomplete="off" />
+          <input id="cc-add-brand-other" type="text" class="ft-form-input" maxlength="20" placeholder="Nome da bandeira (ex.: Hipercard)" autocomplete="off" />
         </div>
         <div class="cc-form-row2">
           <div class="cc-form-field">
-            <label class="field-label" for="cc-add-close-day">Fechamento da fatura</label>
-            <input id="cc-add-close-day" type="text" class="ft-form-input" inputmode="numeric" pattern="[0-9]*" maxlength="2" placeholder="Ex: 15" aria-describedby="cc-add-close-hint" autocomplete="off" />
-            <span class="cc-field-hint" id="cc-add-close-hint">Dia do mês (1–31)</span>
+            <div class="cc-day-field">
+              <span class="cc-day-prefix">Todo dia</span>
+              <input id="cc-add-close-day" type="text" class="ft-form-input cc-day-input" inputmode="numeric" pattern="[0-9]*" maxlength="2" aria-label="Dia de fechamento da fatura (1 a 31)" aria-describedby="cc-add-close-hint" autocomplete="off" />
+            </div>
+            <span class="cc-field-hint cc-field-hint--error hidden" id="cc-add-close-hint" role="alert"></span>
           </div>
           <div class="cc-form-field">
-            <label class="field-label" for="cc-add-due-day">Vencimento</label>
-            <input id="cc-add-due-day" type="text" class="ft-form-input" inputmode="numeric" pattern="[0-9]*" maxlength="2" placeholder="Ex: 22" aria-describedby="cc-add-due-hint" autocomplete="off" />
-            <span class="cc-field-hint" id="cc-add-due-hint">Dia do mês (1–31)</span>
+            <div class="cc-day-field">
+              <span class="cc-day-prefix">Todo dia</span>
+              <input id="cc-add-due-day" type="text" class="ft-form-input cc-day-input" inputmode="numeric" pattern="[0-9]*" maxlength="2" aria-label="Dia de vencimento (1 a 31)" aria-describedby="cc-add-due-hint" autocomplete="off" />
+            </div>
+            <span class="cc-field-hint cc-field-hint--error hidden" id="cc-add-due-hint" role="alert"></span>
           </div>
         </div>
         <button type="button" class="goal-submit" id="cc-add-save">Adicionar</button>
