@@ -969,6 +969,14 @@ html[data-theme="light"] .stat-trend.neutral {
   gap: 2px;
 }
 .tx-item {
+  position: relative;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tx-row {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -976,12 +984,13 @@ html[data-theme="light"] .stat-trend.neutral {
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.05);
   border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: background var(--duration), transform 180ms var(--ease-spring);
-  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+  transition: background var(--duration), transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  touch-action: pan-y;
+  will-change: transform;
 }
-.tx-item:hover { background: rgba(255,255,255,0.07); transform: translateX(2px); }
-.tx-item:active { transform: scale(0.98); }
+.tx-item:hover .tx-row { background: rgba(255,255,255,0.07); }
+.tx-item.tx-item--dragging .tx-row { transition: none; }
 
 .tx-icon-wrap {
   width: 36px; height: 36px;
@@ -1021,43 +1030,54 @@ html[data-theme="light"] .stat-trend.neutral {
 .tx-amount.positive { color: #30D158; }
 .tx-amount.negative { color: var(--text-primary); }
 
-/* ── Delete mode ─────────────────────────────────────────────── */
-.tx-delete-btn {
+/* ── Swipe actions (arrastar a linha, ao estilo Gmail) ─────────── */
+.tx-swipe-action {
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  z-index: 1;
+  width: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  width: 0;
-  height: 32px;
-  padding: 0;
-  border: none;
-  border-radius: 8px;
-  background: #ef4444;
+  border-radius: 14px;
   color: #fff;
-  cursor: pointer;
-  overflow: hidden;
   opacity: 0;
-  transition: width 220ms cubic-bezier(0.34,1.56,0.64,1), opacity 180ms ease, background 120ms;
-  -webkit-tap-highlight-color: transparent;
+  pointer-events: none;
+  transition: opacity 160ms ease;
 }
-.tx-delete-btn:active { background: #dc2626; }
+.tx-item.tx-item--dragging .tx-swipe-action {
+  transition: none;
+}
+.tx-swipe-action.is-active {
+  pointer-events: auto;
+}
+.tx-swipe-action svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.tx-swipe-action--delete {
+  right: -18px;
+  background: #ef4444;
+}
+.tx-swipe-action--delete:active {
+  background: #dc2626;
+}
+.tx-swipe-action--edit {
+  left: -18px;
+  background: #3b82f6;
+}
+.tx-swipe-action--edit:active {
+  background: #2563eb;
+}
 
-.tx-item--delete-mode {
-  background: rgba(239, 68, 68, 0.08);
-  border-color: rgba(239, 68, 68, 0.2);
+.tx-item--removing .tx-row {
+  opacity: 0;
+  transform: translateX(-100%) !important;
+  transition: opacity 200ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1) !important;
 }
-.tx-item--delete-mode .tx-delete-btn {
-  width: 36px;
-  opacity: 1;
-}
-.tx-item--delete-mode .tx-amount {
-  display: none;
-}
-
 .tx-item--removing {
-  opacity: 0;
-  transform: translateX(40px) scale(0.95);
-  transition: opacity 200ms ease, transform 200ms ease;
   pointer-events: none;
 }
 
@@ -1288,11 +1308,97 @@ html[data-theme="light"] .nav-item.active {
 }
 
 /* ── FAB flutuante (canto direito, acima do menu) ─────────────── */
-.home-fab {
+.fab-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.32);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+.fab-backdrop.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.fab-cluster {
   position: absolute;
   right: max(20px, env(safe-area-inset-right, 0px));
   bottom: calc(var(--home-fab-offset, 96px) + env(safe-area-inset-bottom, 0px));
   z-index: 10001;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 20px;
+}
+
+.fab-menu {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  opacity: 0;
+  transform: translateY(14px) scale(0.92);
+  pointer-events: none;
+  transition: opacity 200ms var(--ease-spring), transform 200ms var(--ease-spring);
+}
+.fab-menu.is-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.fab-menu-btn {
+  height: 48px;
+  width: fit-content;
+  padding: 0 16px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: #fff;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+  transition: transform 150ms ease, background 150ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.fab-menu-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+.fab-menu-btn:active {
+  transform: scale(0.96);
+}
+.fab-menu-btn svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.fab-menu-btn span {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+html[data-theme="light"] .fab-menu-btn {
+  background: rgba(20, 20, 25, 0.06);
+  border-color: rgba(0, 0, 0, 0.08);
+  color: #1c1c1e;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14);
+}
+html[data-theme="light"] .fab-menu-btn:hover {
+  background: rgba(20, 20, 25, 0.1);
+}
+
+.home-fab {
+  position: relative;
   width: 52px;
   height: 52px;
   border-radius: 50%;
@@ -1321,6 +1427,7 @@ html[data-theme="light"] .nav-item.active {
   height: 24px;
   position: relative;
   z-index: 1;
+  transition: transform 200ms ease;
 }
 .home-fab:hover  {
   transform: scale(1.06);
@@ -1334,6 +1441,9 @@ html[data-theme="light"] .nav-item.active {
   opacity: 0;
   pointer-events: none;
   transform: scale(0.88);
+}
+.home-fab.is-open svg {
+  transform: rotate(45deg);
 }
 
 .phone-frame {
@@ -1712,38 +1822,19 @@ html.ft-ios .see-all-btn {
 }
 
 html.ft-ios .tx-list {
-  padding: 0 var(--home-pad);
-  gap: 0;
+  gap: 10px;
+}
+
+html.ft-ios .tx-row {
   background: var(--home-tile);
   border: 1px solid var(--home-hairline);
   border-radius: var(--home-radius);
-  overflow: hidden;
+  padding: 13px 16px;
   box-shadow: var(--home-shadow);
 }
 
-html.ft-ios .tx-list:empty,
-html.ft-ios .tx-list.hidden {
-  display: none;
-  background: none;
-  border: none;
-  box-shadow: none;
-}
-
-html.ft-ios .tx-item {
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  padding: 13px 16px;
-  border-bottom: 1px solid var(--home-hairline);
-}
-
-html.ft-ios .tx-item:last-child {
-  border-bottom: none;
-}
-
-html.ft-ios .tx-item:hover {
+html.ft-ios .tx-item:hover .tx-row {
   background: rgba(127, 127, 127, 0.08);
-  transform: none;
 }
 
 html.ft-ios .tx-icon-wrap {

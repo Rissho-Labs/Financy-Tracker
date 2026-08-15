@@ -670,44 +670,23 @@ html[data-theme="light"] .ft-sheet__panel {
   z-index: 10030;
 }
 #expense-sheet .ft-sheet__panel {
-  height: min(78vh, 620px);
-  min-height: min(78vh, 620px);
-  overflow: hidden;
+  max-height: min(78vh, 620px);
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 #expense-sheet .expense-sheet-body {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  height: calc(100% - 32px);
-}
-#expense-sheet .gasto-entry-methods {
-  margin-bottom: 6px;
 }
 #expense-sheet .expense-modes-stage {
   position: relative;
-  flex: 1;
-  min-height: 0;
 }
 #expense-sheet .expense-modes-stage .entry-wrap {
-  position: absolute;
-  inset: 0;
-  display: block;
-  opacity: 0;
-  transform: translateY(4px);
-  pointer-events: none;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-  overflow-y: auto;
-  overflow-x: hidden;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-}
-#expense-sheet .expense-modes-stage .entry-wrap::-webkit-scrollbar {
   display: none;
 }
 #expense-sheet .expense-modes-stage .entry-wrap.active {
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: auto;
+  display: block;
 }
 #expense-sheet .ft-sheet__title {
   margin-bottom: 10px;

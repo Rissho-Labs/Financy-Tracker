@@ -123,7 +123,7 @@ if (window.FTNotifications) {
   FTNotifications.bind('#notification-btn');
 }
 
-function openExpenseSheet() {
+function openExpenseSheet(method) {
   const sh = $('expense-sheet');
   if (!sh) return;
   haptic('medium');
@@ -133,7 +133,7 @@ function openExpenseSheet() {
   sh.classList.add('ft-sheet--open');
   sh.setAttribute('aria-hidden', 'false');
   $('nav-fab')?.classList.add('is-hidden');
-  document.querySelector('.entry-method-btn[data-method="manual"]')?.click();
+  switchEntryMethod(method || 'manual');
 }
 function closeExpenseSheet() {
   const sh = $('expense-sheet');
@@ -154,7 +154,49 @@ $('expense-sheet-bg')?.addEventListener('click', closeExpenseSheet);
 $('home-exp-cancel')?.addEventListener('click', closeExpenseSheet);
 $('home-exp-cancel-qr')?.addEventListener('click', closeExpenseSheet);
 $('home-exp-cancel-file')?.addEventListener('click', closeExpenseSheet);
-$('nav-fab')?.addEventListener('click', openExpenseSheet);
+
+// ── FAB: menu rápido (Manual / Escanear / Arquivo) ──────────────
+const fabBtn = $('nav-fab');
+const fabMenu = $('fab-menu');
+const fabBackdrop = $('fab-backdrop');
+
+function openFabMenu() {
+  fabMenu?.classList.add('is-open');
+  fabMenu?.setAttribute('aria-hidden', 'false');
+  fabBackdrop?.classList.add('is-open');
+  fabBtn?.classList.add('is-open');
+  fabBtn?.setAttribute('aria-expanded', 'true');
+  haptic('light');
+}
+function closeFabMenu() {
+  fabMenu?.classList.remove('is-open');
+  fabMenu?.setAttribute('aria-hidden', 'true');
+  fabBackdrop?.classList.remove('is-open');
+  fabBtn?.classList.remove('is-open');
+  fabBtn?.setAttribute('aria-expanded', 'false');
+}
+function toggleFabMenu() {
+  if (fabMenu?.classList.contains('is-open')) closeFabMenu();
+  else openFabMenu();
+}
+
+fabBtn?.addEventListener('click', toggleFabMenu);
+fabBackdrop?.addEventListener('click', closeFabMenu);
+$('fab-btn-manual')?.addEventListener('click', () => {
+  closeFabMenu();
+  resetExpenseFormFields();
+  openExpenseSheet('manual');
+});
+$('fab-btn-qr')?.addEventListener('click', () => {
+  closeFabMenu();
+  resetExpenseFormFields();
+  openExpenseSheet('qr');
+});
+$('fab-btn-file')?.addEventListener('click', () => {
+  closeFabMenu();
+  resetExpenseFormFields();
+  openExpenseSheet('file');
+});
 
 function openExpenseScan() {
   if (typeof FTExpenseScan === 'undefined') {
@@ -170,27 +212,15 @@ function openExpenseScan() {
   });
 }
 
-const entryMethodBtns = document.querySelectorAll('#home-entry-methods-grid .entry-method-btn');
-entryMethodBtns.forEach((btn) => {
-  btn.addEventListener('click', () => {
-    haptic('light');
-    entryMethodBtns.forEach((b) => b.classList.remove('active'));
-    btn.classList.add('active');
-    const method = btn.getAttribute('data-method');
-    ['manual', 'qr', 'file'].forEach((m) => {
-      const wrap = $(`home-${m}-wrap`);
-      if (!wrap) return;
-      if (m === method) {
-        wrap.classList.add('active');
-      } else {
-        wrap.classList.remove('active');
-      }
-    });
-    if (method === 'qr') {
-      openExpenseScan();
-    }
+function switchEntryMethod(method) {
+  haptic('light');
+  ['manual', 'qr', 'file'].forEach((m) => {
+    $(`home-${m}-wrap`)?.classList.toggle('active', m === method);
   });
-});
+  if (method === 'qr') {
+    openExpenseScan();
+  }
+}
 
 $('home-open-scan-btn')?.addEventListener('click', () => {
   haptic('medium');
@@ -314,6 +344,42 @@ homePayBtns.forEach((btn) => {
   });
 });
 
+let editingTxId = null;
+
+function resetExpenseFormFields() {
+  editingTxId = null;
+  if ($('home-exp-name')) $('home-exp-name').value = '';
+  if ($('home-exp-amt')) $('home-exp-amt').value = '';
+  if ($('home-exp-installments')) $('home-exp-installments').value = '1';
+  if (homeCardSelect) homeCardSelect.value = '';
+  selectedPayment = 'pix';
+  homePayBtns.forEach((b) => b.classList.remove('active'));
+  document.querySelector('#home-payment-methods-grid .pay-btn[data-pay="pix"]')?.classList.add('active');
+  homeCardWrap?.classList.add('hidden');
+  homeInstallmentsWrap?.classList.add('hidden');
+  const titleEl = $('exp-sheet-title');
+  if (titleEl) titleEl.textContent = 'Novo gasto';
+}
+
+function openEditSheet(tx) {
+  if (!tx) return;
+  editingTxId = tx.id;
+  if ($('home-exp-name')) $('home-exp-name').value = tx.name || '';
+  if ($('home-exp-amt')) $('home-exp-amt').value = (tx.amountCents / 100).toFixed(2).replace('.', ',');
+  const isCredit = tx.paymentMethod === 'credito' || tx.paymentMethod === 'credito_parcelado';
+  selectedPayment = isCredit ? 'credito' : (tx.paymentMethod || 'pix');
+  homePayBtns.forEach((b) => b.classList.toggle('active', b.getAttribute('data-pay') === selectedPayment));
+  homeCardWrap?.classList.toggle('hidden', !isCredit);
+  homeInstallmentsWrap?.classList.toggle('hidden', !isCredit);
+  if (isCredit) {
+    if (homeCardSelect) homeCardSelect.value = tx.cardId || '';
+    if ($('home-exp-installments')) $('home-exp-installments').value = String(tx.installments > 1 ? tx.installments : 1);
+  }
+  const titleEl = $('exp-sheet-title');
+  if (titleEl) titleEl.textContent = 'Editar gasto';
+  openExpenseSheet('manual');
+}
+
 $('home-expense-form')?.addEventListener('submit', (e) => {
   e.preventDefault();
   const name = $('home-exp-name')?.value?.trim();
@@ -338,23 +404,20 @@ $('home-expense-form')?.addEventListener('submit', (e) => {
     payInstallments = installments > 1 ? installments : 1;
   }
   if (typeof FTTransactions !== 'undefined') {
-    FTTransactions.add({
+    const patch = {
       name,
       amountCents: cents,
       paymentMethod: payMethod,
-      cardId,
+      cardId: cardId || null,
       installments: payInstallments,
-    });
+    };
+    if (editingTxId) {
+      FTTransactions.update(editingTxId, patch);
+    } else {
+      FTTransactions.add(patch);
+    }
   }
-  $('home-exp-name').value = '';
-  $('home-exp-amt').value = '';
-  if ($('home-exp-installments')) $('home-exp-installments').value = '1';
-  if (homeCardSelect) homeCardSelect.value = '';
-  selectedPayment = 'pix';
-  homePayBtns.forEach((b) => b.classList.remove('active'));
-  document.querySelector('#home-payment-methods-grid .pay-btn[data-pay="pix"]')?.classList.add('active');
-  homeCardWrap?.classList.add('hidden');
-  homeInstallmentsWrap?.classList.add('hidden');
+  resetExpenseFormFields();
   closeExpenseSheet();
   haptic('medium');
   if (typeof window.__ftSyncHome === 'function') window.__ftSyncHome();
@@ -367,68 +430,135 @@ $('see-all-btn')?.addEventListener('click', () => {
 });
 
 // ── Transaction rows & stat card ──────────────────────────────
-function clearDeleteMode() {
-  document.querySelectorAll('.tx-item--delete-mode').forEach((el) => el.classList.remove('tx-item--delete-mode'));
+const SWIPE_REVEAL = 46; // px — posição de repouso "aberta" (a pílula fica fora do cartão, só espiando por baixo)
+const SWIPE_OPEN_THRESHOLD = 24; // px — arraste mínimo para decidir abrir/fechar ao soltar
+const SWIPE_MAX_DRAG = 60; // px — limite de arraste ao vivo
+
+function txItemState(item) {
+  if (item.classList.contains('tx-item--open-delete')) return 'delete';
+  if (item.classList.contains('tx-item--open-edit')) return 'edit';
+  return 'closed';
+}
+
+function txItemOffset(item) {
+  const s = txItemState(item);
+  return s === 'delete' ? -SWIPE_REVEAL : s === 'edit' ? SWIPE_REVEAL : 0;
+}
+
+function setRowX(item, x, live) {
+  const row = item.querySelector('.tx-row');
+  if (!row) return;
+  item.classList.toggle('tx-item--dragging', !!live);
+  row.style.transform = `translateX(${x}px)`;
+  const deleteAction = item.querySelector('.tx-swipe-action--delete');
+  const editAction = item.querySelector('.tx-swipe-action--edit');
+  const p = Math.min(1, Math.abs(x) / 24);
+  if (deleteAction) {
+    deleteAction.style.opacity = x < 0 ? String(p) : '0';
+    deleteAction.classList.toggle('is-active', x <= -SWIPE_OPEN_THRESHOLD);
+  }
+  if (editAction) {
+    editAction.style.opacity = x > 0 ? String(p) : '0';
+    editAction.classList.toggle('is-active', x >= SWIPE_OPEN_THRESHOLD);
+  }
+}
+
+function closeTxItem(item) {
+  if (!item) return;
+  item.classList.remove('tx-item--open-delete', 'tx-item--open-edit', 'tx-item--dragging');
+  setRowX(item, 0, false);
+}
+
+function openTxItem(item, direction) {
+  item.classList.toggle('tx-item--open-delete', direction === 'delete');
+  item.classList.toggle('tx-item--open-edit', direction === 'edit');
+  item.classList.remove('tx-item--dragging');
+  setRowX(item, direction === 'delete' ? -SWIPE_REVEAL : SWIPE_REVEAL, false);
+}
+
+function closeOtherTxItems(except) {
+  document.querySelectorAll('.tx-item--open-delete, .tx-item--open-edit').forEach((el) => {
+    if (el !== except) closeTxItem(el);
+  });
+}
+
+function deleteTxItem(item) {
+  const id = item.dataset.id;
+  if (!id || typeof FTTransactions === 'undefined') return;
+  haptic('strong');
+  item.classList.add('tx-item--removing');
+  setTimeout(function () {
+    FTTransactions.remove(id);
+    if (typeof window.__ftSyncHome === 'function') window.__ftSyncHome();
+  }, 220);
 }
 
 (function setupTxInteractions() {
   const section = document.querySelector('.transactions-section');
   if (!section) return;
 
-  let pressTimer = null;
-  let pressTarget = null;
-  let pressStartX = 0;
-  let pressStartY = 0;
+  let activeItem = null;
+  let baseOffset = 0;
+  let startX = 0;
+  let startY = 0;
+  let swiping = false;
+  let lastWasSwipe = false;
 
-  function cancelPress() {
-    if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
-    if (pressTarget) {
-      pressTarget.classList.remove('tx-item--pressing');
-      pressTarget = null;
-    }
+  function isActionLayer(target) {
+    return !!target.closest('.tx-swipe-action');
   }
 
-  function startPress(item, x, y) {
-    cancelPress();
-    pressTarget = item;
-    pressStartX = x;
-    pressStartY = y;
-    item.classList.add('tx-item--pressing');
-    pressTimer = setTimeout(function () {
-      pressTimer = null;
-      if (!pressTarget) return;
-      const el = pressTarget;
-      const id = el.dataset.id;
-      el.classList.remove('tx-item--pressing');
-      pressTarget = null;
-      if (!id || typeof FTTransactions === 'undefined') return;
-      const tx = FTTransactions.getById(id);
-      if (tx && tx.hasReceiptReport && typeof FTReceiptReport !== 'undefined') {
-        clearDeleteMode();
-        haptic('medium');
-        FTReceiptReport.open(id);
-        return;
-      }
-      clearDeleteMode();
-      if (!el.classList.contains('tx-item--delete-mode')) {
-        el.classList.add('tx-item--delete-mode');
-        haptic('medium');
-      }
-    }, 500);
+  function beginTrack(item, x, y) {
+    closeOtherTxItems(item);
+    activeItem = item;
+    baseOffset = txItemOffset(item);
+    startX = x;
+    startY = y;
+    swiping = false;
   }
 
   function onMove(x, y) {
-    if (!pressTimer || !pressTarget) return;
-    if (Math.abs(x - pressStartX) > 12 || Math.abs(y - pressStartY) > 12) cancelPress();
+    if (!activeItem) return;
+    const dx = x - startX;
+    const dy = y - startY;
+    if (!swiping && Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) swiping = true;
+    if (!swiping) return;
+    let next = baseOffset + dx;
+    if (next > SWIPE_MAX_DRAG) next = SWIPE_MAX_DRAG;
+    if (next < -SWIPE_MAX_DRAG) next = -SWIPE_MAX_DRAG;
+    setRowX(activeItem, next, true);
+  }
+
+  function endTrack(x, y) {
+    const item = activeItem;
+    activeItem = null;
+    if (!item) return;
+    if (!swiping) return;
+    swiping = false;
+    lastWasSwipe = true;
+    item.classList.remove('tx-item--dragging');
+    const dx = x - startX;
+    let finalX = baseOffset + dx;
+    if (finalX > SWIPE_MAX_DRAG) finalX = SWIPE_MAX_DRAG;
+    if (finalX < -SWIPE_MAX_DRAG) finalX = -SWIPE_MAX_DRAG;
+    if (finalX <= -SWIPE_OPEN_THRESHOLD) {
+      openTxItem(item, 'delete');
+      haptic('medium');
+    } else if (finalX >= SWIPE_OPEN_THRESHOLD) {
+      openTxItem(item, 'edit');
+      haptic('medium');
+    } else {
+      closeTxItem(item);
+    }
   }
 
   section.addEventListener('touchstart', function (e) {
-    if (e.target.closest('.tx-delete-btn')) return;
+    if (isActionLayer(e.target)) return;
     const item = e.target.closest('.tx-item');
     if (!item) return;
     const t = e.touches && e.touches[0];
     if (!t) return;
-    startPress(item, t.clientX, t.clientY);
+    beginTrack(item, t.clientX, t.clientY);
   }, { passive: true });
 
   section.addEventListener('touchmove', function (e) {
@@ -436,49 +566,79 @@ function clearDeleteMode() {
     if (t) onMove(t.clientX, t.clientY);
   }, { passive: true });
 
-  section.addEventListener('touchend', cancelPress, { passive: true });
-  section.addEventListener('touchcancel', cancelPress, { passive: true });
+  section.addEventListener('touchend', function (e) {
+    const t = e.changedTouches && e.changedTouches[0];
+    endTrack(t ? t.clientX : startX, t ? t.clientY : startY);
+  }, { passive: true });
+  section.addEventListener('touchcancel', function () {
+    if (activeItem) closeTxItem(activeItem);
+    activeItem = null;
+    swiping = false;
+  }, { passive: true });
 
   section.addEventListener('mousedown', function (e) {
-    if (e.button !== 0 || e.target.closest('.tx-delete-btn')) return;
+    if (e.button !== 0 || isActionLayer(e.target)) return;
     const item = e.target.closest('.tx-item');
     if (!item) return;
-    startPress(item, e.clientX, e.clientY);
+    beginTrack(item, e.clientX, e.clientY);
   });
 
   section.addEventListener('mousemove', function (e) {
     onMove(e.clientX, e.clientY);
   });
 
-  section.addEventListener('mouseup', cancelPress);
-  section.addEventListener('mouseleave', cancelPress);
+  section.addEventListener('mouseup', function (e) {
+    endTrack(e.clientX, e.clientY);
+  });
+  section.addEventListener('mouseleave', function () {
+    if (activeItem) closeTxItem(activeItem);
+    activeItem = null;
+    swiping = false;
+  });
 
   section.addEventListener('click', function (e) {
-    const delBtn = e.target.closest('.tx-delete-btn');
-    if (delBtn) {
-      const item = delBtn.closest('.tx-item');
+    if (lastWasSwipe) { lastWasSwipe = false; return; }
+
+    const deleteAction = e.target.closest('.tx-swipe-action--delete');
+    if (deleteAction) {
+      const item = deleteAction.closest('.tx-item');
+      if (item) deleteTxItem(item);
+      return;
+    }
+
+    const editAction = e.target.closest('.tx-swipe-action--edit');
+    if (editAction) {
+      const item = editAction.closest('.tx-item');
       const id = item && item.dataset.id;
-      if (id && typeof FTTransactions !== 'undefined') {
-        haptic('strong');
-        item.classList.add('tx-item--removing');
-        setTimeout(function () {
-          FTTransactions.remove(id);
-          clearDeleteMode();
-          if (typeof window.__ftSyncHome === 'function') window.__ftSyncHome();
-        }, 220);
+      const tx = id && typeof FTTransactions !== 'undefined' ? FTTransactions.getById(id) : null;
+      if (tx) {
+        closeTxItem(item);
+        haptic('light');
+        openEditSheet(tx);
       }
       return;
     }
-    if (!e.target.closest('.tx-item--delete-mode')) clearDeleteMode();
+
+    const item = e.target.closest('.tx-item');
+    if (!item) return;
+    if (txItemState(item) !== 'closed') {
+      closeTxItem(item);
+      return;
+    }
+    const id = item.dataset.id;
+    const tx = id && typeof FTTransactions !== 'undefined' ? FTTransactions.getById(id) : null;
+    if (tx && tx.hasReceiptReport && typeof FTReceiptReport !== 'undefined') {
+      haptic('medium');
+      FTReceiptReport.open(id);
+      return;
+    }
+    haptic('light');
   });
 })();
 
-document.querySelector('.transactions-section')?.addEventListener('click', (e) => {
-  if (e.target.closest('.tx-item')) haptic('light');
-});
-
 const svgGasto = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--tx-stroke)" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M19 9H5a2 2 0 0 0 0 4h14a2 2 0 0 1 0 4H6"/></svg>`;
 const svgTrash = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
+const svgEdit = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
 
 window.__ftSyncHome = function syncHomeData() {
   if (typeof FTTransactions === 'undefined') return;
@@ -534,7 +694,7 @@ window.__ftSyncHome = function syncHomeData() {
         const nameEsc = String(t.name).replace(/&/g, '&amp;').replace(/</g, '&lt;');
         const receiptCls = t.hasReceiptReport ? ' tx-item--has-receipt' : '';
         const badge = t.hasReceiptReport ? '<span class="tx-receipt-badge" aria-hidden="true">· nota</span>' : '';
-        return `<li class="tx-item${receiptCls}" data-id="${t.id}" role="listitem"><div class="tx-icon-wrap" style="${wrap}">${svgGasto}</div><div class="tx-info"><span class="tx-name">${nameEsc}${badge}</span><span class="tx-date">${fmtWhen(t.at)}</span></div><span class="tx-amount negative">- ${fmtBRL(t.amountCents)}</span><button class="tx-delete-btn" aria-label="Excluir gasto" type="button">${svgTrash}</button></li>`;
+        return `<li class="tx-item${receiptCls}" data-id="${t.id}" role="listitem"><div class="tx-swipe-action tx-swipe-action--edit" aria-label="Editar gasto" role="button">${svgEdit}</div><div class="tx-swipe-action tx-swipe-action--delete" aria-label="Excluir gasto" role="button">${svgTrash}</div><div class="tx-row"><div class="tx-icon-wrap" style="${wrap}">${svgGasto}</div><div class="tx-info"><span class="tx-name">${nameEsc}${badge}</span><span class="tx-date">${fmtWhen(t.at)}</span></div><span class="tx-amount negative">- ${fmtBRL(t.amountCents)}</span></div></li>`;
       })
       .join('');
     /* Evita reflow se o hydrate inline já pintou o mesmo snapshot */

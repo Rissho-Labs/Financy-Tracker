@@ -221,7 +221,7 @@
 
         <ul class="tx-list" id="home-tx-list" role="list"></ul>
         <p class="tx-empty hidden" id="home-tx-empty">Nenhum gasto registrado ainda.</p>
-        <p class="home-tx-hint hidden" id="home-tx-hint">Segure um gasto com nota para abrir o relatório</p>
+        <p class="home-tx-hint hidden" id="home-tx-hint">Toque um gasto com nota para abrir o relatório</p>
         <script>
           /* Hidrata lista/empty antes do paint — evita pulo ao voltar de outras abas */
           (function () {
@@ -285,6 +285,8 @@
               '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--tx-stroke)" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M19 9H5a2 2 0 0 0 0 4h14a2 2 0 0 1 0 4H6"/></svg>';
             var svgTrash =
               '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
+            var svgEdit =
+              '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
 
             var items = loadItems();
             if (items.length === 0) {
@@ -308,6 +310,13 @@
                     '" data-id="' +
                     esc(t.id) +
                     '" role="listitem">' +
+                    '<div class="tx-swipe-action tx-swipe-action--edit" aria-label="Editar gasto" role="button">' +
+                    svgEdit +
+                    '</div>' +
+                    '<div class="tx-swipe-action tx-swipe-action--delete" aria-label="Excluir gasto" role="button">' +
+                    svgTrash +
+                    '</div>' +
+                    '<div class="tx-row">' +
                     '<div class="tx-icon-wrap" style="' +
                     wrap +
                     '">' +
@@ -322,9 +331,7 @@
                     '<span class="tx-amount negative">- ' +
                     esc(fmtBRL(t.amountCents)) +
                     '</span>' +
-                    '<button class="tx-delete-btn" aria-label="Excluir gasto" type="button">' +
-                    svgTrash +
-                    '</button></li>'
+                    '</div></li>'
                   );
                 })
                 .join('');
@@ -382,9 +389,26 @@
       </button>
     </nav>
 
-    <button type="button" class="home-fab" id="nav-fab" aria-label="Novo gasto">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    </button>
+    <div class="fab-backdrop" id="fab-backdrop" aria-hidden="true"></div>
+    <div class="fab-cluster" id="fab-cluster">
+      <div class="fab-menu" id="fab-menu" aria-hidden="true">
+        <button type="button" class="fab-menu-btn" id="fab-btn-file" aria-label="Gasto por arquivo">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          <span>Arquivo</span>
+        </button>
+        <button type="button" class="fab-menu-btn" id="fab-btn-qr" aria-label="Escanear gasto">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M8 3v18"/><path d="M16 3v18"/><path d="M3 8h18"/><path d="M3 16h18"/></svg>
+          <span>Escanear</span>
+        </button>
+        <button type="button" class="fab-menu-btn" id="fab-btn-manual" aria-label="Novo gasto manual">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          <span>Manual</span>
+        </button>
+      </div>
+      <button type="button" class="home-fab" id="nav-fab" aria-label="Adicionar" aria-haspopup="true" aria-expanded="false">
+        <svg id="fab-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+    </div>
 
     <!-- Sheet: novo gasto -->
     <div id="expense-sheet" class="ft-sheet" aria-hidden="true">
@@ -393,21 +417,6 @@
         <div class="ft-sheet__handle"></div>
         <h2 class="ft-sheet__title" id="exp-sheet-title">Novo gasto</h2>
         <div class="expense-sheet-body">
-          <div class="gasto-entry-methods" id="home-entry-methods-grid">
-            <button type="button" class="entry-method-btn active" data-method="manual">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              <span>Manual</span>
-            </button>
-            <button type="button" class="entry-method-btn" data-method="qr">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M8 3v18"/><path d="M16 3v18"/><path d="M3 8h18"/><path d="M3 16h18"/></svg>
-              <span>Escanear</span>
-            </button>
-            <button type="button" class="entry-method-btn" data-method="file">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-              <span>Arquivo</span>
-            </button>
-          </div>
-
           <div class="expense-modes-stage">
             <div id="home-manual-wrap" class="entry-wrap active">
               <form id="home-expense-form">

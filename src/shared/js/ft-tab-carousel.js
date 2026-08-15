@@ -110,7 +110,7 @@
     if (!el || !el.closest) return true;
     return !!el.closest(
       'input, textarea, select, [contenteditable="true"], ' +
-        '.ft-sheet, .home-fab, .gasto-fab, #cc-track, .cards-track, .carousel-container'
+        '.ft-sheet, .home-fab, .fab-cluster, .gasto-fab, #cc-track, .cards-track, .carousel-container, .tx-item'
     );
   }
 
@@ -537,7 +537,7 @@
     for (i = 0; i < children.length; i++) {
       var node = children[i];
       if (node === els.nav) continue;
-      if (node.matches && node.matches('.ft-sheet, .home-fab, .gasto-fab')) continue;
+      if (node.matches && node.matches('.ft-sheet, .home-fab, .fab-cluster, .fab-backdrop, .gasto-fab')) continue;
       if (node.id && /-(modal|sheet)$/.test(node.id)) continue;
       if (node.id === 'expense-sheet' || node.id === 'expense-scan-modal') continue;
       if (node.classList && node.classList.contains('ft-sheet')) continue;
