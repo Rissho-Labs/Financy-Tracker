@@ -223,9 +223,12 @@
 
     cards.forEach(function (c, i) {
       if (i < index) {
-        c.style.transform = cardTransform(-320, 0.9);
+        const dist = index - i;
+        const offset = -dist * 35;
+        const scale = 1 - (dist * 0.08);
+        c.style.transform = cardTransform(offset, scale);
         c.style.zIndex = String(i);
-        c.style.opacity = '0';
+        c.style.opacity = String(1 - (dist * 0.2));
         c.style.pointerEvents = 'none';
       } else if (i > index) {
         const offset = (i - index) * 35;
@@ -272,10 +275,13 @@
         nextCard.style.transform = cardTransform(offset, scale);
         nextCard.style.opacity = String(0.8 + (0.2 * progress));
       } else if (deltaX > 0 && currentIndex > 0) {
+        activeCard.style.transform = cardTransform(deltaX, 1);
         const prevCard = cards[currentIndex - 1];
-        prevCard.style.opacity = String(Math.min(deltaX / 100, 1));
-        const offset = Math.min(deltaX - 280, 0);
-        prevCard.style.transform = cardTransform(offset, 1);
+        const progress = Math.min(Math.abs(deltaX) / window.innerWidth, 1);
+        const offset = -(35 - (35 * progress));
+        const scale = 0.92 + (0.08 * progress);
+        prevCard.style.transform = cardTransform(offset, scale);
+        prevCard.style.opacity = String(0.8 + (0.2 * progress));
       }
     }, { passive: true });
 
