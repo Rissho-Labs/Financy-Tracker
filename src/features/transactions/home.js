@@ -6,12 +6,40 @@
 (function () {
   'use strict';
 
+  var PENDING_EXPENSE_KEY = 'ft_pending_expense';
+
+  function normalizeExpenseMethod(m) {
+    return m === 'qr' || m === 'file' ? m : 'manual';
+  }
+
+  function readExpenseQueryPending() {
+    try {
+      var sp = new URLSearchParams(window.location.search);
+      if (sp.get('expense') !== '1') return null;
+      return { v: 1, method: normalizeExpenseMethod(sp.get('method')) };
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function saveExpensePending(pending) {
+    try {
+      sessionStorage.setItem(PENDING_EXPENSE_KEY, JSON.stringify(pending));
+    } catch (e) {}
+  }
+
+  /* Atalho «Novo gasto»: se o redirect de auth acontecer antes de ler ?expense=1,
+     grava o pedido pendente para o consumir depois do login/onboarding/bio. */
+  var __ftExpenseQueryPending = readExpenseQueryPending();
+
   if (typeof FTSession !== 'undefined') {
     if (!FTSession.isLoggedIn()) {
+      if (__ftExpenseQueryPending) saveExpensePending(__ftExpenseQueryPending);
       window.location.replace(FTRoutes.login);
       return;
     }
     if (!FTSession.isOnboardingDone()) {
+      if (__ftExpenseQueryPending) saveExpensePending(__ftExpenseQueryPending);
       window.location.replace(FTRoutes.onboarding);
       return;
     }
@@ -123,9 +151,10 @@ if (window.FTNotifications) {
   FTNotifications.bind('#notification-btn');
 }
 
-function openExpenseSheet() {
+function openExpenseSheet(method) {
   const sh = $('expense-sheet');
   if (!sh) return;
+  const m = normalizeExpenseMethod(method);
   haptic('medium');
   if (document.activeElement && typeof document.activeElement.blur === 'function') {
     document.activeElement.blur();
@@ -133,7 +162,7 @@ function openExpenseSheet() {
   sh.classList.add('ft-sheet--open');
   sh.setAttribute('aria-hidden', 'false');
   $('nav-fab')?.classList.add('is-hidden');
-  document.querySelector('.entry-method-btn[data-method="manual"]')?.click();
+  document.querySelector(`.entry-method-btn[data-method="${m}"]`)?.click();
 }
 function closeExpenseSheet() {
   const sh = $('expense-sheet');
@@ -154,7 +183,7 @@ $('expense-sheet-bg')?.addEventListener('click', closeExpenseSheet);
 $('home-exp-cancel')?.addEventListener('click', closeExpenseSheet);
 $('home-exp-cancel-qr')?.addEventListener('click', closeExpenseSheet);
 $('home-exp-cancel-file')?.addEventListener('click', closeExpenseSheet);
-$('nav-fab')?.addEventListener('click', openExpenseSheet);
+$('nav-fab')?.addEventListener('click', () => openExpenseSheet('manual'));
 
 function openExpenseScan() {
   if (typeof FTExpenseScan === 'undefined') {
@@ -581,9 +610,22 @@ window.__ftReturnToHomeView = function () {
       }, 350);
     }
     var sp = new URLSearchParams(window.location.search);
+    var expenseMethod = null;
     if (sp.get('expense') === '1') {
+      expenseMethod = normalizeExpenseMethod(sp.get('method'));
       history.replaceState({}, '', window.location.pathname + window.location.hash);
-      requestAnimationFrame(openExpenseSheet);
+    } else {
+      var pendingRaw = sessionStorage.getItem(PENDING_EXPENSE_KEY);
+      if (pendingRaw) {
+        try {
+          var pending = JSON.parse(pendingRaw);
+          if (pending && pending.v === 1) expenseMethod = normalizeExpenseMethod(pending.method);
+        } catch (_) {}
+      }
+    }
+    if (expenseMethod) {
+      sessionStorage.removeItem(PENDING_EXPENSE_KEY);
+      requestAnimationFrame(function () { openExpenseSheet(expenseMethod); });
     }
   } catch (_) {}
 })();

@@ -25,6 +25,17 @@
   var KEY_GOOGLE_PENDING = 'ft_google_pending';
   var KEY_GOOGLE_LINK_PENDING = 'ft_google_link_pending';
   var KEY_LAST_LOGIN_EMAIL = 'ft_last_login_email';
+  var KEY_PENDING_EXPENSE = 'ft_pending_expense';
+
+  /**
+   * Atalho «Novo gasto»: se a biometria for cancelada/falhar ao tratar o intent,
+   * não deixamos o pedido pendente vivo para a próxima abertura "normal" do app.
+   */
+  function clearPendingExpenseShortcut() {
+    try {
+      sessionStorage.removeItem(KEY_PENDING_EXPENSE);
+    } catch (e) {}
+  }
 
   function usesFirebase() {
     return global.FTFirebase && FTFirebase.isReady && FTFirebase.isReady();
@@ -568,13 +579,20 @@
     if (!api || typeof api.tryNativeBiometricLogin !== 'function') return false;
 
     var r = await api.tryNativeBiometricLogin(getBiometricServer());
-    if (!r || !r.ok) return false;
+    if (!r || !r.ok) {
+      clearPendingExpenseShortcut();
+      return false;
+    }
 
     var email = String(r.email || '').trim();
-    if (!email) return false;
+    if (!email) {
+      clearPendingExpenseShortcut();
+      return false;
+    }
 
     var last = getLastLoginEmail();
     if (!last || email.toLowerCase() !== last.toLowerCase()) {
+      clearPendingExpenseShortcut();
       return false;
     }
 
@@ -586,6 +604,7 @@
       }
     } catch (err) {
       console.warn('[FTAuth] biometric login', err);
+      clearPendingExpenseShortcut();
     }
     return false;
   }
