@@ -80,12 +80,12 @@ Planners de feature (quando existirem): preferir `.agents/plans/<feature>-planne
 
 Planner concluído: `.agents/plans/launcher-shortcuts-planner.md` — **Fases 1–5 feitas** (atalho launcher «Novo gasto», query `method`, pending cross-redirect, gate biométrico em sessão quente). Vive na branch `feature/launcher-shortcuts-phase3`, ainda não mergeada em `main` (ver secção de colaboração abaixo).
 
-Planner ativo: `.agents/plans/cards-visual-planner.md` (Fase 1 feita — spec). Próximo: ROTEAMENTO da **Fase 2** (simetria do carrossel de Cartões).
+Planner ativo: `.agents/plans/cards-visual-planner.md` (Fase 1 feita — spec; **Fase 2 feita** — simetria do carrossel de Cartões, `cards.js` `setActiveCard`/`touchmove`, commit `9b4d564` na branch `docs/cards-visual-planner`). Próximo: ROTEAMENTO da **Fase 3** (bandeira "Outra" com texto livre).
 
 ## Still open / next likely tasks
 
 1. **Merge da branch do atalho**: abrir/rever PR `feature/launcher-shortcuts-phase3` → `main` (ver colaboração)
-2. **Cartões — identidade visual + UX do form**: Fases 2–5 do planner ativo (carrossel simétrico, bandeira "Outra" com texto, "Apelido"/placeholder-only/"Todo dia", skins por banco)
+2. **Cartões — identidade visual + UX do form**: Fases 3–5 do planner ativo (Fase 2 — carrossel simétrico — já feita; falta bandeira "Outra" com texto, "Apelido"/placeholder-only/"Todo dia", skins por banco)
 3. **Visual QA on device**: confirm type scale + spacing + balance-hide persist after tab switches
 4. **Invite hosting**: public invite links need `firebase deploy --only hosting` (placeholders: Play/App Store URLs)
 5. **Storage rules**: `firebase login` then `npm run deploy:rules` so avatar upload syncs to cloud
