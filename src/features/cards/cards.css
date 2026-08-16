@@ -433,13 +433,21 @@
   }
 }
 
+/* Label visível — só nos campos de dia (excepção ao placeholder-only da Fase 4) */
+.cc-day-label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
 /* "Todo dia" prefixo — fechamento/vencimento */
 .cc-day-field {
   display: flex;
   align-items: center;
   gap: 8px;
   min-width: 0;
-  min-height: 40px;
+  height: 40px;
   padding: 0 12px;
   box-sizing: border-box;
   border-radius: var(--radius-md, 10px);
@@ -449,16 +457,21 @@
 .cc-day-prefix {
   flex-shrink: 0;
   font-size: 13px;
+  line-height: 1;
   color: var(--text-secondary);
   white-space: nowrap;
 }
 .cc-day-field .cc-day-input {
   flex: 1;
   min-width: 0;
+  height: 38px;
+  line-height: 38px;
   border: none !important;
   background: transparent !important;
-  padding: 10px 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
   min-height: auto !important;
+  vertical-align: middle;
 }
 .cc-day-field .cc-day-input:focus {
   outline: none;

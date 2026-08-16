@@ -68,6 +68,19 @@ Pedido extra do utilizador: os campos "Todo dia" (fechamento/vencimento) devem r
 - Estes campos são **recorrentes** ("todo dia X", sem mês associado) — por isso não existe "dia inválido para o mês" no sentido estrito (dia 31 é válido como conceito, mesmo que em fevereiro caia no dia 28/29 naquele ciclo — comportamento já tratado em `fmtNextCycleDate`/`daysInMonth` na exibição da próxima fatura). A regra de validação de entrada continua sendo 1–31, mas o aviso deixa de ser `alert()`: passa a ser uma mensagem inline no próprio campo (ex.: reaproveitar `cc-field-hint` para mostrar erro em vez de dica estática, ou um pequeno texto vermelho abaixo do campo), coerente com o padrão placeholder-only.
 - Opcional (decidir no ROTEAMENTO): aviso informativo (não bloqueante) quando o dia escolhido for > 28, avisando que em meses menores a fatura cai no último dia do mês — já é o comportamento real, só falta deixar isso explícito para o utilizador no momento do cadastro.
 
+## Fase 4.1 — Ajuste pós-QA: labels visíveis + centralização nos campos de dia
+
+> Feedback do utilizador após testar a Fase 4 no dispositivo: o prefixo "Todo dia" sozinho não deixa claro **qual** data é fechamento e qual é vencimento para quem não desenvolveu a feature — falta contexto. Além disso, o texto digitado dentro do campo não está centralizado verticalmente (fica um pouco acima do centro da caixa).
+
+Isto é uma **excepção pontual** ao padrão placeholder-only da Fase 4 — vale só para os dois campos de dia, os demais campos do formulário (Apelido, Final do número, Banco, Bandeira) continuam sem label visível.
+
+1. **Label visível acima de cada campo de dia:** reintroduzir um rótulo curto e visível encima de cada caixa "Todo dia" — "Fechamento" para `cc-add-close-day` e "Vencimento" (ou "Fatura", a confirmar no ROTEAMENTO) para `cc-add-due-day`. Os campos continuam **lado a lado** (já usam `.cc-form-row2`, grid de 2 colunas — isso não muda), o prefixo "Todo dia" + número continuam dentro da caixa como estão hoje; só falta o texto identificador acima.
+2. **Centralização vertical do texto digitado:** corrigir `.cc-day-input`/`.cc-day-field` em `cards.css` (provavelmente `line-height`, `padding` ou `align-items` desalinhados entre o prefixo "Todo dia" e o número digitado) para o texto ficar centrado verticalmente na pill, igual ao prefixo.
+
+**Ficheiros:** `cards.html` (novo texto de label acima de cada `.cc-form-field` da linha de dias), `cards.css` (label + correção de centralização vertical em `.cc-day-field`/`.cc-day-input`).
+
+**Não mexer:** placeholder-only nos outros campos do form (Fase 4), toggle "Outra"/"Outro" (Fases 3/5), carrossel (Fase 2), identidade por banco (Fase 5), nav/FOUC.
+
 ## Fase 5 — Identidade visual real (banco + bandeira + cor)
 
 Maior escopo das 5 ideias — estende o **modelo de dados** do cartão.
@@ -109,6 +122,7 @@ Maior escopo das 5 ideias — estende o **modelo de dados** do cartão.
 | **2** | Bug fix / UI | Simetria do carrossel (peek esquerda = peek direita) | `cards.js` |
 | **3** | Implementação UI + dados | Bandeira "Outra" → texto livre | `cards.html`, `cards.js`, `ft-cards.js`, `ft-card-brands.js` |
 | **4** | UX do formulário | "Apelido", placeholder-only, prefixo "Todo dia" | `cards.html`, `cards.css`, `cards.js` |
+| **4.1** ✅ | Ajuste pós-QA | Label visível (Fechamento/Vencimento) + centralização vertical nos campos de dia | `cards.html`, `cards.css` |
 | **5** | Modelo de dados + visual | Identidade por banco (skin real) | `ft-cards.js`, `ft-card-brands.js`, `cards.css`, `cards.html`, `cards.js` |
 | **6** | Cross-feature, **adiada** | Home/Gastos: campo "Data do pagamento" retroativo | `home.js`/`home.html` ou `gastos.js`/`gastos.html`, `ft-transactions.js` |
 
@@ -118,7 +132,7 @@ Depois de cada fase: validar no browser (não depende de nativo/Capacitor — Ca
 
 1. Com 2+ cartões, o cartão ativo mostra **ambos** os vizinhos parcialmente visíveis (quando existirem), em padrão simétrico esquerda/direita — não só à direita.
 2. Selecionar "Outra" bandeira revela um campo de texto; o texto digitado aparece no badge da bandeira no cartão.
-3. Formulário de cartão: nenhum `<label>` fixo acima dos campos — cada campo mostra o rótulo como placeholder que desaparece ao digitar; campo antes chamado "Nome no cartão" agora diz "Apelido"; campos de dia mostram "Todo dia" + número.
+3. Formulário de cartão: nenhum `<label>` fixo acima dos campos (**excepto os dois campos de dia da Fase 4.1**, que precisam de rótulo visível "Fechamento"/"Vencimento" para não ficarem ambíguos) — os demais mostram o rótulo como placeholder que desaparece ao digitar; campo antes chamado "Nome no cartão" agora diz "Apelido"; campos de dia mostram label + "Todo dia" + número, texto centralizado verticalmente na caixa.
 4. Cada cartão exibe uma identidade visual reconhecível (cor/estilo por banco escolhido), com o ícone da bandeira correta no rodapé — sem usar logotipos de marca de terceiros (recriação própria, como já feito para bandeiras).
 5. Nenhuma regressão em: fatura/limite/datas do cartão ativo, lista de lançamentos, nav/FOUC, `ft-friend://`, atalho "Novo gasto".
 6. Campos "Todo dia" (fechamento/vencimento) recusam valores fora de 1–31 com aviso inline (não `alert()`), coerente com o padrão placeholder-only.
@@ -129,6 +143,7 @@ Depois de cada fase: validar no browser (não depende de nativo/Capacitor — Ca
 - **Fase 2:** bug fix isolado em JS/CSS → Sonnet, **effort low/medium**. Pode continuar na mesma thread se o contexto ainda estiver baixo.
 - **Fase 3:** pequeno campo condicional + 1 novo dado no modelo → Sonnet, **effort medium**.
 - **Fase 4:** só UI/UX (CSS + pequenos ajustes JS/HTML), sem lógica nova → Sonnet, **effort low/medium**.
+- **Fase 4.1:** ajuste pontual de 2 campos (label + CSS de centralização) → Sonnet, **effort low**. Pode continuar na mesma thread se o contexto ainda estiver baixo.
 - **Fase 5:** maior escopo (novo campo de dados, catálogo de bancos, composição visual) → Sonnet **effort medium/high** ou Opus se o catálogo/design ficar complexo; considerar **chat novo**.
 - **Fase 6 (Home — data retroativa):** **adiada**, sem ROTEAMENTO ainda. Quando o utilizador pedir para avançar: provavelmente Sonnet **effort medium** (novo campo + validação de calendário), mas confirmar primeiro qual formulário é o "oficial" (`home.js` vs `gastos.js`) antes de rotear — pode exigir uma mini-investigação prévia.
 
