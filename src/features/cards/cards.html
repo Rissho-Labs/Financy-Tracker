@@ -159,8 +159,10 @@
       <div class="ft-sheet__panel ft-form-sheet" role="dialog" aria-labelledby="add-card-title">
         <div class="ft-sheet__handle" aria-hidden="true"></div>
         <h2 id="add-card-title" class="ft-sheet__title">Novo cartão</h2>
-        <input id="cc-add-name" type="text" class="ft-form-input" maxlength="48" placeholder="Apelido" />
-        <input id="cc-add-last4" type="text" class="ft-form-input" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="Final do número (4 dígitos)" autocomplete="off" />
+        <div class="cc-form-row2">
+          <input id="cc-add-name" type="text" class="ft-form-input" maxlength="48" placeholder="Apelido" />
+          <input id="cc-add-last4" type="text" class="ft-form-input" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="Final (4 dígitos)" autocomplete="off" />
+        </div>
         <select id="cc-add-bank" class="ft-form-input ft-form-select" aria-label="Banco">
           <option value="nubank">Nubank</option>
           <option value="inter">Inter</option>

@@ -427,11 +427,6 @@
 .cc-field-hint--error.hidden {
   display: none;
 }
-@media (max-width: 360px) {
-  .cc-form-row2 {
-    grid-template-columns: 1fr;
-  }
-}
 
 /* Label visível — só nos campos de dia (excepção ao placeholder-only da Fase 4) */
 .cc-day-label {
