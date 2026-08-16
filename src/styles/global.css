@@ -773,6 +773,12 @@ html[data-theme="light"] .ft-sheet__panel {
   gap: 12px;
   padding: 14px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  opacity: 0;
+  transform: translateY(6px);
+  animation: ftNotifItemIn 0.28s var(--ease-smooth, ease) both;
+}
+@keyframes ftNotifItemIn {
+  to { opacity: 1; transform: translateY(0); }
 }
 html[data-theme="light"] .ft-notif-item {
   border-color: rgba(0, 0, 0, 0.06);
@@ -794,12 +800,26 @@ html[data-theme="light"] .ft-notif-item {
   background: var(--accent);
   margin-top: 6px;
   flex-shrink: 0;
+  opacity: 0.35;
+}
+.ft-notif-item--unread .ft-notif-dot {
+  opacity: 1;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06);
 }
 .ft-notif-dot--info {
   background: #3b82f6;
 }
 .ft-notif-dot--muted {
   background: rgba(255, 255, 255, 0.25);
+}
+.ft-notif-empty {
+  padding: 32px 0 24px;
+  text-align: center;
+}
+.ft-notif-empty p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
 }
 .ft-sheet__close {
   width: 100%;

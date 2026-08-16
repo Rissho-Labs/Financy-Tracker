@@ -84,6 +84,8 @@ Planner ativo: `.agents/plans/cards-visual-planner.md` (Fase 1 feita — spec; F
 
 Planner concluído: `.agents/plans/sheet-fullbleed-planner.md` — `.ft-sheet__panel` (`src/styles/global.css`) passou de `width: 90%` centrado + borda nos 4 lados para `width: 100%`/`left:0`/`right:0` full-bleed + `border-top` apenas (sides/bottom sem borda, cantos de cima continuam arredondados); `transform` de abertura trocado de `translate(-50%, ...)` para `translateY(...)`. Mudança centralizada num único ficheiro — aplica-se automaticamente a todos os sheets (Novo cartão, Novo gasto, Escanear gasto, Avisos, Amigos/QR/Alterar senha). Validado no browser (geometria via CDP em 3 modais) e no S10e físico.
 
+**Avisos — polimento visual (mock ainda intacto):** `notification-panel.js` deixou de renderizar `.notif-badge` com números fixos e inconsistentes por tela (home=3, goals=2, profile=1, cards=nenhum) — agora `unreadCount()`/`markAllRead()` calculam o real "não lido" via `localStorage.ft_notif_read_ids` (array de ids dos 3 itens mock), e a badge é injetada/removida dinamicamente em `bind()`/`open()`; removidos os `<span class="notif-badge">…</span>` hardcoded de `home.html`/`goals.html`/`profile.html`. Adicionado estado vazio (`.ft-notif-empty`, ainda sem uso real pois os 3 itens mock continuam fixos), animação de entrada por item (`ftNotifItemIn`, stagger via `animation-delay`) e ponto (`.ft-notif-dot`) esmaecido quando o item já foi lido vs. destacado quando não lido — tudo em `global.css`. Conteúdo dos 3 avisos continua mock (não foi tocado o modelo de dados/backend — isso é a próxima fase, "Avisos: dados reais", ainda não iniciada). Validado no browser (badge aparece/desaparece corretamente, persiste entre reload e entre telas) e no S10e físico.
+
 ## Still open / next likely tasks
 
 1. **Merge da branch do atalho**: abrir/rever PR `feature/launcher-shortcuts-phase3` → `main` (ver colaboração)
@@ -91,7 +93,7 @@ Planner concluído: `.agents/plans/sheet-fullbleed-planner.md` — `.ft-sheet__p
 3. **Visual QA on device**: confirm type scale + spacing + balance-hide persist after tab switches
 4. **Invite hosting**: public invite links need `firebase deploy --only hosting` (placeholders: Play/App Store URLs)
 5. **Storage rules**: `firebase login` then `npm run deploy:rules` so avatar upload syncs to cloud
-6. **Avisos modal**: still demo mock — polish when resumed
+6. **Avisos modal**: visual polish done (dynamic badge, animation, read/unread dot); content still demo mock — wire to real data (budget/goal alerts) when resumed
 7. Any new feature work should treat the frozen chrome table above as intact unless the user asks to change nav/FOUC again
 
 ## Colaboração — mais de uma pessoa a partir de agora
