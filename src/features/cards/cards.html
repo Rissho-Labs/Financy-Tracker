@@ -161,6 +161,21 @@
         <h2 id="add-card-title" class="ft-sheet__title">Novo cartão</h2>
         <input id="cc-add-name" type="text" class="ft-form-input" maxlength="48" placeholder="Apelido" />
         <input id="cc-add-last4" type="text" class="ft-form-input" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="Final do número (4 dígitos)" autocomplete="off" />
+        <select id="cc-add-bank" class="ft-form-input ft-form-select" aria-label="Banco">
+          <option value="nubank">Nubank</option>
+          <option value="inter">Inter</option>
+          <option value="mercadopago">Mercado Pago</option>
+          <option value="c6">C6 Bank</option>
+          <option value="itau">Itaú</option>
+          <option value="bradesco">Bradesco</option>
+          <option value="santander">Santander</option>
+          <option value="caixa">Caixa</option>
+          <option value="bb">Banco do Brasil</option>
+          <option value="other">Outro</option>
+        </select>
+        <div id="cc-add-bank-other-wrap" class="cc-form-field hidden">
+          <input id="cc-add-bank-other" type="text" class="ft-form-input" maxlength="24" placeholder="Nome do banco" autocomplete="off" />
+        </div>
         <select id="cc-add-brand" class="ft-form-input ft-form-select" aria-label="Bandeira">
           <option value="visa">Visa</option>
           <option value="master">Mastercard</option>

@@ -18,6 +18,33 @@
     other: 'linear-gradient(135deg, #6366f1, #4338ca)'
   };
 
+  /** Catálogo banco → cor/gradiente + nome de exibição (sem logotipos de terceiros). */
+  var BANKS = {
+    nubank: { label: 'Nubank', gradient: 'linear-gradient(135deg, #A653FF, #7A1FD1)' },
+    inter: { label: 'Inter', gradient: 'linear-gradient(135deg, #FF8C3D, #FF6B00)' },
+    mercadopago: { label: 'Mercado Pago', gradient: 'linear-gradient(135deg, #1E3A5F, #08131F)' },
+    c6: { label: 'C6 Bank', gradient: 'linear-gradient(135deg, #3D3D3D, #121212)' },
+    itau: { label: 'Itaú', gradient: 'linear-gradient(135deg, #FF9433, #EC7000)' },
+    bradesco: { label: 'Bradesco', gradient: 'linear-gradient(135deg, #E4002B, #8C0019)' },
+    santander: { label: 'Santander', gradient: 'linear-gradient(135deg, #EC0000, #900000)' },
+    caixa: { label: 'Caixa', gradient: 'linear-gradient(135deg, #1E6FD9, #0B3B87)' },
+    bb: { label: 'Banco do Brasil', gradient: 'linear-gradient(135deg, #FFD100, #003087)' }
+  };
+
+  function normalizeBank(value) {
+    if (value && BANKS[value]) return value;
+    if (value === 'other') return 'other';
+    return '';
+  }
+
+  /** Nome a exibir no cartão: nome do catálogo, ou o texto livre quando bank === 'other'. */
+  function bankDisplayLabel(card) {
+    if (!card) return '';
+    if (card.bank && BANKS[card.bank]) return BANKS[card.bank].label;
+    if (card.bank === 'other') return String(card.bankLabel || '').trim();
+    return '';
+  }
+
   function resetSessionStore() {
     _sessionMem = [];
     try {
@@ -105,6 +132,7 @@
 
   function normalizeCard(card) {
     var brand = card.brand in GRADIENTS ? card.brand : 'other';
+    var bank = normalizeBank(card.bank);
     return {
       id: card.id,
       name: String(card.name || card.holderName || '').trim() || 'Meu cartão',
@@ -112,6 +140,8 @@
       last4: String(card.last4 || '').replace(/\D/g, '').slice(-4).padStart(4, '0'),
       brand: brand,
       brandLabel: brand === 'other' ? String(card.brandLabel || '').trim().slice(0, 20) : '',
+      bank: bank,
+      bankLabel: bank === 'other' ? String(card.bankLabel || '').trim().slice(0, 24) : '',
       closingDay: normalizeDay(card.closingDay),
       dueDay: normalizeDay(card.dueDay)
     };
@@ -137,7 +167,10 @@
     add: add,
     normalizeDay: normalizeDay,
     normalizeCard: normalizeCard,
+    normalizeBank: normalizeBank,
+    bankDisplayLabel: bankDisplayLabel,
     gradients: GRADIENTS,
+    banks: BANKS,
     resetSessionStore: resetSessionStore,
     beginNewAppSession: beginNewAppSession,
     clearDemoSeeds: clearDemoSeeds,

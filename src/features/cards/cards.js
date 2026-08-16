@@ -132,11 +132,30 @@
     renderCardInvoiceList(cardId);
   }
 
-  const CARD_ICONS =
-    '<div class="cc-card-top">' +
-    '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2" ry="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>' +
-    '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2" stroke-linecap="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>' +
-    '</div>';
+  const CHIP_ICON =
+    '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2" ry="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>';
+  const SHARE_ICON =
+    '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2" stroke-linecap="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>';
+
+  /** Topo do cartão: nome do banco (Fase 5) quando houver, senão o ícone de chip genérico. */
+  function cardTopHtml(bankName) {
+    var nameEsc = bankName
+      ? String(bankName).toUpperCase().replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      : '';
+    var left = nameEsc ? '<span class="cc-card-bank-name">' + nameEsc + '</span>' : CHIP_ICON;
+    return '<div class="cc-card-top">' + left + SHARE_ICON + '</div>';
+  }
+
+  function bankNameFor(card) {
+    return typeof FTCards !== 'undefined' && FTCards.bankDisplayLabel ? FTCards.bankDisplayLabel(card) : '';
+  }
+
+  function bankCssClass(bank) {
+    if (bank && typeof FTCards !== 'undefined' && FTCards.banks && FTCards.banks[bank]) {
+      return 'cc-card--bank-' + bank;
+    }
+    return '';
+  }
 
   function brandMarkup(brand, brandLabel) {
     if (typeof FTCardBrands !== 'undefined' && FTCardBrands.brandMarkup) {
@@ -170,7 +189,7 @@
     return (
       '<div class="cc-card cc-card--placeholder cc-card--other active" id="cc-placeholder" data-index="0" role="listitem">' +
       '<div class="cc-card-inner">' +
-      CARD_ICONS +
+      cardTopHtml('') +
       '<div class="cc-card-middle"><span class="cc-card-name cc-card-name--muted">' + holderEsc + '</span></div>' +
       '<div class="cc-card-bottom"><span class="cc-card-number cc-card-number--muted">**** **** **** ----</span>' + brandMarkup('other') + '</div>' +
       '</div></div>'
@@ -181,10 +200,12 @@
     const holder = card.holderName || 'Titular';
     const last4 = card.last4 || '0000';
     const holderEsc = holder.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+    const bankCls = bankCssClass(card.bank);
+    const cardCls = 'cc-card ' + brandCssClass(card.brand) + (bankCls ? ' ' + bankCls : '') + (isActive ? ' active' : '');
     return (
-      '<div class="cc-card ' + brandCssClass(card.brand) + (isActive ? ' active' : '') + '" id="cc-' + index + '" data-index="' + index + '" role="listitem">' +
+      '<div class="' + cardCls + '" id="cc-' + index + '" data-index="' + index + '" role="listitem">' +
       '<div class="cc-card-inner">' +
-      CARD_ICONS +
+      cardTopHtml(bankNameFor(card)) +
       '<div class="cc-card-middle"><span class="cc-card-name">' + holderEsc + '</span></div>' +
       '<div class="cc-card-bottom"><span class="cc-card-number">**** **** **** ' + last4 + '</span>' + brandMarkup(card.brand, card.brandLabel) + '</div>' +
       '</div></div>'
@@ -379,29 +400,40 @@
   }
 
   function clearAddCardForm() {
-    ['cc-add-name', 'cc-add-last4', 'cc-add-close-day', 'cc-add-due-day', 'cc-add-brand-other'].forEach(function (id) {
+    ['cc-add-name', 'cc-add-last4', 'cc-add-close-day', 'cc-add-due-day', 'cc-add-brand-other', 'cc-add-bank-other'].forEach(function (id) {
       var el = $(id);
       if (el) el.value = '';
     });
     var brandEl = $('cc-add-brand');
     if (brandEl) brandEl.value = 'visa';
+    var bankEl = $('cc-add-bank');
+    if (bankEl) bankEl.value = 'nubank';
     updateBrandOtherField();
+    updateBankOtherField();
     setFieldError('cc-add-close-hint', null);
     setFieldError('cc-add-due-hint', null);
   }
 
-  function updateBrandOtherField() {
-    var brandEl = $('cc-add-brand');
-    var otherWrap = $('cc-add-brand-other-wrap');
-    var isOther = brandEl && brandEl.value === 'other';
+  function toggleOtherField(selectEl, wrapId, inputId) {
+    var otherWrap = $(wrapId);
+    var isOther = selectEl && selectEl.value === 'other';
     if (otherWrap) otherWrap.classList.toggle('hidden', !isOther);
     if (!isOther) {
-      var otherInput = $('cc-add-brand-other');
+      var otherInput = $(inputId);
       if (otherInput) otherInput.value = '';
     }
   }
 
+  function updateBrandOtherField() {
+    toggleOtherField($('cc-add-brand'), 'cc-add-brand-other-wrap', 'cc-add-brand-other');
+  }
+
+  function updateBankOtherField() {
+    toggleOtherField($('cc-add-bank'), 'cc-add-bank-other-wrap', 'cc-add-bank-other');
+  }
+
   $('cc-add-brand')?.addEventListener('change', updateBrandOtherField);
+  $('cc-add-bank')?.addEventListener('change', updateBankOtherField);
 
   function parseFormDay(inputId, hintId, label) {
     var raw = ($(inputId)?.value || '').trim();
@@ -466,6 +498,15 @@
         return;
       }
     }
+    const bank = $('cc-add-bank')?.value || 'other';
+    let bankLabel = '';
+    if (bank === 'other') {
+      bankLabel = ($('cc-add-bank-other')?.value || '').trim();
+      if (!bankLabel) {
+        alert('Informe o nome do banco.');
+        return;
+      }
+    }
     const prevCount = FTCards.getAll().length;
     FTCards.add({
       holderName: name,
@@ -473,6 +514,8 @@
       last4: last4,
       brand: brand,
       brandLabel: brandLabel,
+      bank: bank,
+      bankLabel: bankLabel,
       closingDay: closingDay,
       dueDay: dueDay
     });
