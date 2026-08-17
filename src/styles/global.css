@@ -859,6 +859,9 @@ html[data-theme="light"] .ft-sheet__close {
 .ft-form-select {
   appearance: none;
 }
+.ft-form-select:invalid {
+  color: var(--text-placeholder);
+}
 .ft-form-cancel {
   margin-top: 10px;
 }

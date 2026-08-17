@@ -405,13 +405,15 @@
       if (el) el.value = '';
     });
     var brandEl = $('cc-add-brand');
-    if (brandEl) brandEl.value = 'visa';
+    if (brandEl) brandEl.value = '';
     var bankEl = $('cc-add-bank');
-    if (bankEl) bankEl.value = 'nubank';
+    if (bankEl) bankEl.value = '';
     updateBrandOtherField();
     updateBankOtherField();
     setFieldError('cc-add-close-hint', null);
     setFieldError('cc-add-due-hint', null);
+    setFieldError('cc-add-bank-hint', null);
+    setFieldError('cc-add-brand-hint', null);
   }
 
   function toggleOtherField(selectEl, wrapId, inputId) {
@@ -432,8 +434,14 @@
     toggleOtherField($('cc-add-bank'), 'cc-add-bank-other-wrap', 'cc-add-bank-other');
   }
 
-  $('cc-add-brand')?.addEventListener('change', updateBrandOtherField);
-  $('cc-add-bank')?.addEventListener('change', updateBankOtherField);
+  $('cc-add-brand')?.addEventListener('change', function () {
+    updateBrandOtherField();
+    setFieldError('cc-add-brand-hint', null);
+  });
+  $('cc-add-bank')?.addEventListener('change', function () {
+    updateBankOtherField();
+    setFieldError('cc-add-bank-hint', null);
+  });
 
   function parseFormDay(inputId, hintId, label) {
     var raw = ($(inputId)?.value || '').trim();
@@ -505,21 +513,31 @@
     if (closingDay == null) return;
     const dueDay = parseFormDay('cc-add-due-day', 'cc-add-due-hint', 'vencimento');
     if (dueDay == null) return;
-    const brand = $('cc-add-brand')?.value || 'other';
-    let brandLabel = '';
-    if (brand === 'other') {
-      brandLabel = ($('cc-add-brand-other')?.value || '').trim();
-      if (!brandLabel) {
-        alert('Informe o nome da bandeira.');
-        return;
-      }
+    const bank = $('cc-add-bank')?.value || '';
+    if (!bank) {
+      setFieldError('cc-add-bank-hint', 'Selecione o banco.');
+      return;
     }
-    const bank = $('cc-add-bank')?.value || 'other';
+    setFieldError('cc-add-bank-hint', null);
     let bankLabel = '';
     if (bank === 'other') {
       bankLabel = ($('cc-add-bank-other')?.value || '').trim();
       if (!bankLabel) {
         alert('Informe o nome do banco.');
+        return;
+      }
+    }
+    const brand = $('cc-add-brand')?.value || '';
+    if (!brand) {
+      setFieldError('cc-add-brand-hint', 'Selecione a bandeira.');
+      return;
+    }
+    setFieldError('cc-add-brand-hint', null);
+    let brandLabel = '';
+    if (brand === 'other') {
+      brandLabel = ($('cc-add-brand-other')?.value || '').trim();
+      if (!brandLabel) {
+        alert('Informe o nome da bandeira.');
         return;
       }
     }

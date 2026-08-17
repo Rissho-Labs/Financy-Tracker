@@ -163,28 +163,36 @@
           <input id="cc-add-name" type="text" class="ft-form-input" maxlength="48" placeholder="Apelido" />
           <input id="cc-add-last4" type="text" class="ft-form-input" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="Final (4 dígitos)" autocomplete="off" />
         </div>
-        <select id="cc-add-bank" class="ft-form-input ft-form-select" aria-label="Banco">
-          <option value="nubank">Nubank</option>
-          <option value="inter">Inter</option>
-          <option value="mercadopago">Mercado Pago</option>
-          <option value="c6">C6 Bank</option>
-          <option value="itau">Itaú</option>
-          <option value="bradesco">Bradesco</option>
-          <option value="santander">Santander</option>
-          <option value="caixa">Caixa</option>
-          <option value="bb">Banco do Brasil</option>
-          <option value="other">Outro</option>
-        </select>
+        <div class="cc-form-field">
+          <select id="cc-add-bank" class="ft-form-input ft-form-select" aria-label="Banco" required aria-describedby="cc-add-bank-hint">
+            <option value="" disabled selected hidden>Selecione o banco</option>
+            <option value="nubank">Nubank</option>
+            <option value="inter">Inter</option>
+            <option value="mercadopago">Mercado Pago</option>
+            <option value="c6">C6 Bank</option>
+            <option value="itau">Itaú</option>
+            <option value="bradesco">Bradesco</option>
+            <option value="santander">Santander</option>
+            <option value="caixa">Caixa</option>
+            <option value="bb">Banco do Brasil</option>
+            <option value="other">Outro</option>
+          </select>
+          <span class="cc-field-hint cc-field-hint--error hidden" id="cc-add-bank-hint" role="alert"></span>
+        </div>
         <div id="cc-add-bank-other-wrap" class="cc-form-field hidden">
           <input id="cc-add-bank-other" type="text" class="ft-form-input" maxlength="24" placeholder="Nome do banco" autocomplete="off" />
         </div>
-        <select id="cc-add-brand" class="ft-form-input ft-form-select" aria-label="Bandeira">
-          <option value="visa">Visa</option>
-          <option value="master">Mastercard</option>
-          <option value="elo">Elo</option>
-          <option value="amex">American Express</option>
-          <option value="other">Outra</option>
-        </select>
+        <div class="cc-form-field">
+          <select id="cc-add-brand" class="ft-form-input ft-form-select" aria-label="Bandeira" required aria-describedby="cc-add-brand-hint">
+            <option value="" disabled selected hidden>Selecione a bandeira</option>
+            <option value="visa">Visa</option>
+            <option value="master">Mastercard</option>
+            <option value="elo">Elo</option>
+            <option value="amex">American Express</option>
+            <option value="other">Outra</option>
+          </select>
+          <span class="cc-field-hint cc-field-hint--error hidden" id="cc-add-brand-hint" role="alert"></span>
+        </div>
         <div id="cc-add-brand-other-wrap" class="cc-form-field hidden">
           <input id="cc-add-brand-other" type="text" class="ft-form-input" maxlength="20" placeholder="Nome da bandeira (ex.: Hipercard)" autocomplete="off" />
         </div>
