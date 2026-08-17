@@ -112,4 +112,53 @@ for (const dir of ['core', 'shared', 'styles', 'assets', 'features']) {
   }
 }
 
+injectLiveReload(www);
+
 console.log('prepare-www: www/ atualizado a partir de src/.');
+
+function injectLiveReload(wwwDir) {
+  if (process.env.FT_LIVE !== '1') return;
+  const coreDir = path.join(wwwDir, 'core');
+  fs.mkdirSync(coreDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(coreDir, 'ft-live-reload.js'),
+    [
+      '/** Injetado por prepare-www quando FT_LIVE=1 — não usar em APK empacotado. */',
+      '(function () {',
+      "  var last = window.__FT_BUILD__ || '';",
+      '  function tick() {',
+      "    fetch('/core/ft-build.js?t=' + Date.now(), { cache: 'no-store' })",
+      '      .then(function (r) { return r.text(); })',
+      '      .then(function (t) {',
+      '        var m = t.match(/__FT_BUILD__="([^"]+)"/);',
+      '        if (m && m[1] !== last) location.reload();',
+      '      })',
+      '      .catch(function () { /* servidor a reconstruir www/ */ });',
+      '  }',
+      '  setInterval(tick, 700);',
+      '})();',
+      '',
+    ].join('\n'),
+    'utf8'
+  );
+
+  function walk(dir) {
+    for (const name of fs.readdirSync(dir)) {
+      const p = path.join(dir, name);
+      if (fs.statSync(p).isDirectory()) {
+        walk(p);
+        continue;
+      }
+      if (!name.endsWith('.html')) continue;
+      let html = fs.readFileSync(p, 'utf8');
+      if (html.includes('ft-live-reload.js')) continue;
+      const tag = '  <script src="/core/ft-live-reload.js"></script>\n';
+      html = html.includes('</body>')
+        ? html.replace('</body>', tag + '</body>')
+        : html + '\n' + tag;
+      fs.writeFileSync(p, html);
+    }
+  }
+  walk(wwwDir);
+  console.log('prepare-www: live-reload injetado (FT_LIVE=1).');
+}

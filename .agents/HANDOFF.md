@@ -12,7 +12,7 @@
 - **Planner sheets dismiss:** `.agents/plans/sheet-dismiss-planner.md` — **implementado** nesta branch.
 - **Planner sheets full-bleed:** `.agents/plans/sheet-fullbleed-planner.md` — **completo**.
 - **Não regressar:** nav/FOUC (tabela "Done" abaixo); não reintroduzir `@media (max-width: 360px)` a colapsar `.cc-form-row2` (S10e ~360dp).
-- **QA no S10e:** após `installDebug`, `adb shell am force-stop com.financetracker.app` e relançar.
+- **QA no S10e:** `npm run android:live` (USB, recarrega sozinho) ou `npm run android:install` (APK empacotado).
 
 ## Goal of recent work
 
@@ -44,11 +44,16 @@ Tela Cartões (identidade visual + UX do form "Novo cartão") e polish partilhad
 
 ## Device / build
 
-- Device used: Samsung S10e (`SM-G970F`)
+- Device used: Samsung S10e (`SM-G970F`, serial `RQ8M30DX3BV`)
 - `JAVA_HOME` = Android Studio JBR (`C:\Program Files\Android\Android Studio\jbr`)
 - `ANDROID_HOME` / adb = `%LOCALAPPDATA%\Android\Sdk`
-- Flow: `npm run cap:sync` → `android/gradlew.bat installDebug` → `adb shell am force-stop com.financetracker.app` → relançar
-- **After every UI/feature implementation in a session:** run the flow above and install on the USB-connected device (do not wait for the user to ask)
+- **Live USB (preferido em sessão de QA):** `npm run android:live`
+  - Sobe `www/` em `http://127.0.0.1:5050`, faz `adb reverse`, instala com `cap run -l`
+  - Editar `src/` → a WebView recarrega sozinha (~1s). Plugins nativos (câmara, back, bio) continuam os do APK.
+  - Mudança nativa (`android/`, novo plugin Capacitor): parar e voltar a correr `android:live` (ou `android:install`).
+  - Ctrl+C pára o servidor. Depois disso a app no telemóvel fica sem página até `npm run android:live` de novo **ou** `npm run android:install` (volta ao APK empacotado, funciona offline).
+- **One-shot empacotado:** `npm run android:install` (`cap:sync` + `installDebug` + relançar)
+- **After every UI/feature implementation in a session:** `android:live` se já estiver a correr (grava e o telemóvel atualiza); senão `android:install`
 - PowerShell: usar `;` em vez de `&&` entre comandos; heredoc `<<'EOF'` não funciona — usar ficheiro `-F` para commit messages
 
 ## Workflow — ROTEAMENTO → modelo → AÇÃO
@@ -98,7 +103,7 @@ Planner concluído (branch separada): `.agents/plans/launcher-shortcuts-planner.
 
 ## Still open / next likely tasks
 
-1. **Device QA (S10e)**: `npm run cap:sync` → `installDebug` → validar FTSheet + Home/Cartões integrados
+1. **Device QA (S10e)**: `npm run android:live` — validar FTSheet + Home/Cartões integrados (live-reload USB)
 2. **PR** `cursor/sheet-dismiss-ce42` → `main` (inclui merge do trabalho do colega)
 3. **Merge atalho launcher**: `feature/launcher-shortcuts-phase3` → `main` (quando pronto)
 4. **Avisos: dados reais** — ligar painel a orçamento/meta/cartão
