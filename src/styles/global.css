@@ -637,8 +637,9 @@ html[data-theme="light"] .phone-frame {
 }
 .ft-sheet__panel {
   position: absolute;
-  left: 50%;
-  width: 90%;
+  left: 0;
+  right: 0;
+  width: 100%;
   max-width: 100vw;
   bottom: 0;
   max-height: 78vh;
@@ -648,21 +649,22 @@ html[data-theme="light"] .phone-frame {
   border-radius: 20px 20px 0 0;
   padding: 12px 20px 24px;
   padding-bottom: calc(24px + env(safe-area-inset-bottom, 0));
-  transform: translate(-50%, 100%);
+  transform: translateY(100%);
   transition: transform 0.32s var(--ease-spring);
-  border: 1px solid var(--border-bright);
+  border: none;
+  border-top: 1px solid var(--border-bright);
   box-shadow: var(--shadow-metal);
   box-sizing: border-box;
 }
 html[data-theme="light"] .ft-sheet__panel {
   background: var(--sheen), #fff;
-  border-color: rgba(0, 0, 0, 0.08);
+  border-top-color: rgba(0, 0, 0, 0.08);
 }
 .ft-sheet.ft-sheet--open .ft-sheet__panel {
-  transform: translate(-50%, 0);
+  transform: translateY(0);
 }
 .ft-sheet.open .ft-sheet__panel {
-  transform: translate(-50%, 0);
+  transform: translateY(0);
 }
 #expense-sheet.ft-sheet {
   position: absolute;
@@ -823,6 +825,12 @@ html[data-theme="light"] .ft-sheet__x:active {
   gap: 12px;
   padding: 14px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  opacity: 0;
+  transform: translateY(6px);
+  animation: ftNotifItemIn 0.28s var(--ease-smooth, ease) both;
+}
+@keyframes ftNotifItemIn {
+  to { opacity: 1; transform: translateY(0); }
 }
 html[data-theme="light"] .ft-notif-item {
   border-color: rgba(0, 0, 0, 0.06);
@@ -844,12 +852,26 @@ html[data-theme="light"] .ft-notif-item {
   background: var(--accent);
   margin-top: 6px;
   flex-shrink: 0;
+  opacity: 0.35;
+}
+.ft-notif-item--unread .ft-notif-dot {
+  opacity: 1;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06);
 }
 .ft-notif-dot--info {
   background: #3b82f6;
 }
 .ft-notif-dot--muted {
   background: rgba(255, 255, 255, 0.25);
+}
+.ft-notif-empty {
+  padding: 32px 0 24px;
+  text-align: center;
+}
+.ft-notif-empty p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
 }
 .ft-sheet__close {
   width: 100%;
@@ -888,6 +910,9 @@ html[data-theme="light"] .ft-sheet__close {
 }
 .ft-form-select {
   appearance: none;
+}
+.ft-form-select:invalid {
+  color: var(--text-placeholder);
 }
 .ft-form-cancel {
   margin-top: 10px;

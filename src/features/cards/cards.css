@@ -98,6 +98,26 @@
   --card-bg: linear-gradient(135deg, #6366f1, #4338ca);
 }
 
+/* Identidade por banco (Fase 5) — sobrepõe a cor da bandeira quando reconhecido */
+.cc-card--bank-nubank .cc-card-inner { --card-bg: linear-gradient(135deg, #A653FF, #7A1FD1); }
+.cc-card--bank-inter .cc-card-inner { --card-bg: linear-gradient(135deg, #FF8C3D, #FF6B00); }
+.cc-card--bank-mercadopago .cc-card-inner { --card-bg: linear-gradient(135deg, #1E3A5F, #08131F); }
+.cc-card--bank-c6 .cc-card-inner { --card-bg: linear-gradient(135deg, #3D3D3D, #121212); }
+.cc-card--bank-itau .cc-card-inner { --card-bg: linear-gradient(135deg, #FF9433, #EC7000); }
+.cc-card--bank-bradesco .cc-card-inner { --card-bg: linear-gradient(135deg, #E4002B, #8C0019); }
+.cc-card--bank-santander .cc-card-inner { --card-bg: linear-gradient(135deg, #EC0000, #900000); }
+.cc-card--bank-caixa .cc-card-inner { --card-bg: linear-gradient(135deg, #1E6FD9, #0B3B87); }
+.cc-card--bank-bb .cc-card-inner { --card-bg: linear-gradient(135deg, #FFD100, #003087); }
+
+.cc-card-bank-name {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.92);
+  text-transform: uppercase;
+  line-height: 1;
+}
+
 /* Cartão placeholder (sem cadastro) */
 .cc-card--placeholder .cc-card-inner {
   --card-bg: linear-gradient(135deg, rgba(99, 102, 241, 0.35), rgba(67, 56, 202, 0.25));
@@ -399,13 +419,60 @@
   display: block;
   margin-top: 4px;
   font-size: 11px;
-  color: var(--text-secondary);
   line-height: 1.3;
 }
-@media (max-width: 360px) {
-  .cc-form-row2 {
-    grid-template-columns: 1fr;
-  }
+.cc-field-hint--error {
+  color: var(--danger, #ff453a);
+}
+.cc-field-hint--error.hidden {
+  display: none;
+}
+
+/* Label visível — só nos campos de dia (excepção ao placeholder-only da Fase 4) */
+.cc-day-label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* "Todo dia" prefixo — fechamento/vencimento */
+.cc-day-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  height: 40px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  border-radius: var(--radius-md, 10px);
+  border: 1px solid var(--border);
+  background: var(--surface, rgba(255, 255, 255, 0.04));
+}
+.cc-day-prefix {
+  flex-shrink: 0;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.cc-day-field .cc-day-input {
+  flex: 1;
+  min-width: 0;
+  height: 38px;
+  line-height: 38px;
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  min-height: auto !important;
+  vertical-align: middle;
+}
+.cc-day-field .cc-day-input:focus {
+  outline: none;
+}
+.cc-day-field:has(.cc-day-input:focus) {
+  border-color: var(--home-accent, var(--accent));
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -463,6 +530,41 @@ html.ft-cards .cc-card--elo .cc-card-inner {
 html.ft-cards .cc-card--other .cc-card-inner,
 html.ft-cards .cc-card--amex .cc-card-inner {
   --card-bg: linear-gradient(160deg, #1d3d4a 0%, #0e1e26 100%);
+}
+
+/* Identidade por banco (Fase 5) — sobrepõe a cor da bandeira quando reconhecido */
+html.ft-cards .cc-card--bank-nubank .cc-card-inner {
+  --card-bg: linear-gradient(160deg, #9a3dff 0%, #5c1499 55%, #2e0a4d 100%);
+}
+html.ft-cards .cc-card--bank-inter .cc-card-inner {
+  --card-bg: linear-gradient(160deg, #ff8c3d 0%, #d95400 55%, #7a2f00 100%);
+}
+html.ft-cards .cc-card--bank-mercadopago .cc-card-inner {
+  --card-bg: linear-gradient(160deg, #2a5a8f 0%, #12263a 55%, #060d14 100%);
+}
+html.ft-cards .cc-card--bank-c6 .cc-card-inner {
+  --card-bg: linear-gradient(160deg, #3a3a3a 0%, #1a1a1a 55%, #050505 100%);
+}
+html.ft-cards .cc-card--bank-itau .cc-card-inner {
+  --card-bg: linear-gradient(160deg, #ff9433 0%, #d96700 55%, #6e2f00 100%);
+}
+html.ft-cards .cc-card--bank-bradesco .cc-card-inner {
+  --card-bg: linear-gradient(160deg, #e4002b 0%, #7a0018 55%, #33000a 100%);
+}
+html.ft-cards .cc-card--bank-santander .cc-card-inner {
+  --card-bg: linear-gradient(160deg, #ec0000 0%, #7a0000 55%, #330000 100%);
+}
+html.ft-cards .cc-card--bank-caixa .cc-card-inner {
+  --card-bg: linear-gradient(160deg, #2a7de0 0%, #0b3b87 55%, #051d43 100%);
+}
+html.ft-cards .cc-card--bank-bb .cc-card-inner {
+  --card-bg: linear-gradient(160deg, #ffd939 0%, #b89a00 45%, #003087 100%);
+}
+
+html.ft-cards .cc-card-bank-name {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
 }
 
 html.ft-cards .cc-card--placeholder .cc-card-inner {

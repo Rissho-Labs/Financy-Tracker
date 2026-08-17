@@ -1,12 +1,22 @@
 # Handoff — Finance Tracker (mobile tabs / nav / profile)
 
 > Use this file at the start of a new chat: `@.agents/HANDOFF.md`  
-> Full prior thread (searchable): agent transcript `fe53c0f2-abc3-4f06-85ce-f8b903b080c6`  
+> Thread desta sessão (Cartões + sheets + avisos): transcript `bcf97787-87c1-4b52-b442-cefe8e0d39d8`  
+> Thread anterior (nav/FOUC): `fe53c0f2-abc3-4f06-85ce-f8b903b080c6`  
 > Repo: `https://github.com/Rissho-Labs/Financy-Tracker.git` · package `com.financetracker.app`
+
+## Snapshot para o próximo chat (2026-08-17)
+
+- **Branch integrada:** `cursor/sheet-dismiss-ce42` = sheet dismiss (FTSheet) + merge de `docs/cards-visual-planner` (Home/Cartões/Avisos do colega).
+- **Planner Cartões:** `.agents/plans/cards-visual-planner.md` — **completo** (Fases 1–5 + 4.1).
+- **Planner sheets dismiss:** `.agents/plans/sheet-dismiss-planner.md` — **implementado** nesta branch.
+- **Planner sheets full-bleed:** `.agents/plans/sheet-fullbleed-planner.md` — **completo**.
+- **Não regressar:** nav/FOUC (tabela "Done" abaixo); não reintroduzir `@media (max-width: 360px)` a colapsar `.cc-form-row2` (S10e ~360dp).
+- **QA no S10e:** após `installDebug`, `adb shell am force-stop com.financetracker.app` e relançar.
 
 ## Goal of recent work
 
-Stabilize Android tab UX (Home / Cards / Goals / Profile): kill menu/content jumps (FOUC), then share-profile + align cross-tab spacing — **without regressing nav geometry**.
+Tela Cartões (identidade visual + UX do form "Novo cartão") e polish partilhado de sheets/avisos — **sem regressar nav geometry / FOUC**.
 
 ## Done (keep intact)
 
@@ -37,8 +47,9 @@ Stabilize Android tab UX (Home / Cards / Goals / Profile): kill menu/content jum
 - Device used: Samsung S10e (`SM-G970F`)
 - `JAVA_HOME` = Android Studio JBR (`C:\Program Files\Android\Android Studio\jbr`)
 - `ANDROID_HOME` / adb = `%LOCALAPPDATA%\Android\Sdk`
-- Flow: `npm run cap:sync` → `android/gradlew.bat installDebug`
+- Flow: `npm run cap:sync` → `android/gradlew.bat installDebug` → `adb shell am force-stop com.financetracker.app` → relançar
 - **After every UI/feature implementation in a session:** run the flow above and install on the USB-connected device (do not wait for the user to ask)
+- PowerShell: usar `;` em vez de `&&` entre comandos; heredoc `<<'EOF'` não funciona — usar ficheiro `-F` para commit messages
 
 ## Workflow — ROTEAMENTO → modelo → AÇÃO
 
@@ -79,17 +90,32 @@ Tarefa / fase:
 
 Planners de feature (quando existirem): preferir `.agents/plans/<feature>-planner.md`.
 
-Planner ativo: `.agents/plans/sheet-dismiss-planner.md` — **implementado** (FTSheet + back + chrome + swipe).
+Planners concluídos: `.agents/plans/cards-visual-planner.md`, `.agents/plans/sheet-fullbleed-planner.md`, `.agents/plans/sheet-dismiss-planner.md` (FTSheet + back + chrome + swipe).
+
+Planner concluído (branch separada): `.agents/plans/launcher-shortcuts-planner.md` — Fases 1–5 em `feature/launcher-shortcuts-phase3`, ainda não mergeada.
+
+**Avisos — polish visual + badge dinâmica:** `localStorage.ft_notif_read_ids`; conteúdo ainda mock. Próxima fase: avisos reais (orçamento/meta/cartão).
 
 ## Still open / next likely tasks
 
-1. **Device QA (S10e)**: `npm run cap:sync` → `installDebug` → validar voltar nativo, swipe, pilha scan/gasto e amigos/QR
-2. **Launcher shortcuts** — Fase 2: `shortcuts.xml` + intent (ver planner launcher)
-3. **Visual QA on device**: confirm type scale + spacing + balance-hide persist after tab switches
-4. **Invite hosting**: public invite links need `firebase deploy --only hosting`
-5. **Storage rules**: `firebase login` then `npm run deploy:rules`
-6. **Avisos modal**: still demo mock — connect real budget/goal/card alerts when resumed
-7. Any new feature work should treat the frozen chrome table above as intact unless the user asks to change nav/FOUC again
+1. **Device QA (S10e)**: `npm run cap:sync` → `installDebug` → validar FTSheet + Home/Cartões integrados
+2. **PR** `cursor/sheet-dismiss-ce42` → `main` (inclui merge do trabalho do colega)
+3. **Merge atalho launcher**: `feature/launcher-shortcuts-phase3` → `main` (quando pronto)
+4. **Avisos: dados reais** — ligar painel a orçamento/meta/cartão
+5. **Invite hosting**: `firebase deploy --only hosting`
+6. **Storage rules**: `firebase login` then `npm run deploy:rules`
+7. Qualquer feature nova: tratar a tabela "Done" (nav/FOUC) como intacta
+
+## Colaboração — mais de uma pessoa a partir de agora
+
+O projeto passou a ter mais gente a trabalhar nele em paralelo (ex.: branch `feature/amigos-e-metas` já existe no remoto, de outro membro). Regras para não pisarmos trabalho uns dos outros:
+
+- **Nunca commitar direto em `main`.** Cada fase/feature vive na sua branch (`feature/<nome>`); abrir PR para `main` antes de merge.
+- **`git fetch` / `git pull` no início de cada sessão** antes de criar branch nova ou continuar uma existente — outro membro pode ter avançado `main` ou a própria feature branch entretanto.
+- **Uma branch por feature/planner**, não por chat. Se retomares um planner numa sessão nova, `git checkout` a branch já existente em vez de criar outra.
+- **Este `HANDOFF.md` é estado partilhado.** Ao terminar uma sessão com progresso relevante, atualiza a tabela "Done" e a secção "Still open" e comita — outro membro (ou chat) pode continuar a partir daqui sem reler o histórico todo.
+- **Push no fim de cada fase concluída**, não só commit local — trabalho que só existe localmente não existe para o resto do grupo.
+- Conflitos prováveis: `home.html`/`home.js` (vários fluxos tocam neles), `AndroidManifest.xml`, `strings.xml`. Avisar antes de tocar em áreas que outra branch também esteja a mexer.
 
 ## How next chat should start
 
@@ -102,4 +128,4 @@ Seguir workflow ROTEAMENTO → modelo → AÇÃO (prompt canónico no handoff).
 Current focus: <ideia ou fase>
 ```
 
-Optional deeper context: ask the agent to search prior conversation / transcript `fe53c0f2-abc3-4f06-85ce-f8b903b080c6` only for specifics — prefer this handoff over dumping the full chat (avoids context wear).
+Optional deeper context: search transcript `bcf97787-87c1-4b52-b442-cefe8e0d39d8` (esta sessão) or `fe53c0f2-abc3-4f06-85ce-f8b903b080c6` (nav/FOUC) only for specifics — prefer this handoff over dumping the full chat.
