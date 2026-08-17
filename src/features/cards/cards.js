@@ -448,9 +448,25 @@
     return day;
   }
 
+  /** Restringe a digitação a dias de calendário válidos (1–31): nunca deixa
+   *  formar um número de 2 dígitos fora do intervalo (ex.: "9" + "9" não vira "99"). */
+  function restrictDayInput(el) {
+    var digits = (el.value || '').replace(/\D/g, '').slice(0, 2);
+    if (digits.length === 2 && parseInt(digits, 10) > 31) {
+      digits = el.dataset.ccLastValidDay || digits.charAt(0);
+    }
+    el.value = digits;
+    el.dataset.ccLastValidDay = digits;
+  }
+
   ['cc-add-close-day', 'cc-add-due-day'].forEach(function (id) {
     var hintId = id === 'cc-add-close-day' ? 'cc-add-close-hint' : 'cc-add-due-hint';
-    $(id)?.addEventListener('input', function () { setFieldError(hintId, null); });
+    var el = $(id);
+    if (!el) return;
+    el.addEventListener('input', function () {
+      restrictDayInput(el);
+      setFieldError(hintId, null);
+    });
   });
 
   function openAddCardModal() {
