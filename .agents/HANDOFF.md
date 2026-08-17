@@ -1,12 +1,21 @@
 # Handoff — Finance Tracker (mobile tabs / nav / profile)
 
 > Use this file at the start of a new chat: `@.agents/HANDOFF.md`  
-> Full prior thread (searchable): agent transcript `fe53c0f2-abc3-4f06-85ce-f8b903b080c6`  
+> Thread desta sessão (Cartões + sheets + avisos): transcript `bcf97787-87c1-4b52-b442-cefe8e0d39d8`  
+> Thread anterior (nav/FOUC): `fe53c0f2-abc3-4f06-85ce-f8b903b080c6`  
 > Repo: `https://github.com/Rissho-Labs/Financy-Tracker.git` · package `com.financetracker.app`
+
+## Snapshot para o próximo chat (2026-08-17)
+
+- **Branch:** `docs/cards-visual-planner` — working tree limpa; **9+ commits à frente de `origin`** (fazer `git push` antes de outro membro continuar). HEAD recente: `3846d26` (placeholder Banco/Bandeira).
+- **Planner Cartões:** `.agents/plans/cards-visual-planner.md` — **completo** (Fases 1–5 + 4.1) + polish pós-QA do form (layout compacto, dia 1–31 em tempo real, "Selecione..." em Banco/Bandeira).
+- **Planner sheets:** `.agents/plans/sheet-fullbleed-planner.md` — **completo**.
+- **Não regressar:** nav/FOUC (tabela "Done" abaixo); não reintroduzir `@media (max-width: 360px)` a colapsar `.cc-form-row2` (S10e é ~360dp — isso empilhava os campos no dispositivo real).
+- **QA no S10e:** após `installDebug`, fazer `adb shell am force-stop com.financetracker.app` e relançar — o WebView pode mostrar assets antigos se o app ficou em segundo plano.
 
 ## Goal of recent work
 
-Stabilize Android tab UX (Home / Cards / Goals / Profile): kill menu/content jumps (FOUC), then share-profile + align cross-tab spacing — **without regressing nav geometry**.
+Tela Cartões (identidade visual + UX do form "Novo cartão") e polish partilhado de sheets/avisos — **sem regressar nav geometry / FOUC**.
 
 ## Done (keep intact)
 
@@ -36,8 +45,9 @@ Stabilize Android tab UX (Home / Cards / Goals / Profile): kill menu/content jum
 - Device used: Samsung S10e (`SM-G970F`)
 - `JAVA_HOME` = Android Studio JBR (`C:\Program Files\Android\Android Studio\jbr`)
 - `ANDROID_HOME` / adb = `%LOCALAPPDATA%\Android\Sdk`
-- Flow: `npm run cap:sync` → `android/gradlew.bat installDebug`
+- Flow: `npm run cap:sync` → `android/gradlew.bat installDebug` → `adb shell am force-stop com.financetracker.app` → relançar
 - **After every UI/feature implementation in a session:** run the flow above and install on the USB-connected device (do not wait for the user to ask)
+- PowerShell: usar `;` em vez de `&&` entre comandos; heredoc `<<'EOF'` não funciona — usar ficheiro `-F` para commit messages
 
 ## Workflow — ROTEAMENTO → modelo → AÇÃO
 
@@ -80,27 +90,20 @@ Planners de feature (quando existirem): preferir `.agents/plans/<feature>-planne
 
 Planner concluído: `.agents/plans/launcher-shortcuts-planner.md` — **Fases 1–5 feitas** (atalho launcher «Novo gasto», query `method`, pending cross-redirect, gate biométrico em sessão quente). Vive na branch `feature/launcher-shortcuts-phase3`, ainda não mergeada em `main` (ver secção de colaboração abaixo).
 
-Planner ativo: `.agents/plans/cards-visual-planner.md` (Fase 1 feita — spec; Fase 2 feita — simetria do carrossel; Fase 3 feita — bandeira "Outra" com texto livre, commit `f8b8831`; Fase 4 feita — "Apelido", placeholder-only, prefixo "Todo dia", validação inline, commit `18245ae`; **Fase 5 feita** — identidade por banco: `FTCards.banks` (catálogo fechado Nubank/Inter/Mercado Pago/C6/Itaú/Bradesco/Santander/Caixa/BB → cor/gradiente, sem logotipo, decisão de risco de marca registada tomada no ROTEAMENTO) + `bank`/`bankLabel` em `normalizeCard`; novo `<select id="cc-add-bank">` + campo condicional "Outro" no form (mesmo padrão placeholder-only/toggle da Fase 3/4); nome do banco em texto no topo do cartão (`cardTopHtml`, substitui o ícone de chip genérico quando há banco), bandeira continua no rodapé sem conflito; classes `.cc-card--bank-*` em `cards.css` (base + scoped `html.ft-cards`, precedência sobre a cor da bandeira); bandeiras (Visa/Master/Elo/Amex) mantiveram os SVGs custom atuais — decisão de não trocar por lib externa, app é offline/Capacitor; validado no browser (Nubank com gradiente roxo + texto, banco "Outro" com fallback de cor por bandeira, sem regressão nas Fases 3-4) + `cap:sync`/`assembleDebug` OK; **Fase 4.1 feita** — ajuste pós-QA nos campos de dia: label visível "Fechamento"/"Vencimento" acima de cada `.cc-day-field` (excepção pontual ao placeholder-only, só nesses dois campos; `aria-labelledby` a apontar para o novo `<span id="cc-add-close-label">`/`<span id="cc-add-due-label">`), e correção da centralização vertical do texto digitado em `.cc-day-input` via técnica `height`/`line-height` iguais (38px, dentro do campo de 40px com borda) em vez de padding assimétrico — validado no browser com medição precisa via CDP (offset do centro ≈0.01px) e confirmado no S10e físico após `cap:sync`+`installDebug`; sem regressão nos outros campos (Apelido/Final do número/Banco/Bandeira continuam placeholder-only)). Planner de Cartões **completo (Fases 1-5 + 4.1)**.
+Planner concluído: `.agents/plans/cards-visual-planner.md` — Fases 1–5 + 4.1 feitas nesta branch. Commits: Fase 2 `9b4d564`; Fase 3 `f8b8831`; Fase 4 `18245ae`; Fase 5 `a680e4d`; Fase 4.1 `a98e219`. Pós-QA do form (mesma branch): layout compacto Apelido+Final lado a lado `abb653b` (não repor `@media (max-width: 360px)` em `.cc-form-row2`); dia 1–31 em tempo real `0484686` (`restrictDayInput` em `cards.js`; bissexto já em `daysInMonth`/`fmtNextCycleDate`); placeholder "Selecione o banco/bandeira" `3846d26` (sem pré-seleção Nubank/Visa; erro inline `#cc-add-bank-hint`/`#cc-add-brand-hint`). Identidade por banco: `FTCards.banks` + `bank`/`bankLabel`; sem logotipos oficiais (risco de marca). Bandeiras Visa/Master/Elo/Amex = SVGs atuais.
 
-Planner concluído: `.agents/plans/sheet-fullbleed-planner.md` — `.ft-sheet__panel` (`src/styles/global.css`) passou de `width: 90%` centrado + borda nos 4 lados para `width: 100%`/`left:0`/`right:0` full-bleed + `border-top` apenas (sides/bottom sem borda, cantos de cima continuam arredondados); `transform` de abertura trocado de `translate(-50%, ...)` para `translateY(...)`. Mudança centralizada num único ficheiro — aplica-se automaticamente a todos os sheets (Novo cartão, Novo gasto, Escanear gasto, Avisos, Amigos/QR/Alterar senha). Validado no browser (geometria via CDP em 3 modais) e no S10e físico.
+Planner concluído: `.agents/plans/sheet-fullbleed-planner.md` — `.ft-sheet__panel` full-bleed (`width: 100%`, `border-top` só, `translateY`), commit `45b5fa5`. Aplica-se a todos os sheets.
 
-**Novo cartão — "Selecione o banco"/"Selecione a bandeira" (sem pré-seleção):** `cc-add-bank`/`cc-add-brand` (`cards.html`) ganharam `<option value="" disabled selected hidden>` como placeholder + atributo `required`; `.ft-form-select:invalid` (`global.css`) deixa o texto com a cor de placeholder enquanto nada foi escolhido. `clearAddCardForm()` (`cards.js`) reseta os dois para `''` em vez de `'nubank'`/`'visa'`; submit valida explicitamente (`if (!bank)`/`if (!brand)`) com erro inline nos novos `<span id="cc-add-bank-hint">`/`<span id="cc-add-brand-hint">` (mesmo padrão dos campos de dia), que limpa ao trocar a seleção. Validado no browser (placeholder cinza, erro inline ao tentar salvar sem escolher, reset ao reabrir o modal) e no S10e físico.
-
-**Novo cartão — limite real de dia (1–31) em tempo real:** `restrictDayInput()` em `cards.js`, ligado ao `input` de `cc-add-close-day`/`cc-add-due-day` — nunca deixa formar um número de 2 dígitos fora de 1–31 (ex.: "9"+"9" fica em "9", não vira "99"); guarda o último valor válido em `el.dataset.ccLastValidDay` e reverte a esse valor quando o novo dígito ultrapassaria 31. Não mexe em `FTCards.normalizeDay` (mantém o clamp defensivo a 31 para outros caminhos que não passem pelo input). Fora do escopo (decidido com o utilizador): não há campo de mês nestes dois campos — são "dia do mês" recorrente (ex. "Todo dia 15"), não uma data fixa; a exceção de ano bissexto já era tratada à parte em `daysInMonth()`/`fmtNextCycleDate()` (usa `Math.min(dia, diasNoMês)` ao calcular a próxima ocorrência exibida no card). Validado no browser (99→9, 35→3, 31→31, 05→05 nos dois campos) e no S10e físico.
-
-**Novo cartão — layout compacto (Apelido+Final e Fechamento+Vencimento lado a lado):** `cc-add-name`/`cc-add-last4` passaram a ficar no mesmo `.cc-form-row2` (mesmo grid de 2 colunas já usado por Fechamento/Vencimento) em `cards.html`, para caber tudo (incl. botões "Adicionar"/"Cancelar") sem scroll em qualquer tamanho de tela. **Bug real encontrado no S10e:** havia um `@media (max-width: 360px) { .cc-form-row2 { grid-template-columns: 1fr } }` em `cards.css` que colapsava para 1 coluna exatamente na largura CSS do S10e (~360dp) — por isso o dispositivo mostrava os campos empilhados mesmo com o APK já atualizado (não era cache; `pm clear` + force-stop não resolveram, só a remoção do breakpoint resolveu). Breakpoint removido; validado no browser emulando 360px e 320px (2 telas pequenas) e no S10e físico após `cap:sync`+`installDebug`+force-stop/relaunch.
-
-**Avisos — polimento visual (mock ainda intacto):** `notification-panel.js` deixou de renderizar `.notif-badge` com números fixos e inconsistentes por tela (home=3, goals=2, profile=1, cards=nenhum) — agora `unreadCount()`/`markAllRead()` calculam o real "não lido" via `localStorage.ft_notif_read_ids` (array de ids dos 3 itens mock), e a badge é injetada/removida dinamicamente em `bind()`/`open()`; removidos os `<span class="notif-badge">…</span>` hardcoded de `home.html`/`goals.html`/`profile.html`. Adicionado estado vazio (`.ft-notif-empty`, ainda sem uso real pois os 3 itens mock continuam fixos), animação de entrada por item (`ftNotifItemIn`, stagger via `animation-delay`) e ponto (`.ft-notif-dot`) esmaecido quando o item já foi lido vs. destacado quando não lido — tudo em `global.css`. Conteúdo dos 3 avisos continua mock (não foi tocado o modelo de dados/backend — isso é a próxima fase, "Avisos: dados reais", ainda não iniciada). Validado no browser (badge aparece/desaparece corretamente, persiste entre reload e entre telas) e no S10e físico.
+**Avisos — polish visual feito, conteúdo ainda mock:** `102436f` — badge dinâmica via `localStorage.ft_notif_read_ids`; 3 itens demo em `notification-panel.js`. Próxima fase (não iniciada): avisos reais (orçamento/meta/cartão).
 
 ## Still open / next likely tasks
 
-1. **Merge da branch do atalho**: abrir/rever PR `feature/launcher-shortcuts-phase3` → `main` (ver colaboração)
-2. **Cartões — identidade visual + UX do form**: Fases 3–5 do planner ativo (Fase 2 — carrossel simétrico — já feita; falta bandeira "Outra" com texto, "Apelido"/placeholder-only/"Todo dia", skins por banco)
-3. **Visual QA on device**: confirm type scale + spacing + balance-hide persist after tab switches
-4. **Invite hosting**: public invite links need `firebase deploy --only hosting` (placeholders: Play/App Store URLs)
-5. **Storage rules**: `firebase login` then `npm run deploy:rules` so avatar upload syncs to cloud
-6. **Avisos modal**: visual polish done (dynamic badge, animation, read/unread dot); content still demo mock — wire to real data (budget/goal alerts) when resumed
-7. Any new feature work should treat the frozen chrome table above as intact unless the user asks to change nav/FOUC again
+1. **Push desta branch** `docs/cards-visual-planner` (vários commits só locais) e, se o trabalho de Cartões estiver pronto para `main`, abrir PR
+2. **Merge da branch do atalho**: PR `feature/launcher-shortcuts-phase3` → `main`
+3. **Avisos: dados reais** — ligar o painel a orçamento/meta/cartão (visual polish já feito)
+4. **Invite hosting**: `firebase deploy --only hosting` (placeholders Play/App Store)
+5. **Storage rules**: `firebase login` then `npm run deploy:rules` (avatar na nuvem)
+6. Qualquer feature nova: tratar a tabela "Done" (nav/FOUC) como intacta a menos que o utilizador peça para mexer nisso
 
 ## Colaboração — mais de uma pessoa a partir de agora
 
@@ -124,4 +127,4 @@ Seguir workflow ROTEAMENTO → modelo → AÇÃO (prompt canónico no handoff).
 Current focus: <ideia ou fase>
 ```
 
-Optional deeper context: ask the agent to search prior conversation / transcript `fe53c0f2-abc3-4f06-85ce-f8b903b080c6` only for specifics — prefer this handoff over dumping the full chat (avoids context wear).
+Optional deeper context: search transcript `bcf97787-87c1-4b52-b442-cefe8e0d39d8` (esta sessão) or `fe53c0f2-abc3-4f06-85ce-f8b903b080c6` (nav/FOUC) only for specifics — prefer this handoff over dumping the full chat.
