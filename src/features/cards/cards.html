@@ -158,7 +158,11 @@
       <div class="ft-sheet__backdrop"></div>
       <div class="ft-sheet__panel ft-form-sheet" role="dialog" aria-labelledby="add-card-title">
         <div class="ft-sheet__handle" aria-hidden="true"></div>
-        <h2 id="add-card-title" class="ft-sheet__title">Novo cartão</h2>
+        <div class="ft-sheet__chrome">
+          <button type="button" class="ft-sheet__back" hidden aria-label="Voltar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <h2 id="add-card-title" class="ft-sheet__title">Novo cartão</h2>
+          <button type="button" class="ft-sheet__x" aria-label="Fechar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
         <label class="field-label">Nome no cartão</label>
         <input id="cc-add-name" type="text" class="ft-form-input" maxlength="48" />
         <label class="field-label">Final do número (4 dígitos)</label>
@@ -184,7 +188,6 @@
           </div>
         </div>
         <button type="button" class="goal-submit" id="cc-add-save">Adicionar</button>
-        <button type="button" class="ft-sheet__close ft-form-cancel" id="cc-add-cancel">Cancelar</button>
       </div>
     </div>
 
@@ -194,6 +197,8 @@
   <script src="/features/cards/ft-cards.js"></script>
   <script src="/features/cards/ft-card-brands.js"></script>
   <script src="/features/transactions/ft-transactions.js"></script>
+  <script src="/core/ft-app.bundle.js"></script>
+  <script src="/shared/js/ft-sheet.js"></script>
   <script src="/shared/js/notification-panel.js"></script>
   <script src="/shared/js/ft-tab-carousel.js"></script>
   <script src="/shared/js/ft-bottom-nav.js"></script>

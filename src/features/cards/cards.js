@@ -388,24 +388,28 @@
     if (document.activeElement && typeof document.activeElement.blur === 'function') {
       document.activeElement.blur();
     }
-    modal.classList.add('open');
-    modal.setAttribute('aria-hidden', 'false');
+    if (window.FTSheet) {
+      FTSheet.open(modal);
+    } else {
+      modal.classList.add('ft-sheet--open');
+      modal.setAttribute('aria-hidden', 'false');
+    }
   }
 
   document.querySelector('.add-card-btn-top')?.addEventListener('click', openAddCardModal);
   $('cc-add-first-btn')?.addEventListener('click', openAddCardModal);
 
-  const modal = $('add-card-modal');
-  $('cc-add-cancel')?.addEventListener('click', function () {
-    modal?.classList.remove('open');
-    modal?.setAttribute('aria-hidden', 'true');
-  });
-  modal?.addEventListener('click', function (e) {
-    if (e.target === modal) {
-      modal.classList.remove('open');
+  function closeAddCardModal() {
+    const modal = $('add-card-modal');
+    if (!modal) return;
+    if (window.FTSheet) {
+      FTSheet.close(modal);
+    } else {
+      modal.classList.remove('ft-sheet--open', 'open');
       modal.setAttribute('aria-hidden', 'true');
     }
-  });
+  }
+
   $('cc-add-save')?.addEventListener('click', function () {
     const name = ($('cc-add-name')?.value || '').trim() || 'Titular';
     const last4 = ($('cc-add-last4')?.value || '').replace(/\D/g, '').slice(-4);
@@ -428,8 +432,7 @@
       dueDay: dueDay
     });
     clearAddCardForm();
-    modal?.classList.remove('open');
-    modal?.setAttribute('aria-hidden', 'true');
+    closeAddCardModal();
     renderCardsCarousel(prevCount);
     haptic('medium');
   });

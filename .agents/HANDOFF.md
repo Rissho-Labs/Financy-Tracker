@@ -22,6 +22,7 @@ Stabilize Android tab UX (Home / Cards / Goals / Profile): kill menu/content jum
 | Header bell | Home bell `align-self: flex-start`; Cards order `+` then bell (trailing edge) | `home.css`, `cards.html` |
 | Keyboard UX | No autofocus on sheets/modals; integer fields `inputmode="numeric"` + `pattern="[0-9]*"`; money `inputmode="decimal"` | · `5b05831` |
 | Balance hide | Preference `localStorage.ft_balance_visible` (`0`/`1`); early hydrate + persist across tab navigations | `home.html`, `home.js` · `43f5373` |
+| Sheet dismiss UX | `FTSheet` controller: pilha, voltar nativo (`@capacitor/app`), chrome seta+X, swipe-down, backdrop | `ft-sheet.js`, `ft-app.bundle.js`, `global.css`, all `.ft-sheet` pages · branch `cursor/sheet-dismiss-ce42` |
 
 ## Do NOT touch (regression traps)
 
@@ -78,16 +79,17 @@ Tarefa / fase:
 
 Planners de feature (quando existirem): preferir `.agents/plans/<feature>-planner.md`.
 
-Planner ativo: `.agents/plans/launcher-shortcuts-planner.md` (Fase 1 feita — atalho launcher «Novo gasto» + gate biométrico). Próximo: ROTEAMENTO da **Fase 2**.
+Planner ativo: `.agents/plans/sheet-dismiss-planner.md` — **implementado** (FTSheet + back + chrome + swipe).
 
 ## Still open / next likely tasks
 
-1. **Launcher shortcuts** — Fase 2: `shortcuts.xml` + intent (ver planner)
-2. **Visual QA on device**: confirm type scale + spacing + balance-hide persist after tab switches
-3. **Invite hosting**: public invite links need `firebase deploy --only hosting` (placeholders: Play/App Store URLs)
-4. **Storage rules**: `firebase login` then `npm run deploy:rules` so avatar upload syncs to cloud
-5. **Avisos modal**: still demo mock — polish when resumed
-6. Any new feature work should treat the frozen chrome table above as intact unless the user asks to change nav/FOUC again
+1. **Device QA (S10e)**: `npm run cap:sync` → `installDebug` → validar voltar nativo, swipe, pilha scan/gasto e amigos/QR
+2. **Launcher shortcuts** — Fase 2: `shortcuts.xml` + intent (ver planner launcher)
+3. **Visual QA on device**: confirm type scale + spacing + balance-hide persist after tab switches
+4. **Invite hosting**: public invite links need `firebase deploy --only hosting`
+5. **Storage rules**: `firebase login` then `npm run deploy:rules`
+6. **Avisos modal**: still demo mock — connect real budget/goal/card alerts when resumed
+7. Any new feature work should treat the frozen chrome table above as intact unless the user asks to change nav/FOUC again
 
 ## How next chat should start
 

@@ -26,22 +26,7 @@
     navigator.vibrate(p[type] || [8]);
   }
 
-  function openSheet(id) {
-    const el = $(id);
-    if (!el) return;
-    lastFocusEl = document.activeElement;
-    el.classList.add('open');
-    el.setAttribute('aria-hidden', 'false');
-  }
-
-  function closeSheet(id) {
-    const el = $(id);
-    if (!el) return;
-    if (document.activeElement && typeof document.activeElement.blur === 'function') {
-      document.activeElement.blur();
-    }
-    el.classList.remove('open');
-    el.setAttribute('aria-hidden', 'true');
+  function restoreFocus() {
     if (lastFocusEl && typeof lastFocusEl.focus === 'function') {
       const tag = String(lastFocusEl.tagName || '').toLowerCase();
       if (tag !== 'input' && tag !== 'textarea' && tag !== 'select') {
@@ -50,22 +35,31 @@
     }
   }
 
-  function bindBackdropClose(sheetId, onClose) {
-    const sheet = $(sheetId);
-    if (!sheet) return;
-    sheet.querySelectorAll('[data-close]').forEach((node) => {
-      node.addEventListener('click', () => {
-        if (typeof onClose === 'function') onClose();
-        const target = node.getAttribute('data-close');
-        if (target) closeSheet(target);
-      });
-    });
-    sheet.addEventListener('click', (e) => {
-      if (e.target === sheet || e.target.classList.contains('ft-sheet__backdrop')) {
-        if (typeof onClose === 'function') onClose();
-        closeSheet(sheetId);
-      }
-    });
+  function openSheet(id) {
+    const el = $(id);
+    if (!el) return;
+    lastFocusEl = document.activeElement;
+    if (window.FTSheet) {
+      FTSheet.open(el);
+    } else {
+      el.classList.add('ft-sheet--open');
+      el.setAttribute('aria-hidden', 'false');
+    }
+  }
+
+  function closeSheet(id, force) {
+    const el = $(id);
+    if (!el) return;
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+      document.activeElement.blur();
+    }
+    if (window.FTSheet) {
+      FTSheet.close(el, !!force);
+      return;
+    }
+    el.classList.remove('ft-sheet--open', 'open');
+    el.setAttribute('aria-hidden', 'true');
+    restoreFocus();
   }
 
   function setScanStatus(text, isError) {
@@ -241,26 +235,29 @@
   async function closeScanModal() {
     await stopScanner();
     setScanStatus('');
-    closeSheet('friend-qr-scan-modal');
+    closeSheet('friend-qr-scan-modal', true);
   }
 
   $('show-qr-btn')?.addEventListener('click', function () {
     openShowModal();
   });
 
-  $('profile-qr-close')?.addEventListener('click', closeShowModal);
-  $('friend-qr-scan-close')?.addEventListener('click', function () {
-    closeScanModal();
-  });
-
   $('friends-scan-btn')?.addEventListener('click', function () {
     openScanModal();
   });
 
-  bindBackdropClose('profile-qr-modal');
-  bindBackdropClose('friend-qr-scan-modal', function () {
-    stopScanner();
-  });
+  if (window.FTSheet) {
+    FTSheet.register($('profile-qr-modal'), { onClose: restoreFocus });
+    FTSheet.register($('friend-qr-scan-modal'), {
+      canClose: function () {
+        return !scanHandled;
+      },
+      onClose: function () {
+        stopScanner();
+        restoreFocus();
+      },
+    });
+  }
 
   window.FTProfileQR = {
     openShow: openShowModal,

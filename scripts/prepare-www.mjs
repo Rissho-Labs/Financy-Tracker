@@ -71,6 +71,7 @@ if (!fs.existsSync(src)) {
   process.exit(1);
 }
 
+await buildBundle('app-entry.mjs', 'ft-app.bundle.js', 'iife');
 await buildBundle('biometric-entry.mjs', 'ft-biometric.bundle.js', 'esm');
 await buildBundle('firebase-native-google-entry.mjs', 'ft-native-google.bundle.js', 'esm');
 await buildBundle('mlkit-entry.mjs', 'ft-mlkit.bundle.js', 'iife');
