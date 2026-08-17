@@ -21,7 +21,10 @@ export function getAndroidEnv() {
 
   const extras = [path.join(sdk, 'platform-tools')];
   if (javaHome) extras.push(path.join(javaHome, 'bin'));
-  env.PATH = extras.join(path.delimiter) + path.delimiter + (env.PATH || '');
+  extras.push(path.dirname(process.execPath));
+  const origPath = env.PATH || env.Path || '';
+  env.PATH = extras.join(path.delimiter) + path.delimiter + origPath;
+  env.Path = env.PATH;
   return env;
 }
 

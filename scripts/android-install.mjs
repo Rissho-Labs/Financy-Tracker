@@ -36,7 +36,7 @@ try {
   if (!env.ANDROID_HOME) throw new Error('ANDROID_HOME em falta');
   console.log('[android:install] dispositivo:');
   await runAdb(['devices', '-l']);
-  await run(isWin ? 'npm.cmd' : 'npm', ['run', 'cap:sync']);
+  await run(isWin ? 'npm' : 'npm', ['run', 'cap:sync']);
   await run(gradleCmd(androidDir), ['installDebug'], { cwd: androidDir });
   await runAdb(['shell', 'am', 'force-stop', 'com.financetracker.app']);
   await runAdb([

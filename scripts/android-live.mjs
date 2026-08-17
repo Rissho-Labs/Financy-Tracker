@@ -57,7 +57,7 @@ function adbReverse() {
 }
 
 function prepareWww() {
-  return run(isWin ? 'npm.cmd' : 'npm', ['run', 'www:prepare']);
+  return run(isWin ? 'npm' : 'npm', ['run', 'www:prepare']);
 }
 
 async function prepareDebounced() {
@@ -104,8 +104,8 @@ function watchSources() {
 
 function startServer() {
   serverProc = spawn(
-    isWin ? 'npx.cmd' : 'npx',
-    ['serve', 'www', '-l', `tcp://${HOST}:${PORT}`, '--no-etag', '--no-port-switching', '-n'],
+    isWin ? 'npx' : 'npx',
+    ['serve', 'www', '-l', `tcp://${HOST}:${PORT}`, '--no-etag', '--no-port-switching', '-n', '-L'],
     { cwd: root, env, stdio: 'inherit', shell: isWin }
   );
   serverProc.on('exit', (code) => {
@@ -148,23 +148,25 @@ function startCapLive(serial) {
   ];
   if (serial) args.push('--target', serial);
   console.log('[live] a instalar no telemóvel (Gradle)…');
-  capProc = spawn(isWin ? 'npx.cmd' : 'npx', args, {
+  capProc = spawn(isWin ? 'npx' : 'npx', args, {
     cwd: root,
     env,
     stdio: 'inherit',
     shell: isWin,
   });
-  return new Promise((resolve, reject) => {
-    capProc.on('exit', (code) => {
-      capProc = null;
-      if (stopping) {
-        resolve();
-        return;
-      }
-      if (code === 0) resolve();
-      else reject(new Error(`cap run saiu com código ${code ?? 'null'}`));
-    });
-    capProc.on('error', reject);
+  capProc.on('exit', (code) => {
+    capProc = null;
+    if (stopping) return;
+    if (code === 0) {
+      console.log('[live] cap run terminou — servidor e watch continuam.');
+      return;
+    }
+    console.error(`[live] cap run saiu com código ${code ?? 'null'}`);
+    shutdown(1);
+  });
+  capProc.on('error', (err) => {
+    console.error('[live] cap run:', err.message);
+    shutdown(1);
   });
 }
 
@@ -209,9 +211,10 @@ try {
     try { adbReverse(); } catch { /* USB blip */ }
   }, 20000);
 
-  await startCapLive(serial);
   watchSources();
-  console.log('\n[live] pronto. Edita src/ — o telemóvel recarrega sozinho.');
+  startCapLive(serial);
+  console.log('\n[live] servidor + watch ativos. Gradle instala em paralelo.');
+  console.log('[live] Edita src/ — o telemóvel recarrega sozinho.');
   console.log('[live] Ctrl+C para parar o servidor.\n');
 } catch (err) {
   console.error('[live]', err.message);
