@@ -130,9 +130,13 @@ function openExpenseSheet(method) {
   if (document.activeElement && typeof document.activeElement.blur === 'function') {
     document.activeElement.blur();
   }
-  sh.classList.add('ft-sheet--open');
-  sh.setAttribute('aria-hidden', 'false');
-  $('nav-fab')?.classList.add('is-hidden');
+  if (window.FTSheet) {
+    FTSheet.open(sh);
+  } else {
+    sh.classList.add('ft-sheet--open');
+    sh.setAttribute('aria-hidden', 'false');
+    $('nav-fab')?.classList.add('is-hidden');
+  }
   switchEntryMethod(method || 'manual');
 }
 function closeExpenseSheet() {
@@ -140,6 +144,10 @@ function closeExpenseSheet() {
   if (!sh) return;
   if (document.activeElement && typeof document.activeElement.blur === 'function') {
     document.activeElement.blur();
+  }
+  if (window.FTSheet) {
+    FTSheet.close(sh);
+    return;
   }
   sh.classList.remove('ft-sheet--open');
   sh.setAttribute('aria-hidden', 'true');
@@ -150,10 +158,21 @@ function closeExpenseSheet() {
   if (fileHelp) fileHelp.textContent = 'JPG, PNG, WEBP, GIF, BMP, TIFF, HEIC ou PDF — leitura automática pela IA.';
   resetFilePickerBtn();
 }
-$('expense-sheet-bg')?.addEventListener('click', closeExpenseSheet);
-$('home-exp-cancel')?.addEventListener('click', closeExpenseSheet);
-$('home-exp-cancel-qr')?.addEventListener('click', closeExpenseSheet);
-$('home-exp-cancel-file')?.addEventListener('click', closeExpenseSheet);
+if (window.FTSheet && $('expense-sheet')) {
+  FTSheet.register($('expense-sheet'), {
+    onOpen: function () {
+      $('nav-fab')?.classList.add('is-hidden');
+    },
+    onClose: function () {
+      $('nav-fab')?.classList.remove('is-hidden');
+      const filePreview = $('home-file-preview');
+      const fileHelp = $('home-file-help');
+      if (filePreview) { filePreview.src = ''; filePreview.classList.add('hidden'); }
+      if (fileHelp) fileHelp.textContent = 'JPG, PNG, WEBP, GIF, BMP, TIFF, HEIC ou PDF — leitura automática pela IA.';
+      resetFilePickerBtn();
+    },
+  });
+}
 
 // ── FAB: menu rápido (Manual / Escanear / Arquivo) ──────────────
 const fabBtn = $('nav-fab');

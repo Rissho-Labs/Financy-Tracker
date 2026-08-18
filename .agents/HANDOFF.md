@@ -1,12 +1,22 @@
 # Handoff — Finance Tracker (mobile tabs / nav / profile)
 
 > Use this file at the start of a new chat: `@.agents/HANDOFF.md`  
-> Full prior thread (searchable): agent transcript `fe53c0f2-abc3-4f06-85ce-f8b903b080c6`  
+> Thread desta sessão (Cartões + sheets + avisos): transcript `bcf97787-87c1-4b52-b442-cefe8e0d39d8`  
+> Thread anterior (nav/FOUC): `fe53c0f2-abc3-4f06-85ce-f8b903b080c6`  
 > Repo: `https://github.com/Rissho-Labs/Financy-Tracker.git` · package `com.financetracker.app`
+
+## Snapshot para o próximo chat (2026-08-17)
+
+- **Branch integrada:** `cursor/sheet-dismiss-ce42` = sheet dismiss (FTSheet) + merge de `docs/cards-visual-planner` (Home/Cartões/Avisos do colega).
+- **Planner Cartões:** `.agents/plans/cards-visual-planner.md` — **completo** (Fases 1–5 + 4.1).
+- **Planner sheets dismiss:** `.agents/plans/sheet-dismiss-planner.md` — **implementado** nesta branch.
+- **Planner sheets full-bleed:** `.agents/plans/sheet-fullbleed-planner.md` — **completo**.
+- **Não regressar:** nav/FOUC (tabela "Done" abaixo); não reintroduzir `@media (max-width: 360px)` a colapsar `.cc-form-row2` (S10e ~360dp).
+- **QA no S10e:** `npm run android:live` (USB, recarrega sozinho) ou `npm run android:install` (APK empacotado).
 
 ## Goal of recent work
 
-Stabilize Android tab UX (Home / Cards / Goals / Profile): kill menu/content jumps (FOUC), then share-profile + align cross-tab spacing — **without regressing nav geometry**.
+Tela Cartões (identidade visual + UX do form "Novo cartão") e polish partilhado de sheets/avisos — **sem regressar nav geometry / FOUC**.
 
 ## Done (keep intact)
 
@@ -22,6 +32,7 @@ Stabilize Android tab UX (Home / Cards / Goals / Profile): kill menu/content jum
 | Header bell | Home bell `align-self: flex-start`; Cards order `+` then bell (trailing edge) | `home.css`, `cards.html` |
 | Keyboard UX | No autofocus on sheets/modals; integer fields `inputmode="numeric"` + `pattern="[0-9]*"`; money `inputmode="decimal"` | · `5b05831` |
 | Balance hide | Preference `localStorage.ft_balance_visible` (`0`/`1`); early hydrate + persist across tab navigations | `home.html`, `home.js` · `43f5373` |
+| Sheet dismiss UX | `FTSheet` controller: pilha, voltar nativo (`@capacitor/app`), chrome seta+X, swipe-down, backdrop | `ft-sheet.js`, `ft-app.bundle.js`, `global.css`, all `.ft-sheet` pages · branch `cursor/sheet-dismiss-ce42` |
 
 ## Do NOT touch (regression traps)
 
@@ -33,11 +44,17 @@ Stabilize Android tab UX (Home / Cards / Goals / Profile): kill menu/content jum
 
 ## Device / build
 
-- Device used: Samsung S10e (`SM-G970F`)
+- Device used: Samsung S10e (`SM-G970F`, serial `RQ8M30DX3BV`)
 - `JAVA_HOME` = Android Studio JBR (`C:\Program Files\Android\Android Studio\jbr`)
 - `ANDROID_HOME` / adb = `%LOCALAPPDATA%\Android\Sdk`
-- Flow: `npm run cap:sync` → `android/gradlew.bat installDebug`
-- **After every UI/feature implementation in a session:** run the flow above and install on the USB-connected device (do not wait for the user to ask)
+- **Live USB (preferido em sessão de QA):** `npm run android:live`
+  - Sobe `www/` em `http://127.0.0.1:5050`, faz `adb reverse`, instala com `cap run -l`
+  - Editar `src/` → a WebView recarrega sozinha (~1s). Plugins nativos (câmara, back, bio) continuam os do APK.
+  - Mudança nativa (`android/`, novo plugin Capacitor): parar e voltar a correr `android:live` (ou `android:install`).
+  - Ctrl+C pára o servidor. Depois disso a app no telemóvel fica sem página até `npm run android:live` de novo **ou** `npm run android:install` (volta ao APK empacotado, funciona offline).
+- **One-shot empacotado:** `npm run android:install` (`cap:sync` + `installDebug` + relançar)
+- **After every UI/feature implementation in a session:** `android:live` se já estiver a correr (grava e o telemóvel atualiza); senão `android:install`
+- PowerShell: usar `;` em vez de `&&` entre comandos; heredoc `<<'EOF'` não funciona — usar ficheiro `-F` para commit messages
 
 ## Workflow — ROTEAMENTO → modelo → AÇÃO
 
@@ -78,16 +95,32 @@ Tarefa / fase:
 
 Planners de feature (quando existirem): preferir `.agents/plans/<feature>-planner.md`.
 
-Planner ativo: `.agents/plans/launcher-shortcuts-planner.md` (Fase 1 feita — atalho launcher «Novo gasto» + gate biométrico). Próximo: ROTEAMENTO da **Fase 2**.
+Planners concluídos: `.agents/plans/cards-visual-planner.md`, `.agents/plans/sheet-fullbleed-planner.md`, `.agents/plans/sheet-dismiss-planner.md` (FTSheet + back + chrome + swipe).
+
+Planner concluído (branch separada): `.agents/plans/launcher-shortcuts-planner.md` — Fases 1–5 em `feature/launcher-shortcuts-phase3`, ainda não mergeada.
+
+**Avisos — polish visual + badge dinâmica:** `localStorage.ft_notif_read_ids`; conteúdo ainda mock. Próxima fase: avisos reais (orçamento/meta/cartão).
 
 ## Still open / next likely tasks
 
-1. **Launcher shortcuts** — Fase 2: `shortcuts.xml` + intent (ver planner)
-2. **Visual QA on device**: confirm type scale + spacing + balance-hide persist after tab switches
-3. **Invite hosting**: public invite links need `firebase deploy --only hosting` (placeholders: Play/App Store URLs)
-4. **Storage rules**: `firebase login` then `npm run deploy:rules` so avatar upload syncs to cloud
-5. **Avisos modal**: still demo mock — polish when resumed
-6. Any new feature work should treat the frozen chrome table above as intact unless the user asks to change nav/FOUC again
+1. **Device QA (S10e)**: `npm run android:live` — validar FTSheet + Home/Cartões integrados (live-reload USB)
+2. **PR** `cursor/sheet-dismiss-ce42` → `main` (inclui merge do trabalho do colega)
+3. **Merge atalho launcher**: `feature/launcher-shortcuts-phase3` → `main` (quando pronto)
+4. **Avisos: dados reais** — ligar painel a orçamento/meta/cartão
+5. **Invite hosting**: `firebase deploy --only hosting`
+6. **Storage rules**: `firebase login` then `npm run deploy:rules`
+7. Qualquer feature nova: tratar a tabela "Done" (nav/FOUC) como intacta
+
+## Colaboração — mais de uma pessoa a partir de agora
+
+O projeto passou a ter mais gente a trabalhar nele em paralelo (ex.: branch `feature/amigos-e-metas` já existe no remoto, de outro membro). Regras para não pisarmos trabalho uns dos outros:
+
+- **Nunca commitar direto em `main`.** Cada fase/feature vive na sua branch (`feature/<nome>`); abrir PR para `main` antes de merge.
+- **`git fetch` / `git pull` no início de cada sessão** antes de criar branch nova ou continuar uma existente — outro membro pode ter avançado `main` ou a própria feature branch entretanto.
+- **Uma branch por feature/planner**, não por chat. Se retomares um planner numa sessão nova, `git checkout` a branch já existente em vez de criar outra.
+- **Este `HANDOFF.md` é estado partilhado.** Ao terminar uma sessão com progresso relevante, atualiza a tabela "Done" e a secção "Still open" e comita — outro membro (ou chat) pode continuar a partir daqui sem reler o histórico todo.
+- **Push no fim de cada fase concluída**, não só commit local — trabalho que só existe localmente não existe para o resto do grupo.
+- Conflitos prováveis: `home.html`/`home.js` (vários fluxos tocam neles), `AndroidManifest.xml`, `strings.xml`. Avisar antes de tocar em áreas que outra branch também esteja a mexer.
 
 ## How next chat should start
 
@@ -100,4 +133,4 @@ Seguir workflow ROTEAMENTO → modelo → AÇÃO (prompt canónico no handoff).
 Current focus: <ideia ou fase>
 ```
 
-Optional deeper context: ask the agent to search prior conversation / transcript `fe53c0f2-abc3-4f06-85ce-f8b903b080c6` only for specifics — prefer this handoff over dumping the full chat (avoids context wear).
+Optional deeper context: search transcript `bcf97787-87c1-4b52-b442-cefe8e0d39d8` (esta sessão) or `fe53c0f2-abc3-4f06-85ce-f8b903b080c6` (nav/FOUC) only for specifics — prefer this handoff over dumping the full chat.

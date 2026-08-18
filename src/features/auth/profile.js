@@ -332,8 +332,12 @@
     if (document.activeElement && typeof document.activeElement.blur === 'function') {
       document.activeElement.blur();
     }
-    modal.classList.add('open');
-    modal.setAttribute('aria-hidden', 'false');
+    if (window.FTSheet) {
+      FTSheet.open(modal);
+    } else {
+      modal.classList.add('ft-sheet--open');
+      modal.setAttribute('aria-hidden', 'false');
+    }
   }
 
   function closePwModal() {
@@ -342,9 +346,12 @@
     if (document.activeElement && typeof document.activeElement.blur === 'function') {
       document.activeElement.blur();
     }
-    modal.classList.remove('open');
-    modal.setAttribute('aria-hidden', 'true');
-    // Restaura foco só em controlos não-texto (evita reabrir o teclado)
+    if (window.FTSheet) {
+      FTSheet.close(modal);
+    } else {
+      modal.classList.remove('ft-sheet--open', 'open');
+      modal.setAttribute('aria-hidden', 'true');
+    }
     if (lastFocusEl && typeof lastFocusEl.focus === 'function') {
       const tag = String(lastFocusEl.tagName || '').toLowerCase();
       if (tag !== 'input' && tag !== 'textarea' && tag !== 'select') {
@@ -353,15 +360,22 @@
     }
   }
 
+  if (window.FTSheet && $('pw-modal')) {
+    FTSheet.register($('pw-modal'), {
+      onClose: function () {
+        if (lastFocusEl && typeof lastFocusEl.focus === 'function') {
+          const tag = String(lastFocusEl.tagName || '').toLowerCase();
+          if (tag !== 'input' && tag !== 'textarea' && tag !== 'select') {
+            lastFocusEl.focus();
+          }
+        }
+      },
+    });
+  }
+
   $('btn-change-password')?.addEventListener('click', () => {
     haptic('light');
     openPwModal();
-  });
-  $('pw-cancel')?.addEventListener('click', () => {
-    closePwModal();
-  });
-  $('pw-modal')?.addEventListener('click', (e) => {
-    if (e.target.id === 'pw-modal') closePwModal();
   });
   $('pw-save')?.addEventListener('click', async () => {
     const user = FTSession.parseUser();

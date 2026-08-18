@@ -153,7 +153,11 @@
       <div class="ft-sheet__backdrop" data-close="expense-scan-modal" aria-hidden="true"></div>
       <div class="ft-sheet__panel ft-form-sheet expense-scan-sheet__panel" role="dialog" aria-labelledby="expense-scan-title">
         <div class="ft-sheet__handle" aria-hidden="true"></div>
-        <h2 id="expense-scan-title" class="ft-sheet__title">Escanear gasto</h2>
+        <div class="ft-sheet__chrome">
+          <button type="button" class="ft-sheet__back" hidden aria-label="Voltar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <h2 id="expense-scan-title" class="ft-sheet__title">Escanear gasto</h2>
+          <button type="button" class="ft-sheet__x" aria-label="Fechar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
         <div class="qr-reader-host">
           <div id="expense-qr-reader"></div>
           <button type="button" class="expense-scan-flip-btn" id="expense-scan-flip-btn" aria-label="Virar câmera">
@@ -166,7 +170,6 @@
         <div class="expense-scan-actions">
           <button type="button" class="expense-scan-capture-btn" id="expense-scan-capture-btn">Capturar nota</button>
         </div>
-        <button type="button" class="ft-sheet__close" id="expense-scan-close">Cancelar</button>
       </div>
     </div>
   </div>
@@ -180,6 +183,8 @@
   <script src="/features/transactions/receipt-parser.js"></script>
   <script src="/features/transactions/deepseek-receipt.js"></script>
   <script src="/features/transactions/ft-receipt-flow.js"></script>
+  <script src="/core/ft-app.bundle.js"></script>
+  <script src="/shared/js/ft-sheet.js"></script>
   <script src="/features/transactions/ft-expense-scan.js"></script>
   <script src="/features/transactions/ft-receipt-report.js"></script>
   <script src="/core/ft-session.js"></script>

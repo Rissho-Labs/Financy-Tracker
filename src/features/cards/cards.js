@@ -132,15 +132,34 @@
     renderCardInvoiceList(cardId);
   }
 
-  const CARD_ICONS =
-    '<div class="cc-card-top">' +
-    '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2" ry="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>' +
-    '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2" stroke-linecap="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>' +
-    '</div>';
+  const CHIP_ICON =
+    '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2" ry="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>';
+  const SHARE_ICON =
+    '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2" stroke-linecap="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>';
 
-  function brandMarkup(brand) {
+  /** Topo do cartão: nome do banco (Fase 5) quando houver, senão o ícone de chip genérico. */
+  function cardTopHtml(bankName) {
+    var nameEsc = bankName
+      ? String(bankName).toUpperCase().replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      : '';
+    var left = nameEsc ? '<span class="cc-card-bank-name">' + nameEsc + '</span>' : CHIP_ICON;
+    return '<div class="cc-card-top">' + left + SHARE_ICON + '</div>';
+  }
+
+  function bankNameFor(card) {
+    return typeof FTCards !== 'undefined' && FTCards.bankDisplayLabel ? FTCards.bankDisplayLabel(card) : '';
+  }
+
+  function bankCssClass(bank) {
+    if (bank && typeof FTCards !== 'undefined' && FTCards.banks && FTCards.banks[bank]) {
+      return 'cc-card--bank-' + bank;
+    }
+    return '';
+  }
+
+  function brandMarkup(brand, brandLabel) {
     if (typeof FTCardBrands !== 'undefined' && FTCardBrands.brandMarkup) {
-      return FTCardBrands.brandMarkup(brand);
+      return FTCardBrands.brandMarkup(brand, undefined, brandLabel);
     }
     return (
       '<div class="cc-card-brand" aria-hidden="true">' +
@@ -170,7 +189,7 @@
     return (
       '<div class="cc-card cc-card--placeholder cc-card--other active" id="cc-placeholder" data-index="0" role="listitem">' +
       '<div class="cc-card-inner">' +
-      CARD_ICONS +
+      cardTopHtml('') +
       '<div class="cc-card-middle"><span class="cc-card-name cc-card-name--muted">' + holderEsc + '</span></div>' +
       '<div class="cc-card-bottom"><span class="cc-card-number cc-card-number--muted">**** **** **** ----</span>' + brandMarkup('other') + '</div>' +
       '</div></div>'
@@ -181,12 +200,14 @@
     const holder = card.holderName || 'Titular';
     const last4 = card.last4 || '0000';
     const holderEsc = holder.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+    const bankCls = bankCssClass(card.bank);
+    const cardCls = 'cc-card ' + brandCssClass(card.brand) + (bankCls ? ' ' + bankCls : '') + (isActive ? ' active' : '');
     return (
-      '<div class="cc-card ' + brandCssClass(card.brand) + (isActive ? ' active' : '') + '" id="cc-' + index + '" data-index="' + index + '" role="listitem">' +
+      '<div class="' + cardCls + '" id="cc-' + index + '" data-index="' + index + '" role="listitem">' +
       '<div class="cc-card-inner">' +
-      CARD_ICONS +
+      cardTopHtml(bankNameFor(card)) +
       '<div class="cc-card-middle"><span class="cc-card-name">' + holderEsc + '</span></div>' +
-      '<div class="cc-card-bottom"><span class="cc-card-number">**** **** **** ' + last4 + '</span>' + brandMarkup(card.brand) + '</div>' +
+      '<div class="cc-card-bottom"><span class="cc-card-number">**** **** **** ' + last4 + '</span>' + brandMarkup(card.brand, card.brandLabel) + '</div>' +
       '</div></div>'
     );
   }
@@ -223,9 +244,12 @@
 
     cards.forEach(function (c, i) {
       if (i < index) {
-        c.style.transform = cardTransform(-320, 0.9);
+        const dist = index - i;
+        const offset = -dist * 35;
+        const scale = 1 - (dist * 0.08);
+        c.style.transform = cardTransform(offset, scale);
         c.style.zIndex = String(i);
-        c.style.opacity = '0';
+        c.style.opacity = String(1 - (dist * 0.2));
         c.style.pointerEvents = 'none';
       } else if (i > index) {
         const offset = (i - index) * 35;
@@ -272,10 +296,13 @@
         nextCard.style.transform = cardTransform(offset, scale);
         nextCard.style.opacity = String(0.8 + (0.2 * progress));
       } else if (deltaX > 0 && currentIndex > 0) {
+        activeCard.style.transform = cardTransform(deltaX, 1);
         const prevCard = cards[currentIndex - 1];
-        prevCard.style.opacity = String(Math.min(deltaX / 100, 1));
-        const offset = Math.min(deltaX - 280, 0);
-        prevCard.style.transform = cardTransform(offset, 1);
+        const progress = Math.min(Math.abs(deltaX) / window.innerWidth, 1);
+        const offset = -(35 - (35 * progress));
+        const scale = 0.92 + (0.08 * progress);
+        prevCard.style.transform = cardTransform(offset, scale);
+        prevCard.style.opacity = String(0.8 + (0.2 * progress));
       }
     }, { passive: true });
 
@@ -360,26 +387,95 @@
     setActiveCard(idx);
   }
 
+  function setFieldError(hintId, message) {
+    var hint = $(hintId);
+    if (!hint) return;
+    if (message) {
+      hint.textContent = message;
+      hint.classList.remove('hidden');
+    } else {
+      hint.textContent = '';
+      hint.classList.add('hidden');
+    }
+  }
+
   function clearAddCardForm() {
-    ['cc-add-name', 'cc-add-last4', 'cc-add-close-day', 'cc-add-due-day'].forEach(function (id) {
+    ['cc-add-name', 'cc-add-last4', 'cc-add-close-day', 'cc-add-due-day', 'cc-add-brand-other', 'cc-add-bank-other'].forEach(function (id) {
       var el = $(id);
       if (el) el.value = '';
     });
     var brandEl = $('cc-add-brand');
-    if (brandEl) brandEl.value = 'visa';
+    if (brandEl) brandEl.value = '';
+    var bankEl = $('cc-add-bank');
+    if (bankEl) bankEl.value = '';
+    updateBrandOtherField();
+    updateBankOtherField();
+    setFieldError('cc-add-close-hint', null);
+    setFieldError('cc-add-due-hint', null);
+    setFieldError('cc-add-bank-hint', null);
+    setFieldError('cc-add-brand-hint', null);
   }
 
-  function parseFormDay(inputId, label) {
+  function toggleOtherField(selectEl, wrapId, inputId) {
+    var otherWrap = $(wrapId);
+    var isOther = selectEl && selectEl.value === 'other';
+    if (otherWrap) otherWrap.classList.toggle('hidden', !isOther);
+    if (!isOther) {
+      var otherInput = $(inputId);
+      if (otherInput) otherInput.value = '';
+    }
+  }
+
+  function updateBrandOtherField() {
+    toggleOtherField($('cc-add-brand'), 'cc-add-brand-other-wrap', 'cc-add-brand-other');
+  }
+
+  function updateBankOtherField() {
+    toggleOtherField($('cc-add-bank'), 'cc-add-bank-other-wrap', 'cc-add-bank-other');
+  }
+
+  $('cc-add-brand')?.addEventListener('change', function () {
+    updateBrandOtherField();
+    setFieldError('cc-add-brand-hint', null);
+  });
+  $('cc-add-bank')?.addEventListener('change', function () {
+    updateBankOtherField();
+    setFieldError('cc-add-bank-hint', null);
+  });
+
+  function parseFormDay(inputId, hintId, label) {
     var raw = ($(inputId)?.value || '').trim();
     var day = typeof FTCards !== 'undefined' && FTCards.normalizeDay
       ? FTCards.normalizeDay(raw)
       : parseInt(raw, 10);
-    if (!day) {
-      alert('Informe o dia de ' + label + ' (1 a 31).');
+    if (!day || day < 1 || day > 31) {
+      setFieldError(hintId, 'Informe o dia de ' + label + ' (1 a 31).');
       return null;
     }
+    setFieldError(hintId, null);
     return day;
   }
+
+  /** Restringe a digitação a dias de calendário válidos (1–31): nunca deixa
+   *  formar um número de 2 dígitos fora do intervalo (ex.: "9" + "9" não vira "99"). */
+  function restrictDayInput(el) {
+    var digits = (el.value || '').replace(/\D/g, '').slice(0, 2);
+    if (digits.length === 2 && parseInt(digits, 10) > 31) {
+      digits = el.dataset.ccLastValidDay || digits.charAt(0);
+    }
+    el.value = digits;
+    el.dataset.ccLastValidDay = digits;
+  }
+
+  ['cc-add-close-day', 'cc-add-due-day'].forEach(function (id) {
+    var hintId = id === 'cc-add-close-day' ? 'cc-add-close-hint' : 'cc-add-due-hint';
+    var el = $(id);
+    if (!el) return;
+    el.addEventListener('input', function () {
+      restrictDayInput(el);
+      setFieldError(hintId, null);
+    });
+  });
 
   function openAddCardModal() {
     const modal = $('add-card-modal');
@@ -388,24 +484,28 @@
     if (document.activeElement && typeof document.activeElement.blur === 'function') {
       document.activeElement.blur();
     }
-    modal.classList.add('open');
-    modal.setAttribute('aria-hidden', 'false');
+    if (window.FTSheet) {
+      FTSheet.open(modal);
+    } else {
+      modal.classList.add('ft-sheet--open');
+      modal.setAttribute('aria-hidden', 'false');
+    }
   }
 
   document.querySelector('.add-card-btn-top')?.addEventListener('click', openAddCardModal);
   $('cc-add-first-btn')?.addEventListener('click', openAddCardModal);
 
-  const modal = $('add-card-modal');
-  $('cc-add-cancel')?.addEventListener('click', function () {
-    modal?.classList.remove('open');
-    modal?.setAttribute('aria-hidden', 'true');
-  });
-  modal?.addEventListener('click', function (e) {
-    if (e.target === modal) {
-      modal.classList.remove('open');
+  function closeAddCardModal() {
+    const modal = $('add-card-modal');
+    if (!modal) return;
+    if (window.FTSheet) {
+      FTSheet.close(modal);
+    } else {
+      modal.classList.remove('ft-sheet--open', 'open');
       modal.setAttribute('aria-hidden', 'true');
     }
-  });
+  }
+
   $('cc-add-save')?.addEventListener('click', function () {
     const name = ($('cc-add-name')?.value || '').trim() || 'Titular';
     const last4 = ($('cc-add-last4')?.value || '').replace(/\D/g, '').slice(-4);
@@ -413,23 +513,52 @@
       alert('Informe os 4 últimos dígitos.');
       return;
     }
-    const closingDay = parseFormDay('cc-add-close-day', 'fechamento');
+    const closingDay = parseFormDay('cc-add-close-day', 'cc-add-close-hint', 'fechamento');
     if (closingDay == null) return;
-    const dueDay = parseFormDay('cc-add-due-day', 'vencimento');
+    const dueDay = parseFormDay('cc-add-due-day', 'cc-add-due-hint', 'vencimento');
     if (dueDay == null) return;
-    const brand = $('cc-add-brand')?.value || 'other';
+    const bank = $('cc-add-bank')?.value || '';
+    if (!bank) {
+      setFieldError('cc-add-bank-hint', 'Selecione o banco.');
+      return;
+    }
+    setFieldError('cc-add-bank-hint', null);
+    let bankLabel = '';
+    if (bank === 'other') {
+      bankLabel = ($('cc-add-bank-other')?.value || '').trim();
+      if (!bankLabel) {
+        alert('Informe o nome do banco.');
+        return;
+      }
+    }
+    const brand = $('cc-add-brand')?.value || '';
+    if (!brand) {
+      setFieldError('cc-add-brand-hint', 'Selecione a bandeira.');
+      return;
+    }
+    setFieldError('cc-add-brand-hint', null);
+    let brandLabel = '';
+    if (brand === 'other') {
+      brandLabel = ($('cc-add-brand-other')?.value || '').trim();
+      if (!brandLabel) {
+        alert('Informe o nome da bandeira.');
+        return;
+      }
+    }
     const prevCount = FTCards.getAll().length;
     FTCards.add({
       holderName: name,
       name: name,
       last4: last4,
       brand: brand,
+      brandLabel: brandLabel,
+      bank: bank,
+      bankLabel: bankLabel,
       closingDay: closingDay,
       dueDay: dueDay
     });
     clearAddCardForm();
-    modal?.classList.remove('open');
-    modal?.setAttribute('aria-hidden', 'true');
+    closeAddCardModal();
     renderCardsCarousel(prevCount);
     haptic('medium');
   });

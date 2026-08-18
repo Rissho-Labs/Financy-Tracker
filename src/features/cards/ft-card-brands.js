@@ -45,8 +45,20 @@
       '</svg>'
   };
 
-  function brandMarkup(brand, wrapClass) {
+  /** Bandeira "Outra" com texto do utilizador (ex.: "Hipercard") no lugar do badge genérico. */
+  function customBrandMarkup(label, wrapClass) {
+    var esc = String(label).trim().toUpperCase()
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').slice(0, 12);
+    var w = Math.max(36, Math.min(72, 18 + esc.length * 6));
+    var cls = (wrapClass || 'cc-card-brand') + ' cc-card-brand--badge';
+    return wrap(textBadge(esc, w, 20, 9, 0.6), cls);
+  }
+
+  function brandMarkup(brand, wrapClass, customLabel) {
     var key = brand && SVG[brand] ? brand : 'other';
+    if (key === 'other' && customLabel && String(customLabel).trim()) {
+      return customBrandMarkup(customLabel, wrapClass);
+    }
     var cls = wrapClass || 'cc-card-brand';
     if (key === 'visa' || key === 'elo' || key === 'amex') {
       cls += ' cc-card-brand--badge';

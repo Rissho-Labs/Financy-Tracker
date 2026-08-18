@@ -45,10 +45,8 @@
   function setControlsBusy(busy) {
     var cap = $('expense-scan-capture-btn');
     var flip = $('expense-scan-flip-btn');
-    var closeBtn = $('expense-scan-close');
     if (cap) cap.disabled = !!busy;
     if (flip) flip.disabled = !!busy;
-    if (closeBtn) closeBtn.disabled = !!busy;
   }
 
   function captureVideoFrame() {
@@ -80,28 +78,40 @@
     scanHandled = false;
   }
 
-  function openSheet() {
-    var el = $(MODAL_ID);
-    if (!el) return;
-    lastFocusEl = document.activeElement;
-    el.classList.add('open');
-    el.setAttribute('aria-hidden', 'false');
-  }
-
-  function closeSheet() {
-    var el = $(MODAL_ID);
-    if (!el) return;
-    if (document.activeElement && typeof document.activeElement.blur === 'function') {
-      document.activeElement.blur();
-    }
-    el.classList.remove('open');
-    el.setAttribute('aria-hidden', 'true');
+  function restoreFocus() {
     if (lastFocusEl && typeof lastFocusEl.focus === 'function') {
       var tag = String(lastFocusEl.tagName || '').toLowerCase();
       if (tag !== 'input' && tag !== 'textarea' && tag !== 'select') {
         lastFocusEl.focus();
       }
     }
+  }
+
+  function openSheet() {
+    var el = $(MODAL_ID);
+    if (!el) return;
+    lastFocusEl = document.activeElement;
+    if (global.FTSheet) {
+      global.FTSheet.open(el);
+    } else {
+      el.classList.add('ft-sheet--open');
+      el.setAttribute('aria-hidden', 'false');
+    }
+  }
+
+  function closeSheet(force) {
+    var el = $(MODAL_ID);
+    if (!el) return;
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+      document.activeElement.blur();
+    }
+    if (global.FTSheet) {
+      global.FTSheet.close(el, !!force);
+    } else {
+      el.classList.remove('ft-sheet--open', 'open');
+      el.setAttribute('aria-hidden', 'true');
+    }
+    restoreFocus();
   }
 
   function retryScan() {
@@ -255,24 +265,10 @@
     await startScanner();
   }
 
-  function bindBackdrop() {
+  function bindControls() {
     var sheet = $(MODAL_ID);
     if (!sheet || sheet.dataset.bound) return;
     sheet.dataset.bound = '1';
-
-    sheet.querySelectorAll('[data-close]').forEach(function (node) {
-      node.addEventListener('click', function () {
-        if (scanHandled) return;
-        close({});
-      });
-    });
-
-    sheet.addEventListener('click', function (e) {
-      if (scanHandled) return;
-      if (e.target === sheet || e.target.classList.contains('ft-sheet__backdrop')) {
-        close({});
-      }
-    });
 
     $('expense-scan-capture-btn')?.addEventListener('click', function () {
       handleManualCapture();
@@ -281,10 +277,26 @@
     $('expense-scan-flip-btn')?.addEventListener('click', function () {
       flipCamera();
     });
+  }
 
-    $('expense-scan-close')?.addEventListener('click', function () {
-      if (scanHandled) return;
-      close({});
+  function registerSheet() {
+    var el = $(MODAL_ID);
+    if (!el || !global.FTSheet || el.dataset.ftRegistered) return;
+    el.dataset.ftRegistered = '1';
+    global.FTSheet.register(el, {
+      canClose: function () {
+        return !scanHandled;
+      },
+      onClose: function () {
+        stopScanner();
+        setStatus('');
+        setControlsBusy(false);
+        restoreFocus();
+        if (onCloseCb) {
+          onCloseCb({});
+          onCloseCb = null;
+        }
+      },
     });
   }
 
@@ -295,7 +307,8 @@
     opts = opts || {};
     onCloseCb = typeof opts.onClose === 'function' ? opts.onClose : null;
     currentFacingMode = defaultFacingMode();
-    bindBackdrop();
+    registerSheet();
+    bindControls();
     haptic('light');
     openSheet();
     setTimeout(function () {
@@ -308,11 +321,11 @@
     await stopScanner();
     setStatus('');
     setControlsBusy(false);
-    closeSheet();
-    if (onCloseCb) {
-      onCloseCb(result);
-      onCloseCb = null;
-    }
+    var cb = onCloseCb;
+    onCloseCb = null;
+    closeSheet(true);
+    restoreFocus();
+    if (cb) cb(result);
   }
 
   global.FTExpenseScan = {

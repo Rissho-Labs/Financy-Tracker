@@ -14,11 +14,14 @@
     "serve": "serve www -l 5050 --no-etag",
     "cap:sync": "npm run www:prepare && cap sync",
     "cap:open": "cap open android",
+    "android:install": "node scripts/android-install.mjs",
+    "android:live": "node scripts/android-live.mjs",
     "android:sha1": "powershell -ExecutionPolicy Bypass -File scripts/print-android-sha1.ps1"
   },
   "dependencies": {
     "@capacitor-firebase/authentication": "^8.2.0",
     "@capacitor/android": "^8.3.2",
+    "@capacitor/app": "^8.0.0",
     "@capacitor/core": "^8.3.2",
     "@capgo/capacitor-native-biometric": "^8.4.2",
     "@pantrist/capacitor-plugin-ml-kit-text-recognition": "^8.0.0",

@@ -62,22 +62,7 @@
       .replace(/"/g, '&quot;');
   }
 
-  function openSheet(id) {
-    const el = $(id);
-    if (!el) return;
-    lastFocusEl = document.activeElement;
-    el.classList.add('open');
-    el.setAttribute('aria-hidden', 'false');
-  }
-
-  function closeSheet(id) {
-    const el = $(id);
-    if (!el) return;
-    if (document.activeElement && typeof document.activeElement.blur === 'function') {
-      document.activeElement.blur();
-    }
-    el.classList.remove('open');
-    el.setAttribute('aria-hidden', 'true');
+  function restoreFocus() {
     if (lastFocusEl && typeof lastFocusEl.focus === 'function') {
       const tag = String(lastFocusEl.tagName || '').toLowerCase();
       if (tag !== 'input' && tag !== 'textarea' && tag !== 'select') {
@@ -86,20 +71,31 @@
     }
   }
 
-  function bindBackdropClose(sheetId) {
-    const sheet = $(sheetId);
-    if (!sheet) return;
-    sheet.querySelectorAll('[data-close]').forEach((node) => {
-      node.addEventListener('click', () => {
-        const target = node.getAttribute('data-close');
-        if (target) closeSheet(target);
-      });
-    });
-    sheet.addEventListener('click', (e) => {
-      if (e.target === sheet || e.target.classList.contains('ft-sheet__backdrop')) {
-        closeSheet(sheetId);
-      }
-    });
+  function openSheet(id) {
+    const el = $(id);
+    if (!el) return;
+    lastFocusEl = document.activeElement;
+    if (window.FTSheet) {
+      FTSheet.open(el);
+    } else {
+      el.classList.add('ft-sheet--open');
+      el.setAttribute('aria-hidden', 'false');
+    }
+  }
+
+  function closeSheet(id) {
+    const el = $(id);
+    if (!el) return;
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+      document.activeElement.blur();
+    }
+    if (window.FTSheet) {
+      FTSheet.close(el);
+      return;
+    }
+    el.classList.remove('ft-sheet--open', 'open');
+    el.setAttribute('aria-hidden', 'true');
+    restoreFocus();
   }
 
   function renderFriendsList() {
@@ -345,17 +341,10 @@
     renderSearchResults();
   });
 
-  $('friend-profile-close')?.addEventListener('click', function () {
-    closeSheet('friend-profile-modal');
+  ['friends-modal', 'friend-search-modal', 'friend-profile-modal'].forEach(function (id) {
+    var el = $(id);
+    if (el && window.FTSheet) FTSheet.register(el, { onClose: restoreFocus });
   });
-
-  $('friend-search-close')?.addEventListener('click', function () {
-    closeSheet('friend-search-modal');
-  });
-
-  bindBackdropClose('friends-modal');
-  bindBackdropClose('friend-search-modal');
-  bindBackdropClose('friend-profile-modal');
 
   if (window.FTProfileQR) {
     FTProfileQR.onFriendsChanged = function () {

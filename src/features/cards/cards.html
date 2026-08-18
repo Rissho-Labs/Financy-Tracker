@@ -158,33 +158,69 @@
       <div class="ft-sheet__backdrop"></div>
       <div class="ft-sheet__panel ft-form-sheet" role="dialog" aria-labelledby="add-card-title">
         <div class="ft-sheet__handle" aria-hidden="true"></div>
-        <h2 id="add-card-title" class="ft-sheet__title">Novo cartão</h2>
-        <label class="field-label">Nome no cartão</label>
-        <input id="cc-add-name" type="text" class="ft-form-input" maxlength="48" />
-        <label class="field-label">Final do número (4 dígitos)</label>
-        <input id="cc-add-last4" type="text" class="ft-form-input" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" />
-        <label class="field-label">Bandeira</label>
-        <select id="cc-add-brand" class="ft-form-input ft-form-select">
-          <option value="visa">Visa</option>
-          <option value="master">Mastercard</option>
-          <option value="elo">Elo</option>
-          <option value="amex">American Express</option>
-          <option value="other">Outra</option>
-        </select>
+        <div class="ft-sheet__chrome">
+          <button type="button" class="ft-sheet__back" hidden aria-label="Voltar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <h2 id="add-card-title" class="ft-sheet__title">Novo cartão</h2>
+          <button type="button" class="ft-sheet__x" aria-label="Fechar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
+        <div class="ft-sheet__body">
+        <div class="cc-form-row2">
+          <input id="cc-add-name" type="text" class="ft-form-input" maxlength="48" placeholder="Apelido" />
+          <input id="cc-add-last4" type="text" class="ft-form-input" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="Final (4 dígitos)" autocomplete="off" />
+        </div>
+        <div class="cc-form-field">
+          <select id="cc-add-bank" class="ft-form-input ft-form-select" aria-label="Banco" required aria-describedby="cc-add-bank-hint">
+            <option value="" disabled selected hidden>Selecione o banco</option>
+            <option value="nubank">Nubank</option>
+            <option value="inter">Inter</option>
+            <option value="mercadopago">Mercado Pago</option>
+            <option value="c6">C6 Bank</option>
+            <option value="itau">Itaú</option>
+            <option value="bradesco">Bradesco</option>
+            <option value="santander">Santander</option>
+            <option value="caixa">Caixa</option>
+            <option value="bb">Banco do Brasil</option>
+            <option value="other">Outro</option>
+          </select>
+          <span class="cc-field-hint cc-field-hint--error hidden" id="cc-add-bank-hint" role="alert"></span>
+        </div>
+        <div id="cc-add-bank-other-wrap" class="cc-form-field hidden">
+          <input id="cc-add-bank-other" type="text" class="ft-form-input" maxlength="24" placeholder="Nome do banco" autocomplete="off" />
+        </div>
+        <div class="cc-form-field">
+          <select id="cc-add-brand" class="ft-form-input ft-form-select" aria-label="Bandeira" required aria-describedby="cc-add-brand-hint">
+            <option value="" disabled selected hidden>Selecione a bandeira</option>
+            <option value="visa">Visa</option>
+            <option value="master">Mastercard</option>
+            <option value="elo">Elo</option>
+            <option value="amex">American Express</option>
+            <option value="other">Outra</option>
+          </select>
+          <span class="cc-field-hint cc-field-hint--error hidden" id="cc-add-brand-hint" role="alert"></span>
+        </div>
+        <div id="cc-add-brand-other-wrap" class="cc-form-field hidden">
+          <input id="cc-add-brand-other" type="text" class="ft-form-input" maxlength="20" placeholder="Nome da bandeira (ex.: Hipercard)" autocomplete="off" />
+        </div>
         <div class="cc-form-row2">
           <div class="cc-form-field">
-            <label class="field-label" for="cc-add-close-day">Fechamento da fatura</label>
-            <input id="cc-add-close-day" type="text" class="ft-form-input" inputmode="numeric" pattern="[0-9]*" maxlength="2" placeholder="Ex: 15" aria-describedby="cc-add-close-hint" autocomplete="off" />
-            <span class="cc-field-hint" id="cc-add-close-hint">Dia do mês (1–31)</span>
+            <span class="cc-day-label" id="cc-add-close-label">Fechamento</span>
+            <div class="cc-day-field">
+              <span class="cc-day-prefix">Todo dia</span>
+              <input id="cc-add-close-day" type="text" class="ft-form-input cc-day-input" inputmode="numeric" pattern="[0-9]*" maxlength="2" aria-labelledby="cc-add-close-label" aria-describedby="cc-add-close-hint" autocomplete="off" />
+            </div>
+            <span class="cc-field-hint cc-field-hint--error hidden" id="cc-add-close-hint" role="alert"></span>
           </div>
           <div class="cc-form-field">
-            <label class="field-label" for="cc-add-due-day">Vencimento</label>
-            <input id="cc-add-due-day" type="text" class="ft-form-input" inputmode="numeric" pattern="[0-9]*" maxlength="2" placeholder="Ex: 22" aria-describedby="cc-add-due-hint" autocomplete="off" />
-            <span class="cc-field-hint" id="cc-add-due-hint">Dia do mês (1–31)</span>
+            <span class="cc-day-label" id="cc-add-due-label">Vencimento</span>
+            <div class="cc-day-field">
+              <span class="cc-day-prefix">Todo dia</span>
+              <input id="cc-add-due-day" type="text" class="ft-form-input cc-day-input" inputmode="numeric" pattern="[0-9]*" maxlength="2" aria-labelledby="cc-add-due-label" aria-describedby="cc-add-due-hint" autocomplete="off" />
+            </div>
+            <span class="cc-field-hint cc-field-hint--error hidden" id="cc-add-due-hint" role="alert"></span>
           </div>
         </div>
+        </div>
         <button type="button" class="goal-submit" id="cc-add-save">Adicionar</button>
-        <button type="button" class="ft-sheet__close ft-form-cancel" id="cc-add-cancel">Cancelar</button>
       </div>
     </div>
 
@@ -194,6 +230,8 @@
   <script src="/features/cards/ft-cards.js"></script>
   <script src="/features/cards/ft-card-brands.js"></script>
   <script src="/features/transactions/ft-transactions.js"></script>
+  <script src="/core/ft-app.bundle.js"></script>
+  <script src="/shared/js/ft-sheet.js"></script>
   <script src="/shared/js/notification-panel.js"></script>
   <script src="/shared/js/ft-tab-carousel.js"></script>
   <script src="/shared/js/ft-bottom-nav.js"></script>

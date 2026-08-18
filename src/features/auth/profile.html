@@ -61,7 +61,6 @@
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
             <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
           </svg>
-          <span class="notif-badge" aria-label="1 nova notificação">1</span>
         </button>
       </div>
     </header>
@@ -273,9 +272,13 @@
       <div class="ft-sheet__backdrop" data-close="friends-modal" aria-hidden="true"></div>
       <div class="ft-sheet__panel ft-form-sheet friends-sheet__panel" role="dialog" aria-labelledby="friends-modal-title">
         <div class="ft-sheet__handle" aria-hidden="true"></div>
-        <div class="friends-sheet__head">
-          <h2 id="friends-modal-title" class="ft-sheet__title">Amigos</h2>
-          <span id="friends-count" class="friends-count" aria-live="polite">0</span>
+        <div class="ft-sheet__chrome ft-sheet__chrome--friends">
+          <button type="button" class="ft-sheet__back" hidden aria-label="Voltar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <div class="ft-sheet__chrome-main friends-sheet__head">
+            <h2 id="friends-modal-title" class="ft-sheet__title">Amigos</h2>
+            <span id="friends-count" class="friends-count" aria-live="polite">0</span>
+          </div>
+          <button type="button" class="ft-sheet__x" aria-label="Fechar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
         </div>
         <div class="friends-toolbar">
           <input type="search" id="friends-filter" class="friends-search" placeholder="Buscar amigos…" autocomplete="off" aria-label="Buscar na lista de amigos" />
@@ -294,11 +297,14 @@
       <div class="ft-sheet__backdrop" data-close="friend-search-modal" aria-hidden="true"></div>
       <div class="ft-sheet__panel ft-form-sheet friend-search-sheet__panel" role="dialog" aria-labelledby="friend-search-title">
         <div class="ft-sheet__handle" aria-hidden="true"></div>
-        <h2 id="friend-search-title" class="ft-sheet__title">Adicionar amigo</h2>
+        <div class="ft-sheet__chrome">
+          <button type="button" class="ft-sheet__back" hidden aria-label="Voltar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <h2 id="friend-search-title" class="ft-sheet__title">Adicionar amigo</h2>
+          <button type="button" class="ft-sheet__x" aria-label="Fechar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
         <input type="search" id="friend-search-query" class="friends-search" placeholder="Nome, @usuário ou #id" autocomplete="off" aria-label="Buscar usuários" />
         <p id="friend-search-empty" class="friend-search-empty">Digite um nome, @usuário ou #id para buscar.</p>
         <ul id="friend-search-results" class="friend-search-results" aria-label="Resultados da busca"></ul>
-        <button type="button" class="ft-sheet__close friend-profile-close" id="friend-search-close">Fechar</button>
       </div>
     </div>
 
@@ -307,9 +313,12 @@
       <div class="ft-sheet__backdrop" data-close="friend-profile-modal" aria-hidden="true"></div>
       <div class="ft-sheet__panel ft-form-sheet friend-profile-sheet__panel" role="dialog" aria-labelledby="friend-profile-title">
         <div class="ft-sheet__handle" aria-hidden="true"></div>
-        <h2 id="friend-profile-title" class="ft-sheet__title">Perfil</h2>
+        <div class="ft-sheet__chrome">
+          <button type="button" class="ft-sheet__back" hidden aria-label="Voltar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <h2 id="friend-profile-title" class="ft-sheet__title">Perfil</h2>
+          <button type="button" class="ft-sheet__x" aria-label="Fechar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
         <div id="friend-profile-body"></div>
-        <button type="button" class="ft-sheet__close friend-profile-close" id="friend-profile-close">Fechar</button>
       </div>
     </div>
 
@@ -318,7 +327,11 @@
       <div class="ft-sheet__backdrop" data-close="profile-qr-modal" aria-hidden="true"></div>
       <div class="ft-sheet__panel ft-form-sheet profile-qr-sheet__panel" role="dialog" aria-labelledby="profile-qr-title">
         <div class="ft-sheet__handle" aria-hidden="true"></div>
-        <h2 id="profile-qr-title" class="ft-sheet__title">Seu QR Code</h2>
+        <div class="ft-sheet__chrome">
+          <button type="button" class="ft-sheet__back" hidden aria-label="Voltar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <h2 id="profile-qr-title" class="ft-sheet__title">Seu QR Code</h2>
+          <button type="button" class="ft-sheet__x" aria-label="Fechar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
         <div class="profile-qr-display">
           <div class="profile-qr-canvas-wrap">
             <canvas id="profile-qr-canvas" width="220" height="220" aria-label="QR Code do seu perfil"></canvas>
@@ -333,7 +346,6 @@
           <li>Aponte a câmera do celular no QR Code do seu amigo</li>
           <li>Amigo adicionado</li>
         </ol>
-        <button type="button" class="ft-sheet__close" id="profile-qr-close">Fechar</button>
       </div>
     </div>
 
@@ -342,14 +354,17 @@
       <div class="ft-sheet__backdrop" data-close="friend-qr-scan-modal" aria-hidden="true"></div>
       <div class="ft-sheet__panel ft-form-sheet profile-qr-scan-sheet__panel" role="dialog" aria-labelledby="friend-qr-scan-title">
         <div class="ft-sheet__handle" aria-hidden="true"></div>
-        <h2 id="friend-qr-scan-title" class="ft-sheet__title">Escanear QR Code</h2>
+        <div class="ft-sheet__chrome">
+          <button type="button" class="ft-sheet__back" hidden aria-label="Voltar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <h2 id="friend-qr-scan-title" class="ft-sheet__title">Escanear QR Code</h2>
+          <button type="button" class="ft-sheet__x" aria-label="Fechar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
         <div class="qr-reader-host">
           <div id="qr-reader"></div>
           <div class="qr-scan-frame" aria-hidden="true"></div>
         </div>
         <p class="qr-scan-hint">Posicione o QR Code dentro do quadrado verde.</p>
         <p id="qr-scan-status" class="qr-scan-status" aria-live="polite"></p>
-        <button type="button" class="ft-sheet__close" id="friend-qr-scan-close">Cancelar</button>
       </div>
     </div>
 
@@ -357,7 +372,11 @@
       <div class="ft-sheet__backdrop"></div>
       <div class="ft-sheet__panel ft-form-sheet" role="dialog" aria-labelledby="pw-modal-title">
         <div class="ft-sheet__handle" aria-hidden="true"></div>
-        <h2 id="pw-modal-title" class="ft-sheet__title">Alterar senha</h2>
+        <div class="ft-sheet__chrome">
+          <button type="button" class="ft-sheet__back" hidden aria-label="Voltar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <h2 id="pw-modal-title" class="ft-sheet__title">Alterar senha</h2>
+          <button type="button" class="ft-sheet__x" aria-label="Fechar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
         <label class="field-label">Senha atual</label>
         <input id="pw-old" type="password" class="ft-form-input" />
         <label class="field-label">Nova senha</label>
@@ -365,7 +384,6 @@
         <label class="field-label">Confirmar</label>
         <input id="pw-new2" type="password" class="ft-form-input" />
         <button type="button" class="goal-submit" id="pw-save">Guardar</button>
-        <button type="button" class="ft-sheet__close ft-form-cancel" id="pw-cancel">Cancelar</button>
       </div>
     </div>
 
@@ -377,6 +395,8 @@
   <script src="/core/ft-biometric.bundle.js"></script>
   <script src="/core/ft-auth.js"></script>
   <script src="/core/ft-session.js"></script>
+  <script src="/core/ft-app.bundle.js"></script>
+  <script src="/shared/js/ft-sheet.js"></script>
   <script src="/shared/js/notification-panel.js"></script>
   <script src="/shared/js/ft-tab-carousel.js"></script>
   <script src="/shared/js/ft-bottom-nav.js"></script>
