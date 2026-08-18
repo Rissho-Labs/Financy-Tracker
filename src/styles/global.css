@@ -621,6 +621,8 @@ html[data-theme="light"] .phone-frame {
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.25s var(--ease-smooth);
+  contain: paint;
+  isolation: isolate;
 }
 .ft-sheet.ft-sheet--open,
 .ft-sheet.open,
@@ -631,9 +633,7 @@ html[data-theme="light"] .phone-frame {
 .ft-sheet__backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  -webkit-backdrop-filter: blur(4px);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.52);
 }
 .ft-sheet__panel {
   position: absolute;
@@ -645,12 +645,13 @@ html[data-theme="light"] .phone-frame {
   max-height: 78vh;
   overflow: auto;
   overflow-x: hidden;
+  overscroll-behavior: contain;
   background: var(--sheen), var(--surface-solid);
   border-radius: 20px 20px 0 0;
   padding: 12px 20px 24px;
   padding-bottom: calc(24px + env(safe-area-inset-bottom, 0));
-  transform: translateY(100%);
-  transition: transform 0.32s var(--ease-spring);
+  transform: translate3d(0, 100%, 0);
+  transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
   border: none;
   border-top: 1px solid var(--border-bright);
   box-shadow: var(--shadow-metal);
@@ -661,10 +662,10 @@ html[data-theme="light"] .ft-sheet__panel {
   border-top-color: rgba(0, 0, 0, 0.08);
 }
 .ft-sheet.ft-sheet--open .ft-sheet__panel {
-  transform: translateY(0);
+  transform: translate3d(0, 0, 0);
 }
 .ft-sheet.open .ft-sheet__panel {
-  transform: translateY(0);
+  transform: translate3d(0, 0, 0);
 }
 #expense-sheet.ft-sheet {
   position: absolute;
@@ -738,8 +739,8 @@ html[data-theme="light"] .ft-sheet__panel {
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: 72px;
-  height: 44px;
+  width: 100vw;
+  height: 40px;
 }
 .ft-sheet__chrome {
   display: grid;
@@ -800,8 +801,12 @@ html[data-theme="light"] .ft-sheet__x:active {
 .ft-sheet__chrome--friends .ft-sheet__title {
   grid-column: unset;
 }
+.ft-sheet.ft-sheet--dragging {
+  transition: none !important;
+}
 .ft-sheet--dragging .ft-sheet__panel {
   transition: none !important;
+  touch-action: none;
 }
 .ft-sheet--dragging .ft-sheet__backdrop {
   transition: none !important;
@@ -812,8 +817,22 @@ html[data-theme="light"] .ft-sheet__x:active {
   margin-bottom: 16px;
 }
 .ft-sheet__chrome ~ .expense-sheet-body,
-.ft-sheet__chrome ~ .ft-notif-body {
+.ft-sheet__chrome ~ .ft-notif-body,
+.ft-sheet__chrome ~ .ft-sheet__body {
   margin-top: 0;
+}
+.ft-sheet__body {
+  overflow-x: hidden;
+  overflow-y: auto;
+  min-height: 0;
+  flex: 1 1 auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+#add-card-modal .ft-sheet__panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 .ft-notif-list {
   list-style: none;

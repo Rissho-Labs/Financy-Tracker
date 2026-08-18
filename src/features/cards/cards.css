@@ -148,6 +148,14 @@
   100% { left: 200%; }
 }
 
+/* Sheet aberto: pára shimmer/GPU do carrossel, sem esconder (esconder piscava o fundo) */
+html.ft-cards.ft-sheet-open .cc-card {
+  will-change: auto;
+}
+html.ft-cards.ft-sheet-open .cc-card-inner::after {
+  animation: none;
+}
+
 .cc-card-top {
   display: flex;
   justify-content: space-between;

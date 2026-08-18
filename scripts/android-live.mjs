@@ -84,7 +84,7 @@ async function prepareDebounced() {
 function shouldIgnoreWatch(filename) {
   if (!filename) return true;
   const n = filename.replace(/\\/g, '/');
-  return n.endsWith('ft-build.js') || n.endsWith('ft-live-reload.js');
+  return /ft-build\.js$|ft-live-reload\.js$|\.bundle\.js$/.test(n);
 }
 
 function watchSources() {

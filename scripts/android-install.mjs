@@ -10,6 +10,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '..');
 const androidDir = path.join(root, 'android');
 const env = getAndroidEnv();
+delete env.FT_LIVE;
 const isWin = process.platform === 'win32';
 
 function run(cmd, args, opts = {}) {
@@ -18,7 +19,7 @@ function run(cmd, args, opts = {}) {
       cwd: opts.cwd || root,
       env,
       stdio: 'inherit',
-      shell: opts.shell ?? isWin,
+      shell: opts.shell ?? false,
     });
     p.on('exit', (code) => {
       if (code === 0) resolve();
@@ -36,8 +37,15 @@ try {
   if (!env.ANDROID_HOME) throw new Error('ANDROID_HOME em falta');
   console.log('[android:install] dispositivo:');
   await runAdb(['devices', '-l']);
-  await run(isWin ? 'npm' : 'npm', ['run', 'cap:sync']);
-  await run(gradleCmd(androidDir), ['installDebug'], { cwd: androidDir });
+  await run(isWin ? 'npm' : 'npm', ['run', 'cap:sync'], { shell: true });
+  if (isWin) {
+    await run('cmd.exe', ['/d', '/s', '/c', `"${gradleCmd(androidDir)}" installDebug`], {
+      cwd: androidDir,
+      shell: false,
+    });
+  } else {
+    await run(gradleCmd(androidDir), ['installDebug'], { cwd: androidDir, shell: false });
+  }
   await runAdb(['shell', 'am', 'force-stop', 'com.financetracker.app']);
   await runAdb([
     'shell', 'am', 'start', '-n',

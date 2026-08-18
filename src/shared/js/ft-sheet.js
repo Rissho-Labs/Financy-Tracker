@@ -12,8 +12,10 @@
   var drag = null;
   var reducedMotion = false;
 
-  var THRESHOLD = 0.25;
-  var FLICK_V = 0.6;
+  var THRESHOLD = 0.12;
+  var FLICK_V = 0.18;
+  var AXIS_SLOP = 4;
+  var SNAP_MS = '0.18s cubic-bezier(0.2, 0.75, 0.2, 1)';
 
   function panelOf(el) {
     return el && el.querySelector('.ft-sheet__panel');
@@ -41,6 +43,19 @@
   }
 
   function syncBodyLock() {
+    var root = document.documentElement;
+    if (stack.length) {
+      if (root._ftSheetCloseT) {
+        window.clearTimeout(root._ftSheetCloseT);
+        root._ftSheetCloseT = 0;
+      }
+      root.classList.add('ft-sheet-open');
+    } else if (!root._ftSheetCloseT) {
+      root._ftSheetCloseT = window.setTimeout(function () {
+        root._ftSheetCloseT = 0;
+        if (!stack.length) root.classList.remove('ft-sheet-open');
+      }, 280);
+    }
     if (stack.some(function (el) {
       return optsOf(el).lockBody || el.id === 'ft-notif-sheet';
     })) {
@@ -77,7 +92,19 @@
     } else {
       el.classList.remove(OPEN, 'open', 'ft-sheet--dragging');
       el.setAttribute('aria-hidden', 'true');
-      clearPanelMotion(panel, bd);
+      if (panel) panel.style.willChange = '';
+      requestAnimationFrame(function () {
+        if (isOpen(el)) return;
+        if (panel) panel.style.transform = '';
+        if (bd) {
+          bd.style.opacity = '';
+          bd.style.transition = '';
+        }
+      });
+      window.setTimeout(function () {
+        if (isOpen(el) || !panel) return;
+        panel.style.transition = '';
+      }, 280);
     }
   }
 
@@ -189,17 +216,34 @@
 
   function scrollableContent(panel) {
     if (!panel) return null;
-    var n = panel.querySelector('.expense-sheet-body, .ft-notif-body, .friends-list');
-    return n || (panel.scrollHeight > panel.clientHeight ? panel : null);
+    var n = panel.querySelector('.ft-sheet__body, .expense-sheet-body, .ft-notif-body, .friends-list');
+    return n || (panel.scrollHeight > panel.clientHeight + 2 ? panel : null);
   }
 
-  function dragStartEligible(target, panel) {
-    if (!target || !target.closest) return false;
-    if (target.closest('.ft-sheet__back, .ft-sheet__x, input, textarea, select, button, a, label')) {
-      return false;
+  function isInteractive(target) {
+    return !!(target && target.closest &&
+      target.closest('.ft-sheet__back, .ft-sheet__x, input, textarea, select, button, a, label'));
+  }
+
+  function isGrabber(target) {
+    return !!(target && target.closest &&
+      target.closest('.ft-sheet__handle, .ft-sheet__chrome'));
+  }
+
+  function applyDragY(panel, y) {
+    panel.style.transform = 'translate3d(0,' + y + 'px,0)';
+  }
+
+  function abortDrag(el) {
+    if (!drag || drag.el !== el) return;
+    var panel = drag.panel;
+    drag = null;
+    el.classList.remove('ft-sheet--dragging');
+    if (panel) {
+      panel.style.transition = '';
+      panel.style.transform = '';
+      panel.style.touchAction = '';
     }
-    if (target.closest('.ft-sheet__handle, .ft-sheet__chrome')) return true;
-    return false;
   }
 
   function bindDrag(el) {
@@ -208,10 +252,12 @@
     panel.dataset.ftDrag = '1';
 
     panel.addEventListener('pointerdown', function (e) {
-      if (topSheet() !== el || !canClose(el)) return;
-      if (!dragStartEligible(e.target, panel)) return;
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      if (topSheet() !== el || !canClose(el) || isInteractive(e.target)) return;
       var sc = scrollableContent(panel);
-      if (sc && sc.scrollTop > 0) return;
+      var grab = isGrabber(e.target);
+      if (!grab && sc === panel) return;
+      if (sc && sc.scrollTop > 1 && !grab) return;
 
       drag = {
         el: el,
@@ -221,60 +267,103 @@
         startY: e.clientY,
         lastY: e.clientY,
         lastT: e.timeStamp,
+        vy: 0,
         dy: 0,
+        h: panel.offsetHeight || 320,
         pid: e.pointerId,
+        locked: grab,
       };
-      el.classList.add('ft-sheet--dragging');
-      try {
-        panel.setPointerCapture(e.pointerId);
-      } catch (err) { /* ignore */ }
+      panel.style.transition = 'none';
+      panel.style.touchAction = 'none';
+      if (drag.bd) drag.bd.style.transition = 'none';
+      if (grab) {
+        el.classList.add('ft-sheet--dragging');
+        try { panel.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+      }
     });
 
     panel.addEventListener('pointermove', function (e) {
       if (!drag || drag.el !== el || drag.pid !== e.pointerId) return;
-      var dx = e.clientX - drag.startX;
-      var dy = e.clientY - drag.startY;
-      if (drag.dy === 0 && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 8) {
-        drag = null;
-        el.classList.remove('ft-sheet--dragging');
-        return;
+
+      var sample = e;
+      if (e.getCoalescedEvents) {
+        var coalesced = e.getCoalescedEvents();
+        if (coalesced && coalesced.length) sample = coalesced[coalesced.length - 1];
       }
-      drag.dy = Math.max(0, dy);
-      drag.lastY = e.clientY;
-      drag.lastT = e.timeStamp;
+
+      var dx = sample.clientX - drag.startX;
+      var dy = sample.clientY - drag.startY;
+      var adx = Math.abs(dx);
+      var ady = Math.abs(dy);
+
+      if (!drag.locked) {
+        if (adx < AXIS_SLOP && ady < AXIS_SLOP) return;
+        if (adx > ady) {
+          abortDrag(el);
+          return;
+        }
+        drag.locked = true;
+        drag.startX = sample.clientX;
+        drag.startY = sample.clientY;
+        dy = 0;
+        el.classList.add('ft-sheet--dragging');
+        try { panel.setPointerCapture(drag.pid); } catch (err) { /* ignore */ }
+      }
+
+      if (e.cancelable) e.preventDefault();
+
+      var dt = Math.max(1, sample.timeStamp - drag.lastT);
+      var inst = (sample.clientY - drag.lastY) / dt;
+      drag.vy = drag.vy * 0.65 + inst * 0.35;
+      drag.lastY = sample.clientY;
+      drag.lastT = sample.timeStamp;
+      drag.dy = dy < 0 ? 0 : dy;
+
       if (reducedMotion) return;
-      drag.panel.style.transition = 'none';
-      drag.panel.style.transform = 'translateY(' + drag.dy + 'px)';
+      applyDragY(drag.panel, drag.dy);
       if (drag.bd) {
-        var h = drag.panel.offsetHeight || 1;
-        drag.bd.style.opacity = String(Math.max(0, 1 - drag.dy / h));
+        drag.bd.style.opacity = String(Math.max(0, 1 - drag.dy / drag.h));
       }
-    });
+    }, { passive: false });
+
+    panel.addEventListener('touchmove', function (e) {
+      if (drag && drag.el === el && drag.locked) e.preventDefault();
+    }, { passive: false });
 
     function endDrag(e) {
       if (!drag || drag.el !== el || drag.pid !== e.pointerId) return;
       var d = drag;
       drag = null;
-      el.classList.remove('ft-sheet--dragging');
-      try {
-        panel.releasePointerCapture(e.pointerId);
-      } catch (err) { /* ignore */ }
+      try { panel.releasePointerCapture(e.pointerId); } catch (err) { /* ignore */ }
 
-      var h = d.panel.offsetHeight || 320;
       var dt = Math.max(1, e.timeStamp - d.lastT);
-      var vy = (e.clientY - d.lastY) / dt;
-      var dismiss = d.dy >= h * THRESHOLD || vy > FLICK_V;
+      var inst = (e.clientY - d.lastY) / dt;
+      var vy = d.vy * 0.5 + inst * 0.5;
+      var dismiss = d.locked && (d.dy >= d.h * THRESHOLD || vy > FLICK_V || (d.dy > 36 && vy > 0.08));
 
-      d.panel.style.transition = '';
-      if (d.bd) d.bd.style.opacity = '';
+      el.classList.remove('ft-sheet--dragging');
+      d.panel.style.touchAction = '';
 
       if (dismiss && canClose(el)) {
+        d.panel.style.transition = 'transform 0.22s cubic-bezier(0.32, 0.72, 0, 1)';
+        if (d.bd) d.bd.style.opacity = '0';
         close(el);
         return;
       }
-      if (!reducedMotion) {
-        d.panel.style.transform = 'translateY(0)';
+
+      if (d.bd) d.bd.style.opacity = '';
+      if (reducedMotion || !d.locked) {
+        d.panel.style.transition = '';
+        d.panel.style.transform = '';
+        return;
       }
+      d.panel.style.transition = 'transform ' + SNAP_MS;
+      applyDragY(d.panel, 0);
+      window.setTimeout(function () {
+        if (!isOpen(el)) return;
+        d.panel.style.transition = '';
+        d.panel.style.transform = '';
+      }, 220);
     }
 
     panel.addEventListener('pointerup', endDrag);
